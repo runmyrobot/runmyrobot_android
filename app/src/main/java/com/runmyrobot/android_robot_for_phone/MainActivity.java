@@ -149,28 +149,6 @@ public class MainActivity extends AppCompatActivity {
         long LOCATION_REFRESH_TIME = 0;//1000; // milliseconds
         float LOCATION_REFRESH_DISTANCE = 0;//0.01F; // meters
 
-        /*
-        if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
-
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    LocationService.MY_PERMISSION_ACCESS_COURSE_LOCATION);
-        }
-        */
-
-        /*
-        final int REQUEST_LOCATION = 1;
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mButton.setText("have location permission");
-        } else {
-            mButton.setText("missing permission");
-            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                Toast.makeText(this, "Camera Permission is Needed.",
-                        Toast.LENGTH_SHORT).show();
-            }
-            // request permissions
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-        }
-        */
 
 
         try {
@@ -239,27 +217,6 @@ public class MainActivity extends AppCompatActivity {
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     };
-
-
-    private final SensorEventListener compassListener = new SensorEventListener() {
-
-
-        public void onSensorChanged(SensorEvent se) {
-            Log.i("RobotSensor", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-            JSONObject message = new JSONObject();
-            try {
-                message.put("se0", se.values[0]);
-                Log.i("RobotSensor", "compass: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-                toWebserverSocketMemberVariable.emit("compass", message);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-    };
-
 
 
 
