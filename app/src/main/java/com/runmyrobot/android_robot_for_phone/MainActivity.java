@@ -8,6 +8,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -106,7 +107,9 @@ class CompassListener implements SensorEventListener {
         magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         int periodInMicroseconds = 100000;
+        Log.i("RobotSensor", "registering accelerometer");
         mSensorManager.registerListener(this, accelerometer, periodInMicroseconds, periodInMicroseconds);
+        Log.i("RobotSensor", "registering magnetometer");
         mSensorManager.registerListener(this, magnetometer, periodInMicroseconds, periodInMicroseconds);
 
     }
@@ -116,10 +119,12 @@ class CompassListener implements SensorEventListener {
     float lastCompassBearingSent = 0;
 
     public void onSensorChanged(SensorEvent event) {
+        Log.i("RobotSensor", "accelerometer or magnetic field changed");
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             mGravity = event.values;
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             mGeomagnetic = event.values;
+        Log.i("RobotSensor", "gravity: " + mGravity + "  geomagnetic: " + mGeomagnetic);
         if (mGravity != null && mGeomagnetic != null) {
             float R[] = new float[9];
             float I[] = new float[9];
@@ -129,8 +134,8 @@ class CompassListener implements SensorEventListener {
                 SensorManager.getOrientation(R, orientation);
                 azimut = orientation[0]; // orientation contains: azimut, pitch and roll
                 float compassBearing = azimut*360/(2*3.14159f);
+                Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
                 if (Math.abs(compassBearing - lastCompassBearingSent) > 2) {
-                    //Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
                     lastCompassBearingSent = compassBearing;
                     JSONObject message = new JSONObject();
                     try {
@@ -162,7 +167,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        wakeLock.acquire();
+
         setContentView(R.layout.activity_main);
 
         Button mButton=(Button)findViewById(R.id.button1);
@@ -192,9 +203,11 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i("RobotLocation", "requested location updates");
 
+        //todo: these may not do anything
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
 
+        Log.i("RobotSensor", "creating compass listener");
         compassListener = new CompassListener(toWebServerSocketMemberVariable, this);
 
     }
