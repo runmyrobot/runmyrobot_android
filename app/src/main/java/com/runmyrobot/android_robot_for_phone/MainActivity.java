@@ -37,9 +37,6 @@ import android.content.Context;
 
 
 
-
-
-
 class RobotLocationListener implements LocationListener {
 
     public Socket toWebServerSocket;
@@ -91,22 +88,33 @@ class RobotLocationListener implements LocationListener {
 
 
 
-class CompassListener extends SensorEventListener {
+class CompassListener implements SensorEventListener {
 
     Float azimut;
 
     private SensorManager mSensorManager;
     Sensor accelerometer;
     Sensor magnetometer;
+    Socket toWebServerSocket;
 
-    public CompassListener(activity) {
+    public CompassListener(Socket socket, AppCompatActivity activity) {
 
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        toWebServerSocket = socket;
+
+        mSensorManager = (SensorManager)activity.getSystemService(activity.SENSOR_SERVICE);
+        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        int periodInMicroseconds = 100000;
+        mSensorManager.registerListener(this, accelerometer, periodInMicroseconds, periodInMicroseconds);
+        mSensorManager.registerListener(this, magnetometer, periodInMicroseconds, periodInMicroseconds);
+
     }
 
     float[] mGravity;
     float[] mGeomagnetic;
+    float lastCompassBearingSent = 0;
+
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             mGravity = event.values;
@@ -120,20 +128,36 @@ class CompassListener extends SensorEventListener {
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
                 azimut = orientation[0]; // orientation contains: azimut, pitch and roll
-                Log.i("RobotSensor", "direction: " + azimut*360/(2*3.14159f));
+                float compassBearing = azimut*360/(2*3.14159f);
+                if (Math.abs(compassBearing - lastCompassBearingSent) > 2) {
+                    //Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
+                    lastCompassBearingSent = compassBearing;
+                    JSONObject message = new JSONObject();
+                    try {
+                        message.put("robot_id", "22027911");
+                        message.put("compass_bearing", compassBearing);
+                        toWebServerSocket.emit("compass_bearing", message);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Log.i("RobotSensor", "emitting compass bearing: " + message.toString());
+                }
+
             }
         }
         //mCustomDrawableView.invalidate();
     }
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {  }
 
 }
 
 
 public class MainActivity extends AppCompatActivity {
 
-    Socket toWebserverSocketMemberVariable;
+    Socket toWebServerSocketMemberVariable;
     LocationListener mLocationListener;
-
+    CompassListener compassListener;
 
 
     @Override
@@ -153,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             // 10.0.2.2 is a special address, the computer you are developing on
-            toWebserverSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
+            toWebServerSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
             testSocket();
-            mLocationListener = new RobotLocationListener(toWebserverSocketMemberVariable, this);
+            mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this);
 
 
         } catch (java.net.URISyntaxException name) {
@@ -170,9 +194,8 @@ public class MainActivity extends AppCompatActivity {
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
 
+        compassListener = new CompassListener(toWebServerSocketMemberVariable, this);
 
     }
 
@@ -184,17 +207,16 @@ public class MainActivity extends AppCompatActivity {
         public float lastValue = -10;
         public float threshold = -9;
 
-
-
         public void onSensorChanged(SensorEvent se) {
-            Log.i("RobotSensor", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+            //Log.i("RobotSensor", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
             if ((se.values[0] > threshold) && (lastValue <= threshold)) {
                 JSONObject message = new JSONObject();
                 try {
+                    //todo: lacking robot id in message
                     message.put("status", "tipped_up");
                     message.put("se0", se.values[0]);
                     Log.i("RobotSensor", "robot has tipped up too much: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-                    toWebserverSocketMemberVariable.emit("rotation", message);
+                    toWebServerSocketMemberVariable.emit("rotation", message);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -205,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                     message.put("status", "not_tipped_up");
                     message.put("se0", se.values[0]);
                     Log.i("RobotSensor", "robot is not tipped up anymore: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-                    toWebserverSocketMemberVariable.emit("rotation", message);
+                    toWebServerSocketMemberVariable.emit("rotation", message);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -224,12 +246,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         //mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR), SensorManager.SENSOR_DELAY_NORMAL);
+        //mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR), SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     protected void onPause() {
-        mSensorManager.unregisterListener(mSensorListener);
+        //mSensorManager.unregisterListener(mSensorListener);
         super.onPause();
     }
 
@@ -265,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i("RobotSocket", "test socket io method");
 
-        toWebserverSocketMemberVariable.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        toWebServerSocketMemberVariable.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
 
             @Override
             public void call(Object... args) {
@@ -296,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        toWebserverSocketMemberVariable.connect();
+        toWebServerSocketMemberVariable.connect();
         Log.i("RobotSocket", "called socket connect4");
 
     }
