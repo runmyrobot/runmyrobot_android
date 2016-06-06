@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -36,17 +37,22 @@ import io.socket.emitter.Emitter;
 
 import android.content.Context;
 
+import android.net.wifi.WifiManager;
+
 
 
 class RobotLocationListener implements LocationListener {
 
     public Socket toWebServerSocket;
     public AppCompatActivity applicationActivity;
+    public String robotID;
 
-    public RobotLocationListener(Socket socket, AppCompatActivity activity) {
+    public RobotLocationListener(Socket socket, AppCompatActivity activity, String robotIDParameter) {
         toWebServerSocket = socket;
         applicationActivity = activity;
+        robotID = robotIDParameter;
     }
+
 
     @Override
     public void onLocationChanged(final Location location) {
@@ -58,7 +64,7 @@ class RobotLocationListener implements LocationListener {
         Log.i("toWebServerSocket", toWebServerSocket.toString());
         JSONObject locationMessage = new JSONObject();
         try {
-            locationMessage.put("robot_id", "22027911");
+            locationMessage.put("robot_id", robotID);
             locationMessage.put("latitude", location.getLatitude());
             locationMessage.put("longitude", location.getLongitude());
             if (location.hasBearing())
@@ -97,10 +103,13 @@ class CompassListener implements SensorEventListener {
     Sensor accelerometer;
     Sensor magnetometer;
     Socket toWebServerSocket;
+    String robotID;
 
-    public CompassListener(Socket socket, AppCompatActivity activity) {
+
+    public CompassListener(Socket socket, AppCompatActivity activity, String robotIDParameter) {
 
         toWebServerSocket = socket;
+        robotID = robotIDParameter;
 
         mSensorManager = (SensorManager)activity.getSystemService(activity.SENSOR_SERVICE);
         accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -119,12 +128,12 @@ class CompassListener implements SensorEventListener {
     float lastCompassBearingSent = 0;
 
     public void onSensorChanged(SensorEvent event) {
-        Log.i("RobotSensor", "accelerometer or magnetic field changed");
+        //Log.i("RobotSensor", "accelerometer or magnetic field changed");
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             mGravity = event.values;
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             mGeomagnetic = event.values;
-        Log.i("RobotSensor", "gravity: " + mGravity + "  geomagnetic: " + mGeomagnetic);
+        //Log.i("RobotSensor", "gravity: " + mGravity + "  geomagnetic: " + mGeomagnetic);
         if (mGravity != null && mGeomagnetic != null) {
             float R[] = new float[9];
             float I[] = new float[9];
@@ -133,13 +142,14 @@ class CompassListener implements SensorEventListener {
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
                 azimut = orientation[0]; // orientation contains: azimut, pitch and roll
-                float compassBearing = azimut*360/(2*3.14159f);
-                Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
-                if (Math.abs(compassBearing - lastCompassBearingSent) > 2) {
+                float offset = 90f;
+                float compassBearing = (azimut*360/(2*3.14159f)) + offset;
+                //Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
+                if (Math.abs(compassBearing - lastCompassBearingSent) > 6) {
                     lastCompassBearingSent = compassBearing;
                     JSONObject message = new JSONObject();
                     try {
-                        message.put("robot_id", "22027911");
+                        message.put("robot_id", robotID);
                         message.put("compass_bearing", compassBearing);
                         toWebServerSocket.emit("compass_bearing", message);
                     } catch (JSONException e) {
@@ -163,6 +173,8 @@ public class MainActivity extends AppCompatActivity {
     Socket toWebServerSocketMemberVariable;
     LocationListener mLocationListener;
     CompassListener compassListener;
+    //String robotID = "22027911";
+    String robotID = "88359766";
 
 
     @Override
@@ -170,18 +182,43 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
+
+        boolean wifiEnabled = wifiManager.isWifiEnabled();
+
+
+        /*
         PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
-        wakeLock.acquire();
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
+                PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        //PowerManager.WakeLock wakeLock = pm.newWakeLock((
+        //        PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        Log.i("RobotWake", "acquiring wake lock");
+        wakeLock.acquire(600000); //todo: using number until find way to make it turn on forever, just leaving out the number does not seem to work
+        */
+
+        /* This code together with the one in onDestroy()
+         * will make the screen be always on until this Activity gets destroyed. */
+        /*
+        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        this.mWakeLock.acquire();
+        */
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_main);
 
         Button mButton=(Button)findViewById(R.id.button1);
-        mButton.setText("number4");
+        mButton.setText("wifi at startup:" + wifiEnabled + " robot id: " + robotID);
+
+
 
         LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        long LOCATION_REFRESH_TIME = 0;//1000; // milliseconds
+        long LOCATION_REFRESH_TIME = 100; // milliseconds
         float LOCATION_REFRESH_DISTANCE = 0;//0.01F; // meters
 
 
@@ -190,12 +227,13 @@ public class MainActivity extends AppCompatActivity {
             // 10.0.2.2 is a special address, the computer you are developing on
             toWebServerSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
             testSocket();
-            mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this);
+            mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this, robotID);
 
 
         } catch (java.net.URISyntaxException name) {
             // print error message here
             Log.e("RobotSocket", "uri syntax exception");
+            mButton.setText("uri syntax exception");
         }
 
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
@@ -208,45 +246,87 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
 
         Log.i("RobotSensor", "creating compass listener");
-        compassListener = new CompassListener(toWebServerSocketMemberVariable, this);
+        compassListener = new CompassListener(toWebServerSocketMemberVariable, this, robotID);
 
     }
 
 
     private SensorManager mSensorManager;
 
+    // rotation handler
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 
+        /*
+        public int sensorIndex = 0;
         public float lastValue = -10;
         public float threshold = -9;
+        */
+
+        public int sensorIndex = 0;
+        public float lastValue = 0;
+        public float threshold = 2.5f;
+        public float lowerThreshold = -0.9f;
+        public float lastReportedValue = -100;
+        public float minimumChange = 0.7f;
+
 
         public void onSensorChanged(SensorEvent se) {
             //Log.i("RobotSensor", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-            if ((se.values[0] > threshold) && (lastValue <= threshold)) {
+            //if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > 0.2) &&(se.values[sensorIndex] > threshold) && (lastValue <= threshold)) {
+            if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > minimumChange) &&(se.values[sensorIndex] > threshold)) {
                 JSONObject message = new JSONObject();
                 try {
-                    //todo: lacking robot id in message
+                    message.put("robot_id", robotID);
                     message.put("status", "tipped_up");
                     message.put("se0", se.values[0]);
-                    Log.i("RobotSensor", "robot has tipped up too much: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+                    message.put("se1", se.values[1]);
+                    message.put("se2", se.values[2]);
+                    //Log.i("RobotSensor", "robot has tipped up too much: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+                    Log.i("RobotSensor", message.toString());
                     toWebServerSocketMemberVariable.emit("rotation", message);
+                    lastReportedValue = se.values[sensorIndex];
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
-            if ((se.values[0] < threshold) && (lastValue >= threshold)) {
+            //if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > minimumChange) &&(se.values[sensorIndex] < lowerThreshold) && (lastValue >= lowerThreshold)) {
+            if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > minimumChange) &&(se.values[sensorIndex] < lowerThreshold)) {
                 JSONObject message = new JSONObject();
                 try {
-                    message.put("status", "not_tipped_up");
+                    message.put("robot_id", robotID);
+                    message.put("status", "tipped_down");
                     message.put("se0", se.values[0]);
-                    Log.i("RobotSensor", "robot is not tipped up anymore: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+                    message.put("se1", se.values[1]);
+                    message.put("se2", se.values[2]);
+                    //Log.i("RobotSensor", "robot has tipped down too much: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+                    Log.i("RobotSensor", message.toString());
                     toWebServerSocketMemberVariable.emit("rotation", message);
+                    lastReportedValue = se.values[sensorIndex];
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            //if ((se.values[sensorIndex] < threshold) && (lastValue >= threshold)) {
+            //if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > 0.2) && (se.values[sensorIndex] > lowerThreshold) && (se.values[sensorIndex] < threshold)) {
+            if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > minimumChange) && (se.values[sensorIndex] > lowerThreshold)) {
+                JSONObject message = new JSONObject();
+                try {
+                    Log.i("RobotSensor", "*****************************************");
+                    message.put("robot_id", robotID);
+                    message.put("status", "not_tipped_up"); //todo: call this something like "ok"
+                    message.put("se0", se.values[0]);
+                    message.put("se1", se.values[1]);
+                    message.put("se2", se.values[2]);
+                    //Log.i("RobotSensor", "robot is not tipped up anymore: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+                    Log.i("RobotSensor", message.toString());
+                    toWebServerSocketMemberVariable.emit("rotation", message);
+                    lastReportedValue = se.values[sensorIndex];
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
 
-            lastValue = se.values[0];
+            lastValue = se.values[sensorIndex];
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -300,11 +380,14 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i("RobotSocket", "test socket io method");
 
+        //final Button mButton=(Button)findViewById(R.id.button1);
+
         toWebServerSocketMemberVariable.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
 
             @Override
             public void call(Object... args) {
-                Log.i("RobotSocket", "connection error: " + args.length + " " + args[0].toString());
+                Log.e("RobotSocket", "connection error: " + args.length + " " + args[0].toString());
+                //mButton.setText("connection error: " + args.length + " " + args[0].toString());
             }
 
         }).on(Socket.EVENT_CONNECT, new Emitter.Listener() {
