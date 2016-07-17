@@ -8,6 +8,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,6 +42,13 @@ import android.content.Context;
 
 import android.net.wifi.WifiManager;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 class RobotLocationListener implements LocationListener {
@@ -173,8 +183,9 @@ public class MainActivity extends AppCompatActivity {
     Socket toWebServerSocketMemberVariable;
     LocationListener mLocationListener;
     CompassListener compassListener;
-    //String robotID = "22027911";
-    String robotID = "88359766";
+    //String robotID = "22027911"; // zip
+    String robotID = "88359766"; // skippy
+    AudioHandler audioHandler;
 
 
     @Override
@@ -182,9 +193,11 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        audioHandler = new AudioHandler();
+        audioHandler.start();
 
         WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
+        //wifiManager.setWifiEnabled(true);
 
         boolean wifiEnabled = wifiManager.isWifiEnabled();
 
@@ -432,3 +445,170 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 */
+
+
+
+class Global {
+    public static boolean started = false;
+}
+
+
+
+
+class AudioHandler {
+
+
+    private int port = 51005; // dev
+    //private int port = 50005; // prod
+
+
+    //private String destinationInternetAddress = "192.168.1.3"; // windows machine
+    private String destinationInternetAddress = "runmyrobot.com"; // dev server
+
+    private Button startButton,stopButton;
+
+    public byte[] buffer;
+    public static DatagramSocket socket;
+
+    AudioRecord recorder;
+
+    private int sampleRate = 16000 ; // 44100 for music
+    private int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
+    private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+    //private int audioFormat = AudioFormat.ENCODING_PCM_8BIT;
+    int minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+    //int minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat) * 10;
+    //int minBufSize = 2048*64;
+    private boolean status = true;
+
+
+    public void start() {
+
+        Log.i("Audio", "minBufSize: " + minBufSize);
+
+        if (!Global.started) {
+            status = true;
+            startStreaming();
+            Global.started = true;
+        }
+
+    }
+
+
+    public static short[] toShorts(byte[] bytes, ByteOrder byteOrder) {
+        short[] out = new short[bytes.length / 2]; // will drop last byte if odd number
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        bb.order(byteOrder);
+        for (int i = 0; i < out.length; i++) {
+            out[i] = bb.getShort();
+        }
+        return out;
+    }
+
+
+    public void startStreaming() {
+
+        Thread streamThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+
+                    DatagramSocket socket = new DatagramSocket();
+                    Log.d("Audio", "Socket Created");
+
+                    byte[] buffer = new byte[minBufSize];
+
+                    short[] buffer2 = new short[minBufSize];
+
+
+                    Log.d("Audio","Buffer created of size " + minBufSize);
+                    DatagramPacket packet;
+
+                    final InetAddress destination = InetAddress.getByName(destinationInternetAddress);
+                    Log.d("Audio", "Address retrieved: " + destination.toString());
+
+                    Log.d("Audio", "Port: " + port);
+
+
+                    recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,sampleRate,channelConfig,audioFormat,minBufSize*10);
+                    //recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,sampleRate,channelConfig,audioFormat,10);
+                    Log.d("Audio", "Recorder initialized");
+
+                    recorder.startRecording();
+
+                    int count = 0;
+
+                    while(status == true) {
+
+                        Log.i("Audio", "------------------------------");
+
+                        //reading data from MIC into buffer
+                        minBufSize = recorder.read(buffer, 0, buffer.length);
+
+                        //minBufSize = recorder.read(buffer2, 0, buffer.length);
+
+                        //todo: this will definitely mess up the sound but i'm using it to debug right now
+                        //buffer[0] = (byte)count;
+                        //buffer[1] = 0;
+
+                        //putting buffer in the packet
+                        packet = new DatagramPacket (buffer, buffer.length, destination, port);
+
+                        String message = "";
+                        for (int index=0; index<50; index++) {
+                            byte b2 = buffer[index];
+                            //http://stackoverflow.com/questions/12310017/how-to-convert-a-byte-to-its-binary-string-representation
+                            String s2 = String.format("%8s", Integer.toBinaryString(b2 & 0xFF));
+                            message += s2;
+                            message += " ";
+                        }
+                        Log.i("Audio", "binary: " + message + "...");
+
+
+                        short[] shorts = toShorts(buffer, ByteOrder.LITTLE_ENDIAN);
+                        //short[] shorts = buffer2;
+                        String message1 = "";
+                        for (int index=0; index<50; index++) {
+                            message1 += shorts[index];
+                            message1 += " ";
+                        }
+
+
+                        short[] shortsBig = toShorts(buffer, ByteOrder.BIG_ENDIAN);
+                        String messageBig = "";
+                        for (int index=0; index<50; index++) {
+                            messageBig += shortsBig[index];
+                            messageBig += " ";
+                        }
+
+                        Log.i("Audio", "little endian: " + message1 + "..."); // looks more correct
+                        Log.i("Audio", "big endian: " + messageBig + "...");
+                        //Log.i("Audio", "length: " + buffer.length);
+
+                        socket.send(packet);
+                        //System.out.println("MinBufferSize: " +minBufSize);
+
+                        count++;
+
+                    }
+
+
+
+                } catch(UnknownHostException e) {
+                    Log.e("Audio", "UnknownHostException");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("Audio", "IOException");
+                }
+            }
+
+        });
+        streamThread.start();
+    }
+}
+
+
+
+
+
