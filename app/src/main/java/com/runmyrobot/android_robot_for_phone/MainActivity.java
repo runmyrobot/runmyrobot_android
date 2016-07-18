@@ -1,3 +1,5 @@
+// port for audio and robot id must be set by hand (hardcoded) in this file
+
 
 // code to make android compass:
 // http://www.codingforandroid.com/2011/01/using-orientation-sensors-simple.html
@@ -12,6 +14,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -49,6 +52,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.Locale;
 
 
 class RobotLocationListener implements LocationListener {
@@ -186,14 +191,22 @@ public class MainActivity extends AppCompatActivity {
     //String robotID = "22027911"; // zip
     String robotID = "88359766"; // skippy
     AudioHandler audioHandler;
-
+    TextToSpeech ttobj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
 
-        audioHandler = new AudioHandler();
+        ttobj = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+            }
+        }
+        );
+
+
+        audioHandler = new AudioHandler(robotID);
         audioHandler.start();
 
         WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
@@ -225,7 +238,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button mButton=(Button)findViewById(R.id.button1);
-        mButton.setText("wifi at startup:" + wifiEnabled + " robot id: " + robotID);
+        mButton.setText("wifi_at_startup:" + wifiEnabled +
+                        " robot_id:" + robotID +
+                        " audio_port:" + AudioHandler.port);
 
 
 
@@ -235,31 +250,36 @@ public class MainActivity extends AppCompatActivity {
         float LOCATION_REFRESH_DISTANCE = 0;//0.01F; // meters
 
 
+        if (!Global.socketListeningInitialized) {
+            try {
+                // 10.0.2.2 is a special address, the computer you are developing on
+                toWebServerSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
+                testSocket();
+                mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this, robotID);
 
-        try {
-            // 10.0.2.2 is a special address, the computer you are developing on
-            toWebServerSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
-            testSocket();
-            mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this, robotID);
+
+            } catch (java.net.URISyntaxException name) {
+                // print error message here
+                Log.e("RobotSocket", "uri syntax exception");
+                mButton.setText("uri syntax exception");
+            }
 
 
-        } catch (java.net.URISyntaxException name) {
-            // print error message here
-            Log.e("RobotSocket", "uri syntax exception");
-            mButton.setText("uri syntax exception");
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                    LOCATION_REFRESH_DISTANCE, mLocationListener);
+
+            Log.i("RobotLocation", "requested location updates");
+
+            //todo: these may not do anything
+            mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+
+            Log.i("RobotSensor", "creating compass listener");
+            compassListener = new CompassListener(toWebServerSocketMemberVariable, this, robotID);
+            Global.socketListeningInitialized = true;
+        } else {
+            Log.i("Robot", "already initialized");
         }
-
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
-                LOCATION_REFRESH_DISTANCE, mLocationListener);
-
-        Log.i("RobotLocation", "requested location updates");
-
-        //todo: these may not do anything
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-
-        Log.i("RobotSensor", "creating compass listener");
-        compassListener = new CompassListener(toWebServerSocketMemberVariable, this, robotID);
 
     }
 
@@ -418,6 +438,23 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("RobotSocket", "on event");
             }
 
+        }).on("chat_message_with_name", new Emitter.Listener() {
+
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject)args[0];
+                try {
+                    //Log.i("RobotSocket", "chat message with name " + obj + " " + obj.get("name") + " " + args[0].getClass().getName() + " " + this.toString());
+                    // uses all but the first word (which is the name of the robot)
+                    String message = ((String)obj.get("message")).split(" ", 2)[1];
+                    Log.i("RobotSocket", "chat message: " + message);
+                    //ttobj.setLanguage(Locale.UK);
+                    ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
+                } catch (JSONException e) {
+                    Log.e("RobotSocket", "JSON Exception: " + e.toString());
+                }
+            }
+
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
 
             @Override
@@ -450,6 +487,8 @@ public class MainActivity extends AppCompatActivity {
 
 class Global {
     public static boolean started = false;
+    //public static boolean speechInitialized = false;
+    public static boolean socketListeningInitialized = false;
 }
 
 
@@ -458,8 +497,8 @@ class Global {
 class AudioHandler {
 
 
-    private int port = 51005; // dev
-    //private int port = 50005; // prod
+    //public static int port = 51005; // dev
+    public static int port = 50005; // prod
 
 
     //private String destinationInternetAddress = "192.168.1.3"; // windows machine
@@ -481,6 +520,12 @@ class AudioHandler {
     //int minBufSize = 2048*64;
     private boolean status = true;
 
+    private String robotID;
+
+
+    AudioHandler(String robotIDParameter) {
+        robotID = robotIDParameter;
+    }
 
     public void start() {
 
@@ -503,6 +548,14 @@ class AudioHandler {
             out[i] = bb.getShort();
         }
         return out;
+    }
+
+
+    public static byte[] concatByteArrays(byte a[], byte b[]) {
+        byte[] c = new byte[a.length + b.length];
+        System.arraycopy(a, 0, c, 0, a.length);
+        System.arraycopy(b, 0, c, a.length, b.length);
+        return c;
     }
 
 
@@ -541,7 +594,7 @@ class AudioHandler {
 
                     while(status == true) {
 
-                        Log.i("Audio", "------------------------------");
+                        //Log.i("Audio", "------------------------------");
 
                         //reading data from MIC into buffer
                         minBufSize = recorder.read(buffer, 0, buffer.length);
@@ -552,8 +605,17 @@ class AudioHandler {
                         //buffer[0] = (byte)count;
                         //buffer[1] = 0;
 
-                        //putting buffer in the packet
-                        packet = new DatagramPacket (buffer, buffer.length, destination, port);
+                        // create a packet that has the robot id and the audio data
+                        int robotIDChunkSize = 64;
+                        byte[] robotIDChunk = new byte[robotIDChunkSize];
+                        // copy robot id into the chunk
+                        byte[] robotIDInBytes = robotID.getBytes("UTF-8");
+                        for (int k=0; k<robotIDInBytes.length; k++)
+                            robotIDChunk[k] = robotIDInBytes[k];
+                        byte[] fullBuffer = concatByteArrays(robotIDChunk, buffer);
+
+                        //putting full buffer in the packet
+                        packet = new DatagramPacket(fullBuffer, fullBuffer.length, destination, port);
 
                         String message = "";
                         for (int index=0; index<50; index++) {
@@ -563,7 +625,7 @@ class AudioHandler {
                             message += s2;
                             message += " ";
                         }
-                        Log.i("Audio", "binary: " + message + "...");
+                        //Log.i("Audio", "binary: " + message + "...");
 
 
                         short[] shorts = toShorts(buffer, ByteOrder.LITTLE_ENDIAN);
@@ -582,8 +644,8 @@ class AudioHandler {
                             messageBig += " ";
                         }
 
-                        Log.i("Audio", "little endian: " + message1 + "..."); // looks more correct
-                        Log.i("Audio", "big endian: " + messageBig + "...");
+                        //Log.i("Audio", "little endian: " + message1 + "..."); // looks more correct
+                        //Log.i("Audio", "big endian: " + messageBig + "...");
                         //Log.i("Audio", "length: " + buffer.length);
 
                         socket.send(packet);
