@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.PowerManager;
@@ -450,6 +451,14 @@ public class MainActivity extends AppCompatActivity {
                     // uses all but the first word (which is the name of the robot)
                     String message = ((String)obj.get("message")).split(" ", 2)[1];
                     Log.i("RobotSocket", "chat message: " + message);
+
+
+
+                    AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                    int amStreamMusicMaxVol = am.getStreamMaxVolume(am.STREAM_MUSIC);
+                    am.setStreamVolume(am.STREAM_MUSIC, amStreamMusicMaxVol, 1);
+
+
                     //ttobj.setLanguage(Locale.UK);
                     ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
                 } catch (JSONException e) {
