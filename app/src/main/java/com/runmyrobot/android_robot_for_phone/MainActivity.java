@@ -452,7 +452,6 @@ public class MainActivity extends AppCompatActivity {
                     String message = ((String)obj.get("message")).split(" ", 2)[1];
                     Log.i("RobotSocket", "chat message: " + message);
 
-
                     //ttobj.setLanguage(Locale.UK);
                     ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
                 } catch (JSONException e) {
