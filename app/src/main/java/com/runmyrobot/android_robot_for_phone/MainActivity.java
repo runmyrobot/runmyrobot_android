@@ -191,8 +191,8 @@ public class MainActivity extends AppCompatActivity {
     CompassListener compassListener;
     //String robotID = "22027911"; // zip
     //String robotID = "88359766"; // skippy
-    //String robotID = "3444925"; // timmy
-    String robotID = "52225122"; // pippy
+    String robotID = "3444925"; // timmy
+    //String robotID = "52225122"; // pippy
     AudioHandler audioHandler;
     TextToSpeech ttobj;
 
@@ -307,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         public void onSensorChanged(SensorEvent se) {
-            //Log.i("RobotSensor", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
+            //Log.i("RobotRotation", "rotation sensor changed " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
             //if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > 0.2) &&(se.values[sensorIndex] > threshold) && (lastValue <= threshold)) {
             if ((Math.abs(lastReportedValue - se.values[sensorIndex]) > minimumChange) &&(se.values[sensorIndex] > threshold)) {
                 JSONObject message = new JSONObject();
@@ -318,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                     message.put("se1", se.values[1]);
                     message.put("se2", se.values[2]);
                     //Log.i("RobotSensor", "robot has tipped up too much: " + se.values[0] + " " + se.values[1] + " " + se.values[2]);
-                    Log.i("RobotSensor", message.toString());
+                    Log.i("RobotRotation", message.toString());
                     toWebServerSocketMemberVariable.emit("rotation", message);
                     lastReportedValue = se.values[sensorIndex];
                 } catch (JSONException e) {
