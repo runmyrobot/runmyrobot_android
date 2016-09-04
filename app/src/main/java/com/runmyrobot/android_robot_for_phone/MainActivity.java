@@ -11,29 +11,18 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.PowerManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,6 +34,7 @@ import io.socket.emitter.Emitter;
 import android.content.Context;
 
 import android.net.wifi.WifiManager;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -53,8 +43,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.Locale;
 
 
 class RobotLocationListener implements LocationListener {
@@ -257,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // 10.0.2.2 is a special address, the computer you are developing on
                 toWebServerSocketMemberVariable = IO.socket("http://runmyrobot.com:8022");
-                testSocket();
+                chatSocket();
                 mLocationListener = new RobotLocationListener(toWebServerSocketMemberVariable, this, robotID);
 
 
@@ -385,34 +373,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-    */
-
-    /*
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-    */
-
-
-    void testSocket() {
+    void chatSocket() {
 
         Log.i("RobotSocket", "test socket io method");
 
@@ -454,6 +415,13 @@ public class MainActivity extends AppCompatActivity {
 
                     //ttobj.setLanguage(Locale.UK);
                     ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
+                    runOnUiThread(new ChatRunnable(message) {
+                        @Override
+                        public void run() {
+                            TextView textView = (TextView)findViewById(R.id.textView);
+                            textView.setText(this.message);
+                        }
+                    });
                 } catch (JSONException e) {
                     Log.e("RobotSocket", "JSON Exception: " + e.toString());
                 }
