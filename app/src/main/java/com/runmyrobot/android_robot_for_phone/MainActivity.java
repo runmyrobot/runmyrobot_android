@@ -179,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
     CompassListener compassListener;
     //String robotID = "22027911"; // zip
     //String robotID = "88359766"; // skippy
-    String robotID = "3444925"; // timmy
-    //String robotID = "52225122"; // pippy
+    //String robotID = "3444925"; // timmy
+    String robotID = "52225122"; // pippy
     AudioHandler audioHandler;
     TextToSpeech ttobj;
 
