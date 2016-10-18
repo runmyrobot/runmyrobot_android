@@ -177,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
     Socket toWebServerSocketMemberVariable;
     LocationListener mLocationListener;
     CompassListener compassListener;
-    //String robotID = "22027911"; // zip
+    String robotID = "22027911"; // zip
     //String robotID = "88359766"; // skippy
-    String robotID = "3444925"; // timmy
+    //String robotID = "3444925"; // timmy
     //String robotID = "52225122"; // pippy
     AudioHandler audioHandler;
     TextToSpeech ttobj;
@@ -393,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
             public void call(Object... args) {
                 Log.i("RobotSocket", "connected to the webserver");
                 //socket.disconnect();
+                toWebServerSocketMemberVariable.emit("identify_robot_id", robotID);
             }
 
         }).on("event", new Emitter.Listener() {
