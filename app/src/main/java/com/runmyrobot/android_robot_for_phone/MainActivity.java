@@ -177,10 +177,11 @@ public class MainActivity extends AppCompatActivity {
     Socket toWebServerSocketMemberVariable;
     LocationListener mLocationListener;
     CompassListener compassListener;
-    String robotID = "22027911"; // zip
+    //String robotID = "22027911"; // zip
     //String robotID = "88359766"; // skippy
     //String robotID = "3444925"; // timmy
     //String robotID = "52225122"; // pippy
+    String robotID = "19359999"; // mikey
     AudioHandler audioHandler;
     TextToSpeech ttobj;
 
