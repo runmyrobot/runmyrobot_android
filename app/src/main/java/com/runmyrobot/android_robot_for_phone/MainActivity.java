@@ -78,8 +78,8 @@ class RobotLocationListener implements LocationListener {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        toWebServerSocket.emit("current_location", locationMessage);
-        Log.i("RobotListener", "finished emitting message" + locationMessage.toString());
+        //toWebServerSocket.emit("current_location", locationMessage);
+        //Log.i("RobotListener", "finished emitting message" + locationMessage.toString());
     }
 
 
@@ -181,8 +181,8 @@ public class MainActivity extends AppCompatActivity {
     //String robotID = "88359766"; // Skippy
     //String robotID = "3444925"; // Timmy
     //String robotID = "52225122"; // Pippy
-    //String robotID = "19359999"; // Mikey
-    String robotID = "48853711"; // Marvin
+    String robotID = "19359999"; // Mikey
+    //String robotID = "48853711"; // Marvin
     AudioHandler audioHandler;
     TextToSpeech ttobj;
 
