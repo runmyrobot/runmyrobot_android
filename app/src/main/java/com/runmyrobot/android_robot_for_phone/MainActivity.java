@@ -413,7 +413,11 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     //Log.i("RobotSocket", "chat message with name " + obj + " " + obj.get("name") + " " + args[0].getClass().getName() + " " + this.toString());
                     // uses all but the first word (which is the name of the robot)
-                    String message = ((String)obj.get("message")).split(" ", 2)[1];
+                    String[] splitString = ((String)obj.get("message")).split(" ", 2);
+                    String message = "";
+                    if (splitString.length > 1) {
+                        message = splitString[1];
+                    }
                     Log.i("RobotSocket", "chat message: " + message);
 
                     //ttobj.setLanguage(Locale.UK);
