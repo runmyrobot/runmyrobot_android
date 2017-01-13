@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.speech.tts.TextToSpeech;
@@ -178,11 +179,17 @@ public class MainActivity extends AppCompatActivity {
     LocationListener mLocationListener;
     CompassListener compassListener;
     //String robotID = "22027911"; // Zip
-    //String robotID = "88359766"; // Skippy
+    //String robotID = "88359766"; // Skippy_old
     //String robotID = "3444925"; // Timmy
     //String robotID = "52225122"; // Pippy
-    String robotID = "19359999"; // Mikey
+    //String robotID = "19359999"; // Mikey
+    //String robotID = "72378514"; // Skippy
     //String robotID = "48853711"; // Marvin
+    //String robotID = "11467183"; // Pam
+    //String robotID = "60484851"; // Jenny
+    String robotID = "65553815"; // BlueberrySurprise
+
+
     AudioHandler audioHandler;
     TextToSpeech ttobj;
 
@@ -374,6 +381,14 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    protected int stringToHash(String s, int max) {
+        int hash = 7;
+        for (int i = 0; i < s.length(); i++) {
+            hash = hash * 31 + s.charAt(i);
+        }
+        Log.i("Hash", "hash: " + hash);
+        return Math.abs(hash) % max;
+    }
 
     void chatSocket() {
 
@@ -419,8 +434,28 @@ public class MainActivity extends AppCompatActivity {
                         message = splitString[1];
                     }
                     Log.i("RobotSocket", "chat message: " + message);
-
+                    String name = (String)obj.get("name");
+                    //Object[] voices = ttobj.getVoices().toArray();
+                    //Log.i("RobotVoices", "voices: " + voices);
+                    //ttobj.setVoice((android.speech.tts.Voice)voices[stringToHash(name, voices.length)]);
                     //ttobj.setLanguage(Locale.UK);
+
+
+                    // set volume based on time of day
+                    AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                    int amStreamMusicMaxVol = am.getStreamMaxVolume(am.STREAM_MUSIC);
+                    java.util.Calendar rightNow = java.util.Calendar.getInstance();
+                    int hour = rightNow.get(java.util.Calendar.HOUR_OF_DAY);
+                    Log.i("Now", "" + hour);
+                    int volume = amStreamMusicMaxVol;
+                    if (hour >= 22 || hour <= 9) {
+                        volume = (int)(amStreamMusicMaxVol * 0.35);
+                    } else {
+                        volume = (int)(amStreamMusicMaxVol * 0.9);
+                    }
+                    am.setStreamVolume(am.STREAM_MUSIC, volume, 0);
+
+
                     ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
                     runOnUiThread(new ChatRunnable(message) {
                         @Override
@@ -475,10 +510,8 @@ class Global {
 
 class AudioHandler {
 
-
     //public static int port = 51005; // dev
     public static int port = 50005; // prod
-
 
     //private String destinationInternetAddress = "192.168.1.3"; // windows machine
     private String destinationInternetAddress = "runmyrobot.com"; // dev server
