@@ -187,7 +187,9 @@ public class MainActivity extends AppCompatActivity {
     //String robotID = "48853711"; // Marvin
     //String robotID = "11467183"; // Pam
     //String robotID = "60484851"; // Jenny
-    String robotID = "65553815"; // BlueberrySurprise
+    //String robotID = "65553815"; // BlueberrySurprise
+    //String robotID = "59376173"; // BumbleBee
+    String robotID = "35238413"; // Zeus
 
 
     AudioHandler audioHandler;
@@ -449,9 +451,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Now", "" + hour);
                     int volume = amStreamMusicMaxVol;
                     if (hour >= 22 || hour <= 9) {
-                        volume = (int)(amStreamMusicMaxVol * 0.35);
+                        volume = (int)(amStreamMusicMaxVol * 0.65);
                     } else {
-                        volume = (int)(amStreamMusicMaxVol * 0.9);
+                        volume = (int)(amStreamMusicMaxVol * 1.0);
                     }
                     am.setStreamVolume(am.STREAM_MUSIC, volume, 0);
 
@@ -510,11 +512,13 @@ class Global {
 
 class AudioHandler {
 
-    //public static int port = 51005; // dev
     public static int port = 50005; // prod
+    //public static int port = 51005; // dev
+    //public static int port = 51006; // dev2
 
-    //private String destinationInternetAddress = "192.168.1.3"; // windows machine
-    private String destinationInternetAddress = "runmyrobot.com"; // dev server
+    //private String destinationInternetAddress = "192.168.1.3"; // old windows machine
+    //private String destinationInternetAddress = "runmyrobot.com"; // old server
+    private String destinationInternetAddress = "audio.runmyrobot.com"; // audio server
 
     private Button startButton,stopButton;
 
@@ -523,7 +527,7 @@ class AudioHandler {
 
     AudioRecord recorder;
 
-    private int sampleRate = 16000 ; // 44100 for music
+    private int sampleRate = 16000; // 44100 for music
     private int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     //private int audioFormat = AudioFormat.ENCODING_PCM_8BIT;
@@ -617,13 +621,25 @@ class AudioHandler {
                         //buffer[0] = (byte)count;
                         //buffer[1] = 0;
 
-                        // create a packet that has the robot id and the audio data
+                        // create a packet that has the robot id, sample number, and audio data
+
+                        // put id into header chunk
                         int robotIDChunkSize = 64;
                         byte[] robotIDChunk = new byte[robotIDChunkSize];
                         // copy robot id into the chunk
                         byte[] robotIDInBytes = robotID.getBytes("UTF-8");
+
                         for (int k=0; k<robotIDInBytes.length; k++)
                             robotIDChunk[k] = robotIDInBytes[k];
+
+                        // put sample number into header chunk
+                        //String countString = "" + count % 1000;
+                        //byte[] countStringBytes = countString.getBytes();
+                        //int countStringOffset = 55;
+                        //for (int k=0; k<countString.length(); k++)
+                        //    robotIDChunk[k + countStringOffset] = countStringBytes[k];
+                        robotIDChunk[55] = (byte)(count % 200);
+
                         byte[] fullBuffer = concatByteArrays(robotIDChunk, buffer);
 
                         //putting full buffer in the packet
