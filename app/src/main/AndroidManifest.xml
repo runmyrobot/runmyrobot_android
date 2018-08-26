@@ -24,11 +24,30 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".api.Core" />
         <service
             android:name=".api.MyService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false"/>
+
+        <service
+            android:name=".control.UsbService"
+            android:enabled="true"
+            android:permission="">
+        </service>
+        <activity
+            android:name=".activities.UsbInterceptor"
+            android:label="YOUR APPLICATION NAME - This appears in the permission popup"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity="com.example.taskAffinityUsbEventReceiver"
+            android:process=":UsbEventReceiverActivityProcess"
+            android:exported="false"
+            >
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/usb_device_filter" />
+        </activity>
     </application>
 
 </manifest>
