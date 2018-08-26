@@ -11,6 +11,7 @@ import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Locale;
@@ -20,6 +21,10 @@ import java.util.logging.Level;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Handles robot control Socket IO messages and broadcasts them through ControllerMessageManager
@@ -40,8 +45,26 @@ public class RobotControllerComponent implements Emitter.Listener {
         java.util.logging.Logger.getLogger(IO.class.getName()).setLevel(Level.FINEST);
         this.robotId = robotId;
         this.context = applicationContext;
+        String host = null;
+        String port = null;
+        OkHttpClient client = new OkHttpClient();
+        Call call = client.newCall(new Request.Builder().url(String.format("https://letsrobot.tv/get_control_host_port/%s", robotId)).build());
         try {
-            mSocket = IO.socket("http://runmyrobot.com:8022");
+            Response response = call.execute();
+            if (response.body() != null) {
+                JSONObject object = new JSONObject(response.body().string());
+                Log.d("ROBOT", object.toString());
+                host = object.getString("host");
+                port = object.getString("port");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            String url = String.format("http://%s:%s", host, port);
+            mSocket = IO.socket(url);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
