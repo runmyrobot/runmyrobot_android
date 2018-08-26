@@ -24,13 +24,13 @@ public class CoreAndroidTest {
         Core.Builder builder = new Core.Builder(InstrumentationRegistry.getTargetContext());
         builder.robotId = "58853258";
         core = builder.build();
-        core.enable();
+        Assert.assertTrue(core.enable());
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            latch.await(100, TimeUnit.SECONDS);
+            latch.await(1000, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        core.disable();
+        Assert.assertTrue(core.disable());
     }
 }

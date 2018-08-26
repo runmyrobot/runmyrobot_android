@@ -1,6 +1,8 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
@@ -32,6 +34,7 @@ public class RobotControllerComponent implements Emitter.Listener {
     private String robotId;
     private Socket mSocket;
     private Context context;
+    Handler handler;
 
     RobotControllerComponent(Context applicationContext, String robotId) {
         java.util.logging.Logger.getLogger(IO.class.getName()).setLevel(Level.FINEST);
@@ -42,6 +45,10 @@ public class RobotControllerComponent implements Emitter.Listener {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        try {
+            Looper.prepare(); //Known to throw if already initialized. No way other than this to do it
+        } catch (Exception ignored) {}
+        handler = new Handler(Looper.myLooper());
     }
 
     TextToSpeech ttobj;
@@ -84,6 +91,7 @@ public class RobotControllerComponent implements Emitter.Listener {
                 if(args != null && args[0] instanceof JSONObject){
                     JSONObject object = (JSONObject) args[0];
                     Log.d("Log", object.toString());
+                    resetTimer(); //TODO validate that this actually works
                     try {
                         //broadcast what message was sent ex. F, stop, etc
                         ControllerMessageManager.Companion.invoke(object.getString("command"), null);
@@ -132,6 +140,18 @@ public class RobotControllerComponent implements Emitter.Listener {
          */
         mSocket.connect();
         //TODO
+    }
+
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            ControllerMessageManager.Companion.invoke("messageTimeout", null);
+        }
+    };
+
+    private void resetTimer() {
+        handler.removeCallbacks(runnable);
+        handler.postDelayed(runnable, 200);
     }
 
     public void disable(){

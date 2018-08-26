@@ -5,10 +5,14 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager;
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 /**
  * letsrobot.tv core android api.
@@ -38,6 +42,15 @@ public class Core {
     private TextToSpeechComponent textToSpeech = null;
     private static Looper looper;
     private ArrayList<Component> externalComponents = null;
+    private Function1<Object, Unit> onControllerTimout = new Function1<Object, Unit>() {
+        @Override
+        public Unit invoke(Object o) {
+            for (Component component : externalComponents) {
+                component.timeout();
+            }
+            return null;
+        }
+    };
 
     public static Looper getLooper() {
         return looper;
@@ -113,6 +126,8 @@ public class Core {
         for (Component component : externalComponents) {
             component.enable();
         }
+        //Ugly way of doing timeouts. Should find a better way
+        ControllerMessageManager.Companion.subscribe("messageTimeout", onControllerTimout);
         log(LogLevel.INFO, "core is started!");
         return true;
     }
@@ -139,6 +154,7 @@ public class Core {
         for (Component component : externalComponents) {
             component.disable();
         }
+        ControllerMessageManager.Companion.unsubscribe("messageTimeout", onControllerTimout);
         log(LogLevel.INFO, "core is shut down!");
         return true;
     }
