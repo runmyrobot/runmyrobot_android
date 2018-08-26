@@ -1,6 +1,10 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
+import android.util.JsonReader;
 import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -60,7 +64,13 @@ public class RobotControllerComponent implements Emitter.Listener {
         }).on("command_to_robot", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                Log.d("Log", "robot command!");
+                if(args != null && args[0] instanceof JSONObject){
+                    JSONObject object = (JSONObject) args[0];
+                    Log.d("Log", object.toString());
+                    //{"command":"F","robot_id":"58853258","user":{"username":"recondelta090","anonymous":false},"key_position":"down"}
+                    //{"command":"stop","robot_id":"58853258","user":{"username":"recondelta090","anonymous":false},"key_position":"up"}
+                }
+
             }
         }).on("chat_message_with_name", new Emitter.Listener() {
             @Override
