@@ -6,6 +6,8 @@
 
 package com.runmyrobot.android_robot_for_phone;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,6 +17,7 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -36,6 +39,7 @@ import android.content.Context;
 
 import android.net.wifi.WifiManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -62,7 +66,7 @@ class RobotLocationListener implements LocationListener {
     @Override
     public void onLocationChanged(final Location location) {
 
-        Button mButton=(Button)applicationActivity.findViewById(R.id.button1);
+        Button mButton = (Button) applicationActivity.findViewById(R.id.button1);
         if (mButton != null) mButton.setText(location.toString());
 
         Log.i("RobotListener", "location changed " + location.toString());
@@ -88,16 +92,17 @@ class RobotLocationListener implements LocationListener {
     public void onStatusChanged(String s, int i, Bundle b) {
         Log.i("RobotListener", "status changed");
     }
+
     @Override
     public void onProviderEnabled(String s) {
         Log.i("RobotListener", "provider enabled");
     }
+
     @Override
     public void onProviderDisabled(String s) {
         Log.i("RobotListener", "provider disabled");
     }
 }
-
 
 
 class CompassListener implements SensorEventListener {
@@ -116,7 +121,7 @@ class CompassListener implements SensorEventListener {
         toWebServerSocket = socket;
         robotID = robotIDParameter;
 
-        mSensorManager = (SensorManager)activity.getSystemService(activity.SENSOR_SERVICE);
+        mSensorManager = (SensorManager) activity.getSystemService(activity.SENSOR_SERVICE);
         accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
@@ -148,7 +153,7 @@ class CompassListener implements SensorEventListener {
                 SensorManager.getOrientation(R, orientation);
                 azimut = orientation[0]; // orientation contains: azimut, pitch and roll
                 float offset = 90f;
-                float compassBearing = (azimut*360/(2*3.14159f)) + offset;
+                float compassBearing = (azimut * 360 / (2 * 3.14159f)) + offset;
                 //Log.i("RobotSensor", "absolute value of difference: " + Math.abs(compassBearing - lastCompassBearingSent));
                 if (Math.abs(compassBearing - lastCompassBearingSent) > 6) {
                     lastCompassBearingSent = compassBearing;
@@ -168,7 +173,8 @@ class CompassListener implements SensorEventListener {
         //mCustomDrawableView.invalidate();
     }
 
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {  }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
 
 }
 
@@ -189,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     //String robotID = "60484851"; // Jenny
     //String robotID = "65553815"; // BlueberrySurprise
     //String robotID = "59376173"; // BumbleBee
-    String robotID = "35238413"; // Zeus
+    String robotID = "58853258"; // Zeus
 
 
     AudioHandler audioHandler;
@@ -211,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         audioHandler = new AudioHandler(robotID);
         audioHandler.start();
 
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //wifiManager.setWifiEnabled(true);
 
         boolean wifiEnabled = wifiManager.isWifiEnabled();
@@ -239,11 +245,10 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        Button mButton=(Button)findViewById(R.id.button1);
+        Button mButton = (Button) findViewById(R.id.button1);
         mButton.setText("wifi_at_startup:" + wifiEnabled +
-                        " robot_id:" + robotID +
-                        " audio_port:" + AudioHandler.port);
-
+                " robot_id:" + robotID +
+                " audio_port:" + AudioHandler.port);
 
 
         LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -267,6 +272,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                Toast.makeText(this, "Location poermissions needed. Please enable in settings", Toast.LENGTH_LONG).show();
+                return;
+            }
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
                     LOCATION_REFRESH_DISTANCE, mLocationListener);
 
