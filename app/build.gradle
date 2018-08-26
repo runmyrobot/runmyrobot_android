@@ -11,6 +11,8 @@ android {
         versionName "1.0"
         buildConfigField "String", "ROBOT_ID", "\"58853258\""
         buildConfigField "String", "CAMERA_ID", "null"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -22,12 +24,16 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation ('io.socket:socket.io-client:0.7.0') {
+    implementation ('io.socket:socket.io-client:1.0.0') {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
+
+    // Required for instrumented tests
+    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
 }
 repositories {
     mavenCentral()
