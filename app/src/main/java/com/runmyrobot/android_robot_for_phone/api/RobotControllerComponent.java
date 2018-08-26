@@ -81,7 +81,7 @@ public class RobotControllerComponent implements Emitter.Listener {
             return;
         }
 
-        ttobj = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+        ttobj = new TextToSpeech(context, new TextToSpeech.OnInitListener() { //TODO update to newer method
             @Override
             public void onInit(int status) {
             }
