@@ -9,6 +9,8 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        buildConfigField "String", "ROBOT_ID", "\"58853258\""
+        buildConfigField "String", "CAMERA_ID", "null"
     }
     buildTypes {
         release {
@@ -26,4 +28,7 @@ dependencies {
     }
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
+}
+repositories {
+    mavenCentral()
 }
