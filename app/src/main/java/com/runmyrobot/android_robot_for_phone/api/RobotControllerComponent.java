@@ -1,6 +1,7 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
-import android.util.JsonReader;
+import android.content.Context;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -8,13 +9,13 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import io.socket.engineio.client.Transport;
 
 /**
  * Created by Brendon on 8/25/2018.
@@ -23,10 +24,12 @@ public class RobotControllerComponent implements Emitter.Listener {
     public AtomicBoolean running = new AtomicBoolean(false);
     private String robotId;
     private Socket mSocket;
+    private Context context;
 
-    RobotControllerComponent(String robotId) {
+    RobotControllerComponent(Context applicationContext, String robotId) {
         java.util.logging.Logger.getLogger(IO.class.getName()).setLevel(Level.FINEST);
         this.robotId = robotId;
+        this.context = applicationContext;
         try {
             mSocket = IO.socket("http://runmyrobot.com:8022");
         } catch (URISyntaxException e) {
@@ -34,12 +37,19 @@ public class RobotControllerComponent implements Emitter.Listener {
         }
     }
 
-
+    TextToSpeech ttobj;
 
     public void enable() {
         if(running.getAndSet(true)){
             return;
         }
+
+        ttobj = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+            }
+        });
+        ttobj.setLanguage(Locale.US);
         mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
             @Override
@@ -73,9 +83,20 @@ public class RobotControllerComponent implements Emitter.Listener {
 
             }
         }).on("chat_message_with_name", new Emitter.Listener() {
+            //TODO relocate to TextToSpeechComponent.java
             @Override
             public void call(Object... args) {
                 Log.d("Log", "chat_message_with_name");
+                if(args != null && args[0] instanceof JSONObject) {
+                    JSONObject object = (JSONObject) args[0];
+                    Log.d("Log", object.toString());
+                    try {
+                        String[] split = object.getString("message").split("]");
+                        ttobj.speak(split[split.length-1], TextToSpeech.QUEUE_FLUSH, null);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
         /**

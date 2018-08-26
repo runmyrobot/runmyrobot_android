@@ -1,5 +1,6 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
@@ -16,12 +17,12 @@ import java.util.concurrent.TimeUnit;
 public class RobotControllerComponentAndroidTests {
     @Test
     public void Init(){
-        RobotControllerComponent controllerComponent = new RobotControllerComponent("58853258"); //recondelta090 test robot
+        RobotControllerComponent controllerComponent = new RobotControllerComponent(InstrumentationRegistry.getTargetContext().getApplicationContext(), "58853258"); //recondelta090 test robot
         controllerComponent.enable();
         Assert.assertTrue(controllerComponent.running.get());
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            latch.await(10, TimeUnit.SECONDS);
+            latch.await(20, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

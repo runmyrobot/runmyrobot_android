@@ -171,7 +171,7 @@ public class Core {
             }
             Core core = new Core();
             if(robotId != null){
-                 core.robotController = new RobotControllerComponent(robotId);
+                 core.robotController = new RobotControllerComponent(context, robotId);
                  //TODO init robot controller
             }
             if(cameraId != null){
