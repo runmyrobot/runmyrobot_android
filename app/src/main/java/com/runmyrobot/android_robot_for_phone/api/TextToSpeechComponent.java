@@ -11,4 +11,8 @@ public class TextToSpeechComponent {
     public void enable() {
         //TODO enable camera code
     }
+
+    public void disable() {
+
+    }
 }

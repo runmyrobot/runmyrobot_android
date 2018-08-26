@@ -4,6 +4,8 @@ import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,9 +20,14 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 /**
+ * Handles robot control Socket IO messages and broadcasts them through ControllerMessageManager
+ *
+ * Also grabs chat messages for TTS and sends it to ControllerMessageManager
  * Created by Brendon on 8/25/2018.
  */
 public class RobotControllerComponent implements Emitter.Listener {
+    public static final String ROBOT_DISCONNECTED = "robot_disconnect";
+    public static final String ROBOT_CONNECTED = "robot_connect";
     public AtomicBoolean running = new AtomicBoolean(false);
     private String robotId;
     private Socket mSocket;
@@ -55,8 +62,7 @@ public class RobotControllerComponent implements Emitter.Listener {
             @Override
             public void call(Object... args) {
                 mSocket.emit("identify_robot_id", robotId);
-                Log.d("Robot", "Connection!");
-                //mSocket.disconnect();
+                ControllerMessageManager.Companion.invoke(ROBOT_CONNECTED, null);
             }
 
         }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
@@ -67,20 +73,26 @@ public class RobotControllerComponent implements Emitter.Listener {
             }
 
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
             @Override
-            public void call(Object... args) {}
-
+            public void call(Object... args) {
+                ControllerMessageManager.Companion.invoke(ROBOT_DISCONNECTED, null);
+                ControllerMessageManager.Companion.invoke("stop", null);
+            }
         }).on("command_to_robot", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 if(args != null && args[0] instanceof JSONObject){
                     JSONObject object = (JSONObject) args[0];
                     Log.d("Log", object.toString());
-                    //{"command":"F","robot_id":"58853258","user":{"username":"recondelta090","anonymous":false},"key_position":"down"}
-                    //{"command":"stop","robot_id":"58853258","user":{"username":"recondelta090","anonymous":false},"key_position":"up"}
+                    try {
+                        //broadcast what message was sent ex. F, stop, etc
+                        ControllerMessageManager.Companion.invoke(object.getString("command"), null);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    //{"command":"F","robot_id":"55555555","user":{"username":"user","anonymous":false},"key_position":"down"}
+                    //{"command":"stop","robot_id":"55555555","user":{"username":"user","anonymous":false},"key_position":"up"}
                 }
-
             }
         }).on("chat_message_with_name", new Emitter.Listener() {
             //TODO relocate to TextToSpeechComponent.java
@@ -90,6 +102,7 @@ public class RobotControllerComponent implements Emitter.Listener {
                 if(args != null && args[0] instanceof JSONObject) {
                     JSONObject object = (JSONObject) args[0];
                     Log.d("Log", object.toString());
+                    ControllerMessageManager.Companion.invoke("chat", object);
                     try {
                         String[] split = object.getString("message").split("]");
                         ttobj.speak(split[split.length-1], TextToSpeech.QUEUE_FLUSH, null);

@@ -20,4 +20,8 @@ public class CameraComponent {
     public void enable() {
         //TODO enable camera stuff
     }
+
+    public void disable() {
+
+    }
 }

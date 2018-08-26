@@ -5,6 +5,9 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
+
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -34,6 +37,7 @@ public class Core {
     @Nullable
     private TextToSpeechComponent textToSpeech = null;
     private static Looper looper;
+    private ArrayList<Component> externalComponents = null;
 
     public static Looper getLooper() {
         return looper;
@@ -92,7 +96,7 @@ public class Core {
      * Nothing except settings have been initialized before this call.
      * @return true if successful, false if already started
      */
-    private boolean enable(){
+    public boolean enable(){
         if(running.getAndSet(true)){
            return false;
         }
@@ -106,6 +110,9 @@ public class Core {
         if(textToSpeech != null){
             textToSpeech.enable();
         }
+        for (Component component : externalComponents) {
+            component.enable();
+        }
         log(LogLevel.INFO, "core is started!");
         return true;
     }
@@ -115,12 +122,23 @@ public class Core {
      * This should be called in OnDestroy() when the app gets killed.
      * @return true if disable successful, or false if already in disabled state
      */
-    private boolean disable(){
+    public boolean disable(){
         if(!running.getAndSet(false)){
             return false;
         }
         log(LogLevel.INFO, "shutting down core...");
-        //TODO shutdown
+        if(robotController != null){
+            robotController.disable();
+        }
+        if(camera != null){
+            camera.disable();
+        }
+        if(textToSpeech != null){
+            textToSpeech.disable();
+        }
+        for (Component component : externalComponents) {
+            component.disable();
+        }
         log(LogLevel.INFO, "core is shut down!");
         return true;
     }
@@ -146,7 +164,7 @@ public class Core {
         /**
          * Should chat messages be piped through the android speaker?
          */
-        private boolean useTTS = false;
+        public boolean useTTS = false;
 
         /**
          * Instantiate for a Builder instance. After settings have been confirmed,
@@ -182,7 +200,11 @@ public class Core {
                 core.textToSpeech = new TextToSpeechComponent(context);
                 //TODO init text to speech
             }
+            //Set the log level
             core.logLevel = logLevel;
+
+            //Get list of external components, such as LED code, or motor control
+            core.externalComponents = RobotComponentList.INSTANCE.getComponents();
             return core;
         }
     }
