@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -59,6 +60,7 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
     byte[] previewCallbackBuffer;
 
     boolean recording = false;
+    AtomicBoolean ffmpegRunning = new AtomicBoolean(false);
     boolean previewRunning = false;
     FFmpeg ffmpeg;
     File jpegFile;
@@ -72,6 +74,35 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
     private File savePath;
     private RateLimiter limiter;
     private String filePath;
+    private FFmpegExecuteResponseHandler responseHandler = new FFmpegExecuteResponseHandler() {
+        @Override
+        public void onSuccess(String message) {
+            //ffmpegRunning.set(false);
+            //Log.d("FFMpeg", message);
+        }
+
+        @Override
+        public void onProgress(String message) {
+            //Log.d("FFMpeg", message);
+        }
+
+        @Override
+        public void onFailure(String message) {
+            Log.d("FFMpeg", message);
+        }
+
+        @Override
+        public void onStart() {
+            ffmpegRunning.set(true);
+            //Log.d("FFMpeg", "onStart");
+        }
+
+        @Override
+        public void onFinish() {
+            ffmpegRunning.set(false);
+            //Log.d("FFMpeg", "onFinish");
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,13 +122,14 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
             }
         }
         try {
-            fos = new FileOutputStream(jpegFile, false);
+            fos = new FileOutputStream(jpegFile, true);
             fos.flush();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        splitCommand = String.format(command, filePath, 640, 480).split(" ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -213,7 +245,8 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
         camera.release();
         finish();
     }
-    public static final String command = "-f rawvideo -pix_fmt nv21 -s 640x480 -r 30 -i %s -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
+    public static final String command = "-f rawvideo -pix_fmt nv21 -s 640x480 -r 30 -i %s -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
+    public String[] splitCommand;
     public void onPreviewFrame(byte[] b, Camera c) {
         //Log.v(LOGTAG,"onPreviewFrame");
         if (recording && limiter.tryAcquire()) {
@@ -227,38 +260,24 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
                     int height = size.height;*/
                     //YuvImage im = new YuvImage(b, ImageFormat.NV21, p.getPreviewSize().width, p.getPreviewSize().height, null);
                     //Rect r = new Rect(0,0,p.getPreviewSize().width,p.getPreviewSize().height);
-
+                    jpegFile.delete();
+                    if(!jpegFile.exists()) {
+                        try {
+                            jpegFile.createNewFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    fos = new FileOutputStream(jpegFile, true);
                     fos.write(b);
                     fos.flush();
+                    fos.close();
 
                     try {
                         //ffmpeg.killRunningProcesses();
-                        ffmpeg.execute(String.format(command, filePath, 640, 480).split(" "), new FFmpegExecuteResponseHandler() {
-                            @Override
-                            public void onSuccess(String message) {
-                                //Log.d("FFMpeg", message);
-                            }
-
-                            @Override
-                            public void onProgress(String message) {
-                                //Log.d("FFMpeg", message);
-                            }
-
-                            @Override
-                            public void onFailure(String message) {
-                                Log.d("FFMpeg", message);
-                            }
-
-                            @Override
-                            public void onStart() {
-                                //Log.d("FFMpeg", "onStart");
-                            }
-
-                            @Override
-                            public void onFinish() {
-                                //Log.d("FFMpeg", "onFinish");
-                            }
-                        });
+                        if(!ffmpegRunning.getAndSet(true)) {
+                            ffmpeg.execute(splitCommand, responseHandler);
+                        }
                     } catch (FFmpegCommandAlreadyRunningException e) {
                         e.printStackTrace();
                     }
