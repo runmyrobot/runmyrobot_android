@@ -43,6 +43,10 @@ import com.runmyrobot.android_robot_for_phone.R;
 import com.runmyrobot.android_robot_for_phone.RobotApplication;
 import com.runmyrobot.android_robot_for_phone.Util;
 
+/**
+ * Based off of this sample
+ * https://github.com/vanevery/Android-MJPEG-Video-Capture-FFMPEG/blob/master/src/com/mobvcasting/mjpegffmpeg/MJPEGFFMPEGTest.java
+ */
 public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
         SurfaceHolder.Callback, Camera.PreviewCallback {
 
