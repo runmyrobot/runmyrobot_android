@@ -1,6 +1,23 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+/**
+ * Get a specified secret from local.properties. Needed to get letsrobot info
+ * @param secretID
+ * @return String
+ */
+String getProp(String secretID){
+    //Load secrets from the local.properties file
+    File secretPropsFile = file('../local.properties')
+    if (secretPropsFile.exists()) {
+        Properties p = new Properties()
+        p.load(new FileInputStream(secretPropsFile))
+        p.getProperty(secretID, "\"\"")
+    } else {
+        throw new IllegalStateException("secret.properties could not be located for build process")
+    }
+}
+
 android {
     compileSdkVersion 27
 
@@ -10,8 +27,12 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        buildConfigField "String", "ROBOT_ID", "\"58853258\""
-        buildConfigField "String", "CAMERA_ID", "null"
+        buildConfigField "String", "ROBOT_ID", getProp("robot.robotID")
+        buildConfigField "String", "ROBOT_PASS", getProp("robot.robotPass")
+        buildConfigField "String", "CAMERA_ID", getProp("robot.cameraID")
+        String cameraPass = getProp("robot.cameraPass")
+        if(cameraPass == "\"\"") cameraPass = "\"hello\""
+        buildConfigField "String", "CAMERA_PASS", cameraPass
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -25,10 +46,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation ('io.socket:socket.io-client:1.0.0') {
+    implementation('io.socket:socket.io-client:1.0.0') {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
 
@@ -38,6 +60,9 @@ dependencies {
     implementation 'com.github.felHR85:UsbSerial:4.5.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:3.0.1"
+    api 'com.google.guava:guava:26.0-android'
 }
 repositories {
     mavenCentral()

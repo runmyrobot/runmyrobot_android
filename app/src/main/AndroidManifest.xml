@@ -9,44 +9,59 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE " />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
+        android:name=".RobotApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
-            <intent-filter>
+            <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
 
         <service
             android:name=".api.MyService"
             android:enabled="true"
-            android:exported="false"/>
-
+            android:exported="false" />
         <service
             android:name=".control.UsbService"
             android:enabled="true"
-            android:permission="">
-        </service>
+            android:permission=""></service>
+
         <activity
             android:name=".activities.UsbInterceptor"
+            android:excludeFromRecents="true"
+            android:exported="false"
             android:label="YOUR APPLICATION NAME - This appears in the permission popup"
             android:noHistory="true"
-            android:excludeFromRecents="true"
-            android:taskAffinity="com.example.taskAffinityUsbEventReceiver"
             android:process=":UsbEventReceiverActivityProcess"
-            android:exported="false"
-            >
+            android:taskAffinity="com.example.taskAffinityUsbEventReceiver">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
-            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/usb_device_filter" />
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/usb_device_filter" />
+        </activity>
+        <activity android:name=".activities.MJPEGFFMPEGTest">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 
