@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(AndroidJUnit4.class)
 public class CoreAndroidTest {
+    Core core = null;
     @Test
     public void Init() throws Core.InitializationException {
         RobotComponentList.INSTANCE.init(InstrumentationRegistry.getTargetContext());
-        Core core = null;
         Core.Builder builder = new Core.Builder(InstrumentationRegistry.getTargetContext());
         builder.robotId = "58853258";
         core = builder.build();

@@ -1,9 +1,15 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.hardware.Camera;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.SurfaceHolder;
 
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager;
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
@@ -28,10 +34,14 @@ import kotlin.jvm.functions.Function1;
  *
  * Created by Brendon on 8/25/2018.
  */
-public class Core {
+public class Core{
+    private static final int START = 1;
+    private static final int STOP = 2;
     @SuppressWarnings("FieldCanBeLocal")
     private static String TAG = "RobotCore";
     private static AtomicBoolean running = new AtomicBoolean(false);
+    private final HandlerThread handlerThread;
+    private final Handler.Callback callback;
     private LogLevel logLevel = LogLevel.NONE;
 
     @Nullable
@@ -40,7 +50,6 @@ public class Core {
     private RobotControllerComponent robotController = null;
     @Nullable
     private TextToSpeechComponent textToSpeech = null;
-    private static Looper looper;
     private ArrayList<Component> externalComponents = null;
     private Function1<Object, Unit> onControllerTimout = new Function1<Object, Unit>() {
         @Override
@@ -51,9 +60,10 @@ public class Core {
             return null;
         }
     };
+    private static Handler handler;
 
-    public static Looper getLooper() {
-        return looper;
+    public Handler getHandler() {
+        return handler;
     }
 
     /**
@@ -97,22 +107,34 @@ public class Core {
         }
     }
 
+    public interface Listener{
+        void initialized(Core core);
+    }
+
     /**
      * Intentional private initializer. Use Builder to get an instance of Core
      */
     private Core(){
-
+        handlerThread = new HandlerThread("bg-thread");
+        handlerThread.start();
+        callback = new Handler.Callback() {
+            @Override public boolean handleMessage(Message msg) {
+                Log.d(TAG, "handleMessage");
+                switch (msg.what) {
+                    case START:
+                        enableInternal();
+                        break;
+                    case STOP:
+                        disableInternal();
+                        break;
+                }
+                return true;
+            }
+        };
+        handler = new Handler(handlerThread.getLooper(), callback);
     }
 
-    /**
-     * Enable the LetsRobot android core. This will start from scratch.
-     * Nothing except settings have been initialized before this call.
-     * @return true if successful, false if already started
-     */
-    public boolean enable(){
-        if(running.getAndSet(true)){
-           return false;
-        }
+    private void enableInternal(){
         log(LogLevel.INFO, "starting core...");
         if(robotController != null){
             robotController.enable();
@@ -129,18 +151,9 @@ public class Core {
         //Ugly way of doing timeouts. Should find a better way
         ControllerMessageManager.Companion.subscribe("messageTimeout", onControllerTimout);
         log(LogLevel.INFO, "core is started!");
-        return true;
     }
 
-    /**
-     * Disables the api and resets it to before it was initialized.
-     * This should be called in OnDestroy() when the app gets killed.
-     * @return true if disable successful, or false if already in disabled state
-     */
-    public boolean disable(){
-        if(!running.getAndSet(false)){
-            return false;
-        }
+    private void disableInternal(){
         log(LogLevel.INFO, "shutting down core...");
         if(robotController != null){
             robotController.disable();
@@ -156,6 +169,31 @@ public class Core {
         }
         ControllerMessageManager.Companion.unsubscribe("messageTimeout", onControllerTimout);
         log(LogLevel.INFO, "core is shut down!");
+    }
+
+    /**
+     * Enable the LetsRobot android core. This will start from scratch.
+     * Nothing except settings have been initialized before this call.
+     * @return true if successful, false if already started
+     */
+    public boolean enable(){
+        if(running.getAndSet(true)){
+           return false;
+        }
+        handler.sendEmptyMessage(START);
+        return true;
+    }
+
+    /**
+     * Disables the api and resets it to before it was initialized.
+     * This should be called in OnDestroy() when the app gets killed.
+     * @return true if disable successful, or false if already in disabled state
+     */
+    public boolean disable(){
+        if(!running.getAndSet(false)){
+            return false;
+        }
+        handler.sendEmptyMessage(STOP);
         return true;
     }
 
@@ -181,6 +219,7 @@ public class Core {
          * Should chat messages be piped through the android speaker?
          */
         public boolean useTTS = false;
+        public SurfaceHolder holder;
 
         /**
          * Instantiate for a Builder instance. After settings have been confirmed,
@@ -205,11 +244,11 @@ public class Core {
             }
             Core core = new Core();
             if(robotId != null){
-                 core.robotController = new RobotControllerComponent(context, robotId);
-                 //TODO init robot controller
+                core.robotController = new RobotControllerComponent(context, robotId);
+                //TODO init robot controller
             }
-            if(cameraId != null){
-                core.camera = new CameraComponent(context, cameraId);
+            if(cameraId != null && holder != null){
+                core.camera = new CameraComponent(context, cameraId, holder);
                 //TODO init camera
             }
             if(useTTS){

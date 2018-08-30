@@ -22,7 +22,7 @@ public class RobotControllerComponentAndroidTests {
         Assert.assertTrue(controllerComponent.running.get());
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            latch.await(400, TimeUnit.SECONDS);
+            latch.await(500, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

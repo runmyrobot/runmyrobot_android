@@ -45,6 +45,19 @@ public class RobotControllerComponent implements Emitter.Listener {
         java.util.logging.Logger.getLogger(IO.class.getName()).setLevel(Level.FINEST);
         this.robotId = robotId;
         this.context = applicationContext;
+        try {
+            Looper.prepare(); //Known to throw if already initialized. No way other than this to do it
+        } catch (Exception ignored) {}
+        handler = new Handler(Looper.myLooper());
+    }
+
+    TextToSpeech ttobj;
+
+    public void enable() {
+        if(running.getAndSet(true)){
+            return;
+        }
+
         String host = null;
         String port = null;
         OkHttpClient client = new OkHttpClient();
@@ -67,18 +80,6 @@ public class RobotControllerComponent implements Emitter.Listener {
             mSocket = IO.socket(url);
         } catch (URISyntaxException e) {
             e.printStackTrace();
-        }
-        try {
-            Looper.prepare(); //Known to throw if already initialized. No way other than this to do it
-        } catch (Exception ignored) {}
-        handler = new Handler(Looper.myLooper());
-    }
-
-    TextToSpeech ttobj;
-
-    public void enable() {
-        if(running.getAndSet(true)){
-            return;
         }
 
         ttobj = new TextToSpeech(context, new TextToSpeech.OnInitListener() { //TODO update to newer method

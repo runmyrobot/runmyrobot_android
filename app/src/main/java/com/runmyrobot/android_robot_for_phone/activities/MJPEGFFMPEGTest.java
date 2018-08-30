@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -25,7 +26,9 @@ import android.media.CamcorderProfile;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -44,120 +47,43 @@ import com.runmyrobot.android_robot_for_phone.BuildConfig;
 import com.runmyrobot.android_robot_for_phone.R;
 import com.runmyrobot.android_robot_for_phone.RobotApplication;
 import com.runmyrobot.android_robot_for_phone.Util;
+import com.runmyrobot.android_robot_for_phone.api.Core;
+import com.runmyrobot.android_robot_for_phone.api.MyService;
+import com.runmyrobot.android_robot_for_phone.api.RobotControllerComponent;
+import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
 
 /**
  * Based off of this sample
  * https://github.com/vanevery/Android-MJPEG-Video-Capture-FFMPEG/blob/master/src/com/mobvcasting/mjpegffmpeg/MJPEGFFMPEGTest.java
  */
-public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
-        SurfaceHolder.Callback, Camera.PreviewCallback {
+public class MJPEGFFMPEGTest extends Activity implements OnClickListener{
 
     public static final String LOGTAG = "MJPEG_FFMPEG";
-
-    private SurfaceHolder holder;
-    private CamcorderProfile camcorderProfile;
-    private Camera camera;
-
-    byte[] previewCallbackBuffer;
-
     boolean recording = false;
-    AtomicBoolean ffmpegRunning = new AtomicBoolean(false);
-    boolean previewRunning = false;
-    FFmpeg ffmpeg;
-    File jpegFile;
-    int fileCount = 0;
-
-    FileOutputStream fos;
-    BufferedOutputStream bos;
     Button recordButton;
-
-    Camera.Parameters p;
-    private File savePath;
-    private RateLimiter limiter;
-    private String filePath;
-    @Nullable
-    public Process process;
-    private FFmpegExecuteResponseHandler responseHandler = new FFmpegExecuteResponseHandler() {
-        @Override
-        public void onSuccess(String message) {
-            //ffmpegRunning.set(false);
-            //Log.d("FFMpeg", message);
-        }
-
-        @Override
-        public void onProgress(String message) {
-            //Log.d("FFMpeg", message);
-        }
-
-        @Override
-        public void onFailure(String message) {
-            Log.d("FFMpeg", message);
-        }
-
-        @Override
-        public void onProcess(Process process) {
-            MJPEGFFMPEGTest.this.process = process;
-        }
-
-        @Override
-        public void onStart() {
-            ffmpegRunning.set(true);
-            //Log.d("FFMpeg", "onStart");
-        }
-
-        @Override
-        public void onFinish() {
-            ffmpegRunning.set(false);
-            process = null;
-            //Log.d("FFMpeg", "onFinish");
-        }
-    };
-    private int width;
-    private int height;
+    public Core core;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ffmpeg = FFmpeg.getInstance(getApplicationContext());
-        limiter = RateLimiter.create(15);
-        savePath = new File(getApplicationContext().getExternalCacheDir(), "Files");
-        savePath.mkdirs();
-        jpegFile = new File(savePath, "/frame" /*+ formattedFileCount*/ + ".data");
-        filePath = jpegFile.getAbsolutePath();
-        jpegFile.delete();
-        if(!jpegFile.exists()) {
-            try {
-                jpegFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            fos = new FileOutputStream(jpegFile, true);
-            fos.flush();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        splitCommand = String.format(command, 640, 480).split(" ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         setContentView(R.layout.activity_mjpegffmpegtest);
-
         recordButton = (Button) this.findViewById(R.id.RecordButton);
         recordButton.setOnClickListener(this);
-
-        camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.CameraView);
-        holder = cameraView.getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
+        final Core.Builder builder = new Core.Builder(getApplicationContext());
+        builder.holder = cameraView.getHolder();
+        builder.robotId = BuildConfig.ROBOT_ID;
+        builder.cameraId = BuildConfig.CAMERA_ID;
+        try {
+            core = builder.build();
+        } catch (Core.InitializationException e) {
+            e.printStackTrace();
+        }
         cameraView.setClickable(true);
         cameraView.setOnClickListener(this);
     }
@@ -166,8 +92,9 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
         if (recording)
         {
             recording = false;
+            if(core != null)
+                core.disable();
             Log.v(LOGTAG, "Recording Stopped");
-
             // Convert to video
             //processVideo = new ProcessVideo();
             //processVideo.execute();
@@ -175,137 +102,9 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
         else
         {
             recording = true;
+            if(core != null)
+                core.enable();
             Log.v(LOGTAG, "Recording Started");
-        }
-    }
-
-    public void surfaceCreated(SurfaceHolder holder) {
-        Log.v(LOGTAG, "surfaceCreated");
-
-        camera = Camera.open();
-
-		/*
-		try {
-			camera.setPreviewDisplay(holder);
-			camera.startPreview();
-			previewRunning = true;
-		}
-		catch (IOException e) {
-			Log.e(LOGTAG,e.getMessage());
-			e.printStackTrace();
-		}
-		*/
-    }
-
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.v(LOGTAG, "surfaceChanged");
-
-        if (!recording) {
-            if (previewRunning){
-                camera.stopPreview();
-            }
-
-            try {
-                p = camera.getParameters();
-                List<Camera.Size> previewSizes = p.getSupportedPreviewSizes();
-
-                // You need to choose the most appropriate previewSize for your app
-                Camera.Size previewSize = previewSizes.get(0); // .... select one of previewSizes here
-                //p.setPreviewSize(previewSize.width, previewSize.height);
-                p.setPreviewSize(640, 480);
-                camera.setParameters(p);
-
-                camera.setPreviewDisplay(holder);
-
-				/*
-				Log.v(LOGTAG,"Setting up preview callback buffer");
-				previewCallbackBuffer = new byte[(camcorderProfile.videoFrameWidth * camcorderProfile.videoFrameHeight *
-													ImageFormat.getBitsPerPixel(p.getPreviewFormat()) / 8)];
-				Log.v(LOGTAG,"setPreviewCallbackWithBuffer");
-				camera.addCallbackBuffer(previewCallbackBuffer);
-				camera.setPreviewCallbackWithBuffer(this);
-				*/
-
-                camera.setPreviewCallback(this);
-
-                Log.v(LOGTAG,"startPreview");
-                camera.startPreview();
-                previewRunning = true;
-            }
-            catch (IOException e) {
-                Log.e(LOGTAG,e.getMessage());
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.v(LOGTAG, "surfaceDestroyed");
-        if (recording) {
-            recording = false;
-
-            try {
-                bos.flush();
-                bos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        previewRunning = false;
-        camera.release();
-        finish();
-    }
-    public static final String command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
-    public String[] splitCommand;
-    public void onPreviewFrame(byte[] b, Camera c) {
-        //Log.v(LOGTAG,"onPreviewFrame");
-        if (recording && limiter.tryAcquire()) {
-            // Assuming ImageFormat.NV21
-            if(width == 0){
-                width = p.getPreviewSize().width;
-            }
-            if(height == 0){
-                height = p.getPreviewSize().height;
-            }
-            //Log.v(LOGTAG,"Started Writing Frame");
-            try {
-                //bos = new BufferedOutputStream(fos);
-                /*Camera.Size size = p.getPreviewSize();
-                int width = size.width;
-                int height = size.height;*/
-                YuvImage im = new YuvImage(b, ImageFormat.NV21, width, height, null);
-                Rect r = new Rect(0,0,width,height);
-
-                /*jpegFile.delete();
-                if(!jpegFile.exists()) {
-                    try {
-                        jpegFile.createNewFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }*/
-                if (process != null) {
-                    im.compressToJpeg(r, 50, process.getOutputStream());
-                }
-                /*fos = new FileOutputStream(jpegFile, true);
-                fos.write(b);
-                fos.flush();
-                fos.close();*/
-
-                try {
-                    //ffmpeg.killRunningProcesses();
-                    if(!ffmpegRunning.getAndSet(true)) {
-                        ffmpeg.execute(splitCommand, responseHandler);
-                    }
-                } catch (FFmpegCommandAlreadyRunningException e) {
-                    e.printStackTrace();
-                }
-                /*bos.flush();
-                bos.close();*/
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -313,44 +112,5 @@ public class MJPEGFFMPEGTest extends Activity implements OnClickListener,
     public void onConfigurationChanged(Configuration conf)
     {
         super.onConfigurationChanged(conf);
-    }
-
-    private class ProcessVideo extends AsyncTask<Void, Integer, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
-
-
-
-            try {
-
-                //ffmpeg -r 10 -b 1800 -i %03d.jpg test1800.mp4
-                // 00000
-                // /data/data/com.mobvcasting.ffmpegcommandlinetest/ffmpeg -r p.getPreviewFrameRate() -b 1000 -i frame_%05d.jpg video.mov
-
-                //String[] args2 = {"/data/data/com.mobvcasting.ffmpegcommandlinetest/ffmpeg", "-y", "-i", "/data/data/com.mobvcasting.ffmpegcommandlinetest/", "-vcodec", "copy", "-acodec", "copy", "-f", "flv", "rtmp://192.168.43.176/live/thestream"};
-
-
-                File file = new File(savePath, "frame_%05d.jpg");
-                File mov = new File(savePath, "video.mov");
-                //
-                String args222 = "ffmpeg -y -loop 1 -t 3.03 -i " + file.getAbsolutePath() + " -r 1 -vcodec libx264 -b:v 200k -bt 350k -f mp4 " + mov.getAbsolutePath();
-                String args22 = "-r 60 -f image2 -s 1920x1080 -start_number 1 -i " + file.getAbsolutePath() + " -vcodec libx264 -crf 25  -pix_fmt yuv420p " + mov.getAbsolutePath();
-                String args = "-f v4l2 -r p.getPreviewFrameRate() -i "+ file.getAbsolutePath() +" -b:v 1000 " + mov.getAbsolutePath();
-                String[] ffmpegCommand = {"-r", ""+p.getPreviewFrameRate(), "-i", file.getAbsolutePath() ,"-vcodec", "mjpeg","-b:v", "1000000", mov.getAbsolutePath()};
-                Log.d("TAG", args22);
-                ffmpeg.execute(args222.split(" "), responseHandler);
-
-
-            } catch (FFmpegCommandAlreadyRunningException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        protected void onPostExecute(Void... result) {
-            Toast toast = Toast.makeText(MJPEGFFMPEGTest.this, "Done Processing Video", Toast.LENGTH_LONG);
-            toast.show();
-        }
     }
 }
