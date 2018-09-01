@@ -23,22 +23,16 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
-            <!--<intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>-->
-        </activity>
 
         <service
             android:name=".api.MyService"
             android:enabled="true"
             android:exported="false" />
+
         <service
             android:name=".control.UsbService"
             android:enabled="true"
-            android:permission=""></service>
+            android:permission="" />
 
         <activity
             android:name=".activities.UsbInterceptor"
@@ -56,7 +50,7 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
-        <activity android:name=".activities.MJPEGFFMPEGTest">
+        <activity android:name=".activities.MainRobotActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

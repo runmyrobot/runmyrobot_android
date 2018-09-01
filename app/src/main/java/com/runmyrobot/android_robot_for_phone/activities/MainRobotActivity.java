@@ -1,62 +1,26 @@
 package com.runmyrobot.android_robot_for_phone.activities;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
-import android.hardware.Camera;
-import android.media.CamcorderProfile;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
 
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
-import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
-import com.google.common.util.concurrent.RateLimiter;
 import com.runmyrobot.android_robot_for_phone.BuildConfig;
 import com.runmyrobot.android_robot_for_phone.R;
-import com.runmyrobot.android_robot_for_phone.RobotApplication;
-import com.runmyrobot.android_robot_for_phone.Util;
 import com.runmyrobot.android_robot_for_phone.api.Core;
-import com.runmyrobot.android_robot_for_phone.api.MyService;
-import com.runmyrobot.android_robot_for_phone.api.RobotControllerComponent;
-import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
 
 /**
  * Based off of this sample
  * https://github.com/vanevery/Android-MJPEG-Video-Capture-FFMPEG/blob/master/src/com/mobvcasting/mjpegffmpeg/MJPEGFFMPEGTest.java
  */
-public class MJPEGFFMPEGTest extends Activity implements OnClickListener{
+public class MainRobotActivity extends Activity implements OnClickListener{
 
     public static final String LOGTAG = "MJPEG_FFMPEG";
     boolean recording = false;
