@@ -33,6 +33,7 @@ private constructor() {
     private var logLevel = LogLevel.NONE
 
     private var camera: CameraComponent? = null
+    private var audio: AudioComponent? = null
     private var robotController: RobotControllerComponent? = null
     private var textToSpeech: TextToSpeechComponent? = null
     private var externalComponents: ArrayList<Component>? = null
@@ -90,15 +91,10 @@ private constructor() {
 
     private fun enableInternal() {
         log(LogLevel.INFO, "starting core...")
-        if (robotController != null) {
-            robotController!!.enable()
-        }
-        if (camera != null) {
-            camera!!.enable()
-        }
-        if (textToSpeech != null) {
-            textToSpeech!!.enable()
-        }
+        audio?.enable()
+        camera?.enable()
+        robotController?.enable()
+        textToSpeech?.enable()
         for (component in externalComponents!!) {
             component.enable()
         }
@@ -118,6 +114,7 @@ private constructor() {
         if (textToSpeech != null) {
             textToSpeech!!.disable()
         }
+        audio?.disable()
         for (component in externalComponents!!) {
             component.disable()
         }
@@ -198,8 +195,11 @@ private constructor() {
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
             }
-            if (cameraId != null && holder != null) {
-                core.camera = CameraComponent(context, cameraId!!, holder!!)
+            cameraId?.let{
+                core.audio = AudioComponent(context, cameraId!!)
+                holder?.let {
+                    core.camera = CameraComponent(context, cameraId!!, holder!!)
+                }
             }
             if (useTTS) {
                 core.textToSpeech = TextToSpeechComponent(context, BuildConfig.ROBOT_ID)

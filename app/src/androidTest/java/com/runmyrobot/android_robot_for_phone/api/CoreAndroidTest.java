@@ -24,6 +24,8 @@ public class CoreAndroidTest {
         RobotComponentList.INSTANCE.init(InstrumentationRegistry.getTargetContext());
         Core.Builder builder = new Core.Builder(InstrumentationRegistry.getTargetContext());
         builder.setRobotId(BuildConfig.ROBOT_ID);
+        builder.setCameraId(BuildConfig.CAMERA_ID);
+        builder.setUseTTS(true);
         core = builder.build();
         Assert.assertTrue(core.enable());
         CountDownLatch latch = new CountDownLatch(1);

@@ -65,7 +65,6 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
 
     override fun disable() {
         super.disable()
-
     }
 
 
@@ -97,7 +96,8 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
         val stream_key = com.runmyrobot.android_robot_for_phone.BuildConfig.CAMERA_PASS
         val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, stream_key)
         try {
-            fFmpeg.execute(audioCommandLine2.split(" ").toTypedArray(), this)
+            if(!ffmpegRunning.get())
+                fFmpeg.execute(audioCommandLine2.split(" ").toTypedArray(), this)
         } catch (e: Exception) {
             e.printStackTrace()
         }
