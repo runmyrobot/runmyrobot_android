@@ -98,7 +98,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             val video_port = port
             val stream_key = RobotApplication.getCameraPass()
                         //"-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://$video_host:$video_port/$stream_key/$xres/$yres/"
             //val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 25 -codec:v mpeg1video -b:v ${kbps}k -bf 0 -muxdelay 0.001 http://$video_host:${video_port}/${stream_key}/${xres}/${yres}/"
             ffmpeg.execute(command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
@@ -126,12 +126,14 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         process?.let {
             val im = YuvImage(b, ImageFormat.NV21, width, height, null)
             val r = Rect(0, 0, width, height)
-            im.compressToJpeg(r, 20, it.outputStream)
+            im.compressToJpeg(r, 100, it.outputStream)
         }
     }
 
     fun disable() {
         recording = false
+        camera?.stopPreview()
+        camera?.release()
     }
 
     override fun onStart() {
