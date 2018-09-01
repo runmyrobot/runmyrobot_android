@@ -91,8 +91,12 @@ private constructor() {
 
     private fun enableInternal() {
         log(LogLevel.INFO, "starting core...")
-        audio?.enable()
-        camera?.enable()
+        Thread{
+            camera?.enable()
+        }.start()
+        Thread{
+            audio?.enable()
+        }.start()
         robotController?.enable()
         textToSpeech?.enable()
         for (component in externalComponents!!) {
