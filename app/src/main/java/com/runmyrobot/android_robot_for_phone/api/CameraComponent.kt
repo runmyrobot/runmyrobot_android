@@ -6,6 +6,9 @@ import android.graphics.Rect
 import android.graphics.YuvImage
 import android.util.Log
 import android.view.SurfaceHolder
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
 import com.runmyrobot.android_robot_for_phone.RobotApplication
 import okhttp3.OkHttpClient
