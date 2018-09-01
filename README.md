@@ -19,7 +19,7 @@ In your local.properties file, include these
 ```
 robot.robotID = "robotIDInQuotes"
 robot.cameraID="cameraIdInQuotes"
-robot.cameraPass="cameraPassInQuotes" (Will default to hello if not provided. If you are not sure what this is, do not include)
+robot.cameraPass="cameraPassInQuotes" //(Will default to hello if not provided. If you are not sure what this is, do not include)
 ```
 
 ## Running the robot
@@ -43,7 +43,9 @@ Feel free to add your device to this list if you have tested it via a pull reque
 
 ## Broken devices:
 
-- None
+-
+-
+-
 
 ## Verified functional devices:
 
