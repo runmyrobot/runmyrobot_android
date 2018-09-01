@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceHolder
+import com.runmyrobot.android_robot_for_phone.BuildConfig
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import java.util.*
@@ -201,8 +202,7 @@ private constructor() {
                 core.camera = CameraComponent(context, cameraId!!, holder!!)
             }
             if (useTTS) {
-                core.textToSpeech = TextToSpeechComponent(context)
-                //TODO init text to speech
+                core.textToSpeech = TextToSpeechComponent(context, BuildConfig.ROBOT_ID)
             }
             //Set the log level
             core.logLevel = logLevel

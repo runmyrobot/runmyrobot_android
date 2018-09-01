@@ -34,6 +34,7 @@ class MainRobotActivity : Activity(){
         builder.holder = cameraSurfaceView.holder
         builder.robotId = BuildConfig.ROBOT_ID //Pass in our Robot ID
         builder.cameraId = BuildConfig.CAMERA_ID //Pass in our Camera ID
+        builder.useTTS = true
         try {
             core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {
