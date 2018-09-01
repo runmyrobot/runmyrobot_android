@@ -15,6 +15,7 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
+import com.google.common.util.concurrent.RateLimiter
 import com.runmyrobot.android_robot_for_phone.RobotApplication
 import com.runmyrobot.android_robot_for_phone.activities.MJPEGFFMPEGTest.LOGTAG
 import okhttp3.OkHttpClient
@@ -42,18 +43,17 @@ class CameraComponent
  */
 constructor(val context: Context, val cameraId: String, val holder: SurfaceHolder) : FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
     internal var ffmpegRunning = AtomicBoolean(false)
-
+    var ffmpeg : FFmpeg
     init {
         holder.addCallback(this)
+        ffmpeg = FFmpeg.getInstance(context)
     }
     var process : Process? = null
     var port: String? = null
     var host: String? = null
     var recording = false
     var previewRunning = false
-    lateinit var ffmpeg : FFmpeg
     fun enable() {
-        ffmpeg = FFmpeg.getInstance(context)
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -83,6 +83,10 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     }
 
     fun bootFFMPEG(){
+        if(!recording){
+            ffmpegRunning.set(false)
+            return
+        }
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
             val xres = "640"
@@ -92,20 +96,23 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             val kbps = "20"
             val video_host = host
             val video_port = port
-            val stream_key = RobotApplication.getCameraPass()///dev/video${video_device_number}
-//Do not hardcode "/sdcard/"; use `Environment.getExternalStorageDirectory().getPath()` instead
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 25 -codec:v mpeg1video -b:v ${kbps}k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val stream_key = RobotApplication.getCameraPass()
+                        //"-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 http://$video_host:$video_port/$stream_key/$xres/$yres/"
             //val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 25 -codec:v mpeg1video -b:v ${kbps}k -bf 0 -muxdelay 0.001 http://$video_host:${video_port}/${stream_key}/${xres}/${yres}/"
             ffmpeg.execute(command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
+            e.printStackTrace()
             // Handle if FFmpeg is already running
         }
     }
 
     var width = 0
     var height = 0
+    var limiter = RateLimiter.create(30.0)
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
+        if(!limiter.tryAcquire()) return
         if (width == 0 || height == 0) {
             camera?.parameters?.let {
                 val size = it.previewSize
@@ -113,19 +120,14 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
                 height = size.height
             }
         }
-        try {
-            if (!ffmpegRunning.getAndSet(true)) {
-                bootFFMPEG()
-            }
-            process?.let {
-                val im = YuvImage(b, ImageFormat.NV21, width, height, null)
-                val r = Rect(0, 0, width, height)
-                im.compressToJpeg(r, 20, it.outputStream)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        if (!ffmpegRunning.getAndSet(true)) {
+            bootFFMPEG()
         }
-
+        process?.let {
+            val im = YuvImage(b, ImageFormat.NV21, width, height, null)
+            val r = Rect(0, 0, width, height)
+            im.compressToJpeg(r, 20, it.outputStream)
+        }
     }
 
     fun disable() {
@@ -134,25 +136,28 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     override fun onStart() {
         ffmpegRunning.set(true)
+        Log.d(LOGTAG, "onStart")
     }
 
     override fun onProgress(message: String?) {
-
+        Log.d(LOGTAG, "onProgress : $message")
     }
 
     override fun onFailure(message: String?) {
-        Log.e(LOGTAG, message)
+        Log.e(LOGTAG, "progress : $message")
     }
 
     override fun onSuccess(message: String?) {
-
+        Log.d(LOGTAG, "onSuccess : $message")
     }
 
     override fun onFinish() {
+        Log.d(LOGTAG, "onFinish")
         ffmpegRunning.set(false)
     }
 
     override fun onProcess(p0: Process?) {
+        Log.d(LOGTAG, "onProcess")
         this.process = p0
     }
 
