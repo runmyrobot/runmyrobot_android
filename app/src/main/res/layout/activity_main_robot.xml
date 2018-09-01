@@ -7,12 +7,12 @@
 
     <Button
         android:layout_width="fill_parent"
-        android:text="Button"
+        android:text="Enable"
         android:layout_height="50dp"
-        android:id="@+id/RecordButton" />
+        android:id="@+id/recordButtonMain" />
 
     <SurfaceView
-        android:id="@+id/CameraView"
+        android:id="@+id/cameraSurfaceView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 </LinearLayout>

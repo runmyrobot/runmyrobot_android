@@ -13,11 +13,21 @@ import com.runmyrobot.android_robot_for_phone.control.UsbService
 import java.lang.ref.WeakReference
 
 /**
+ * Sample Motor control component.
+ *
+ * Added to RobotComponentList to actually be registered with Core
+ *
  * Designed to run on a SaberTooth Serial Motor controller via USB Serial
- * Created by Brendon on 8/26/2018.
+ *
+ * Settings Used:
+ * - 9600 Baud
+ * - Simplified Serial
+ * - 1 Motor controller
+ * - 2 Motors
+ * - DIP Configuration (Assumes Lead acid battery): From 1 to 6: 101011
  */
 class MotorControl(context: Context) : Component(context) {
-    val TAG = "MotorControl"
+    private val TAG = "MotorControl"
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
@@ -29,6 +39,66 @@ class MotorControl(context: Context) : Component(context) {
         setFilters()
         startService(UsbService::class.java, usbConnection, null) // Start UsbService(if it was not started before) and Bind it
     }
+
+    override fun disable() {
+        super.disable()
+        Log.d(TAG, "disable")
+        ControllerMessageManager.unsubscribe("F", onForward)
+        ControllerMessageManager.unsubscribe("B", onBack)
+        ControllerMessageManager.unsubscribe("L", onLeft)
+        ControllerMessageManager.unsubscribe("R", onRight)
+        ControllerMessageManager.unsubscribe("stop", onStop)
+    }
+
+    private val onForward: (Any?) -> Unit = {
+        Log.d(TAG, "onForward")
+        val data = ByteArray(2)
+        data[0] = 255.toByte()
+        data[1] = 127.toByte()
+        usbService?.write(data)
+    }
+
+    private val onBack: (Any?) -> Unit = {
+        Log.d(TAG, "onBack")
+        val data = ByteArray(2)
+        data[0] = 128.toByte()
+        data[1] = 1.toByte()
+        usbService?.write(data)
+    }
+
+    private val onLeft: (Any?) -> Unit = {
+        Log.d(TAG, "onLeft")
+        val data = ByteArray(2)
+        data[0] = 128.toByte()
+        data[1] = 127.toByte()
+        usbService?.write(data)
+    }
+
+    private val onRight: (Any?) -> Unit = {
+        Log.d(TAG, "onRight")
+        val data = ByteArray(2)
+        data[0] = 255.toByte()
+        data[1] = 1.toByte()
+        usbService?.write(data)
+    }
+
+    private val onStop : (Any?) -> Unit  = {
+        Log.d(TAG, "onStop")
+        val data = ByteArray(1)
+        data[0] = 0x00
+        usbService?.write(data)
+    }
+
+    /**
+     * Timeout function. Will be called if we have not received anything recently,
+     * in case a movement command gets stuck
+     */
+    override fun timeout() {
+        onStop(null)
+    }
+
+    //Below is all USB Service code from com.felhr.usbservice
+    //https://github.com/felHR85/UsbSerial/
 
     private fun startService(service: Class<*>, serviceConnection: ServiceConnection, extras: Bundle?) {
         if (!UsbService.SERVICE_CONNECTED) {
@@ -46,6 +116,7 @@ class MotorControl(context: Context) : Component(context) {
         context.bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
+    //Some Intent filters for listening for USB events
     private fun setFilters() {
         val filter = IntentFilter()
         filter.addAction(UsbService.ACTION_USB_PERMISSION_GRANTED)
@@ -104,58 +175,5 @@ class MotorControl(context: Context) : Component(context) {
                 UsbService.DSR_CHANGE -> Toast.makeText(mActivity.get(), "DSR_CHANGE", Toast.LENGTH_LONG).show()
             }
         }
-    }
-
-    override fun disable() {
-        super.disable()
-        Log.d(TAG, "disable")
-        ControllerMessageManager.unsubscribe("F", onForward)
-        ControllerMessageManager.unsubscribe("B", onBack)
-        ControllerMessageManager.unsubscribe("L", onLeft)
-        ControllerMessageManager.unsubscribe("R", onRight)
-        ControllerMessageManager.unsubscribe("stop", onStop)
-    }
-
-    private val onForward: (Any?) -> Unit = {
-        Log.d(TAG, "onForward")
-        val data = ByteArray(2)
-        data[0] = 255.toByte()
-        data[1] = 127.toByte()
-        usbService?.write(data)
-    }
-
-    private val onBack: (Any?) -> Unit = {
-        Log.d(TAG, "onBack")
-        val data = ByteArray(2)
-        data[0] = 128.toByte()
-        data[1] = 1.toByte()
-        usbService?.write(data)
-    }
-
-    private val onLeft: (Any?) -> Unit = {
-        Log.d(TAG, "onLeft")
-        val data = ByteArray(2)
-        data[0] = 128.toByte()
-        data[1] = 127.toByte()
-        usbService?.write(data)
-    }
-
-    private val onRight: (Any?) -> Unit = {
-        Log.d(TAG, "onRight")
-        val data = ByteArray(2)
-        data[0] = 255.toByte()
-        data[1] = 1.toByte()
-        usbService?.write(data)
-    }
-
-    private val onStop : (Any?) -> Unit  = {
-        Log.d(TAG, "onStop")
-        val data = ByteArray(1)
-        data[0] = 0x00
-        usbService?.write(data)
-    }
-
-    override fun timeout() {
-        onStop(null)
     }
 }

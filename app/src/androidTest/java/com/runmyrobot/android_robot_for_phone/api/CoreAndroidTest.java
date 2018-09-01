@@ -22,7 +22,7 @@ public class CoreAndroidTest {
     public void Init() throws Core.InitializationException {
         RobotComponentList.INSTANCE.init(InstrumentationRegistry.getTargetContext());
         Core.Builder builder = new Core.Builder(InstrumentationRegistry.getTargetContext());
-        builder.robotId = "58853258";
+        builder.setRobotId("58853258");
         core = builder.build();
         Assert.assertTrue(core.enable());
         CountDownLatch latch = new CountDownLatch(1);

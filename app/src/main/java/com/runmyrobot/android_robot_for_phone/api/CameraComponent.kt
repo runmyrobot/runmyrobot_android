@@ -12,7 +12,6 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
 import com.runmyrobot.android_robot_for_phone.RobotApplication
-import com.runmyrobot.android_robot_for_phone.activities.MainRobotActivity.LOGTAG
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
@@ -88,7 +87,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             val kbps = "20"
             val video_host = host
             val video_port = port
-            val stream_key = RobotApplication.getCameraPass()
+            val stream_key = RobotApplication.cameraPass
                         //"-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
             val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://$video_host:$video_port/$stream_key/$xres/$yres/"
             //val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 25 -codec:v mpeg1video -b:v ${kbps}k -bf 0 -muxdelay 0.001 http://$video_host:${video_port}/${stream_key}/${xres}/${yres}/"
@@ -205,5 +204,9 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
         previewRunning = false
         camera?.release()
+    }
+
+    companion object {
+        private const val LOGTAG = "CameraComponent"
     }
 }
