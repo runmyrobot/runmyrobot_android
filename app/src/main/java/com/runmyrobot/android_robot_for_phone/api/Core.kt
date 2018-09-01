@@ -21,8 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Builder can allow for configuration of these individual components.
  * Disabling individual components is possible.
- *
- * Created by Brendon on 8/25/2018.
  */
 class Core
 /**

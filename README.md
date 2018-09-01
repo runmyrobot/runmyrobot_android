@@ -10,8 +10,50 @@ Currently broken. Need to update for a newer version of the API most likely
 ### Android Studio
 - Version 3.1.4 or higher. May not be buildable on lower versions
 
-# Some Limitations
+# Setup
+
+## Robot and Camera Ids
+
+In your local.properties file, include these
+
+```
+robot.robotID = "robotIDInQuotes"
+robot.cameraID="cameraIdInQuotes"
+robot.cameraPass="cameraPassInQuotes" (Will default to hello if not provided. If you are not sure what this is, do not include)
+```
+
+## Running the robot
+
+To make the robot operational and connected:
+ 1. Click build and run to deploy to phone (Play button)
+ 2. Open App if not opened already
+ 3. Hit enable
+
+# Some known issues
 
 - Camera streaming will only work if the app has not been backgrounded (turning screen off is fine)
-- Some devices act slow when streaming, still not sure what the main cause is.
+Will crash if home button is hit
+
+- Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
+
+
+# Supported or broken devices
+
+Feel free to add your device to this list if you have tested it via a pull request
+
+## Broken devices:
+
+- None
+
+## Verified functional devices:
+
+- ZTE Speed (4.4 Kitkat)
+
+- Motorola Moto Z (8.0.0 Oreo)
+
+- Pixel 2 XL (9 Pie)
+
+
+
+
 

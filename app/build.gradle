@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 /**
  * Get a specified secret from local.properties. Needed to get letsrobot info
+ * TODO make configurable through app
  * @param secretID
  * @return String
  */
@@ -61,7 +62,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     //implementation 'com.writingminds:FFmpegAndroid:0.3.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     api 'com.google.guava:guava:26.0-android'
     implementation project(':FFmpegAndroid-release')
 }

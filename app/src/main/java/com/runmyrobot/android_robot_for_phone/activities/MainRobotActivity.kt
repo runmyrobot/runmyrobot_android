@@ -12,8 +12,9 @@ import com.runmyrobot.android_robot_for_phone.api.Core
 import kotlinx.android.synthetic.main.activity_main_robot.*
 
 /**
- * Based off of this sample
- * https://github.com/vanevery/Android-MJPEG-Video-Capture-FFMPEG/blob/master/src/com/mobvcasting/mjpegffmpeg/MJPEGFFMPEGTest.java
+ * Main activity for the robot. It has a simple camera UI and a button to connect and disconnect.
+ * For camera functionality, this activity needs to have a
+ * SurfaceView to pass to the camera component via the Builder
  */
 class MainRobotActivity : Activity(){
     private var recording = false
@@ -27,12 +28,14 @@ class MainRobotActivity : Activity(){
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         setContentView(R.layout.activity_main_robot)
-        val builder = Core.Builder(applicationContext)
+
+        val builder = Core.Builder(applicationContext) //Initialize the Core Builder
+        //Attach the SurfaceView holder to render the camera to
         builder.holder = cameraSurfaceView.holder
-        builder.robotId = BuildConfig.ROBOT_ID
-        builder.cameraId = BuildConfig.CAMERA_ID
+        builder.robotId = BuildConfig.ROBOT_ID //Pass in our Robot ID
+        builder.cameraId = BuildConfig.CAMERA_ID //Pass in our Camera ID
         try {
-            core = builder.build()
+            core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {
             e.printStackTrace()
         }
@@ -40,12 +43,12 @@ class MainRobotActivity : Activity(){
             if (recording) {
                 recording = false
                 if (core != null)
-                    core!!.disable()
+                    core!!.disable() //Disable core if we hit the button to disable recording
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
                 if (core != null)
-                    core!!.enable()
+                    core!!.enable() //enable core if we hit the button to enable recording
                 Log.v(LOGTAG, "Recording Started")
             }
         }

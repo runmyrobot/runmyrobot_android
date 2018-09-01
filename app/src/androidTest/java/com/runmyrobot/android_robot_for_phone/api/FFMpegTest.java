@@ -15,7 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Brendon on 8/26/2018.
+ * Test if FFmpeg is in working condition
  */
 @RunWith(AndroidJUnit4.class)
 public class FFMpegTest {
@@ -25,7 +25,6 @@ public class FFMpegTest {
         FFmpeg ffmpeg = FFmpeg.getInstance(InstrumentationRegistry.getTargetContext());
         final CountDownLatch latch = new CountDownLatch(1);
             ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
-
                 @Override
                 public void onStart() {}
 

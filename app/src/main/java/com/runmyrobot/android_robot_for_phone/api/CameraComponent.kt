@@ -24,7 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Class that contains only the camera components for streaming to letsrobot.tv
  *
- * Created by Brendon on 8/25/2018.
+ * To make this functional, pass in cameraId and a valid SurfaceHolder to a Core.Builder instance
+ *
+ * This will grab the camera password automatically from config file
  */
 class CameraComponent
 /**

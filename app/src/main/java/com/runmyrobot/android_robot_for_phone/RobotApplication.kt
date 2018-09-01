@@ -7,7 +7,7 @@ import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 
 /**
- * Created by Brendon on 8/26/2018.
+ * Application class
  */
 class RobotApplication : Application() {
 

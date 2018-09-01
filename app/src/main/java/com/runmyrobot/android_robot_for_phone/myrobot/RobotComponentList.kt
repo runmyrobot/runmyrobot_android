@@ -9,6 +9,7 @@ import com.runmyrobot.android_robot_for_phone.api.Component
 object RobotComponentList{
     val components = ArrayList<Component>()
     fun init(context: Context){
-        components.add(MotorControl(context))
+        components.add(MotorControl(context)) //SaberTooth Simplified Serial Motor control through USB
+        //Add other custom components here to be added to the Core
     }
 }

@@ -21,7 +21,6 @@ import java.util.logging.Level
  * Handles robot control Socket IO messages and broadcasts them through ControllerMessageManager
  *
  * Also grabs chat messages for TTS and sends it to ControllerMessageManager
- * Created by Brendon on 8/25/2018.
  */
 class RobotControllerComponent internal constructor(private val robotId: String) : Emitter.Listener {
     var running = AtomicBoolean(false)

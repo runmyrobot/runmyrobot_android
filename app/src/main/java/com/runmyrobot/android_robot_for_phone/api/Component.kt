@@ -5,7 +5,8 @@ import android.support.annotation.CallSuper
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Created by Brendon on 8/26/2018.
+ * Base component object to use to extend functionality of your robot.
+ * Ex. can be used as an interface for LEDs based off of control messages
  */
 abstract class Component(val context: Context){
 
