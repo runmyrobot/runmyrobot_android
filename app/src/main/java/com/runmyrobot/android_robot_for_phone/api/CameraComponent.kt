@@ -1,33 +1,25 @@
 package com.runmyrobot.android_robot_for_phone.api
 
 import android.content.Context
-import android.graphics.Camera
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.os.Environment
 import android.util.Log
 import android.view.SurfaceHolder
 
-import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.google.common.util.concurrent.RateLimiter
 import com.runmyrobot.android_robot_for_phone.RobotApplication
-import com.runmyrobot.android_robot_for_phone.activities.MJPEGFFMPEGTest.LOGTAG
+import com.runmyrobot.android_robot_for_phone.activities.MainRobotActivity.LOGTAG
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
-import okhttp3.CertificatePinner
-
 
 
 /**
