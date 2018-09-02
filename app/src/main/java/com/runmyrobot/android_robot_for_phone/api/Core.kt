@@ -191,6 +191,7 @@ private constructor() {
          */
         @Throws(Core.InitializationException::class)
         fun build(): Core {
+            RobotComponentList.init(context)
             //TODO define preconditions that will throw errors
             if (robotId == null && cameraId == null) {
                 throw InitializationException()
