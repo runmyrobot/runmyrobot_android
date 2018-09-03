@@ -8,6 +8,9 @@ import android.view.SurfaceHolder
 import com.runmyrobot.android_robot_for_phone.BuildConfig
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
+import io.socket.client.IO
+import io.socket.client.Socket
+import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -27,11 +30,9 @@ class Core
 /**
  * Intentional private initializer. Use Builder to get an instance of Core
  */
-private constructor() {
+private constructor(val robotId : String, val cameraId : String?) {
     private val handlerThread: HandlerThread = HandlerThread("bg-thread")
-    private val callback: Handler.Callback
     private var logLevel = LogLevel.NONE
-
     private var camera: CameraComponent? = null
     private var audio: AudioComponent? = null
     private var robotController: RobotControllerComponent? = null
@@ -74,20 +75,52 @@ private constructor() {
         }
     }
 
-    private var handler: Handler
+    private var handler: Handler? = null
 
     init {
         handlerThread.start()
-        callback = Handler.Callback { msg ->
+        handler = Handler(handlerThread.looper){
+            msg ->
             Log.d(TAG, "handleMessage")
             when (msg.what) {
                 START -> enableInternal()
                 STOP -> disableInternal()
+                QUEUE_UPDATE_TO_SERVER -> handler?.postDelayed(onUpdateServer, 1000)
             }
             true
         }
-        handler = Handler(handlerThread.looper, callback)
+
     }
+
+    private var count = 0
+    private val onUpdateServer: () -> Unit = {
+        Log.d(TAG, "onUpdateServer")
+        appServerSocket?.emit("identify_robot_id", robotId)
+        if(count % 60 == 0){
+            camera?.let {
+                val obj = JSONObject()
+                obj.put("send_video_process_exists",true)
+                obj.put("ffmpeg_process_exists", getCameraRunning())
+                obj.put("camera_id",cameraId)
+                appServerSocket?.emit("send_video_status", obj)
+            }
+            val ipInfo = JSONObject()
+            ipInfo.put("ip", "169.254.25.110")
+            ipInfo.put("robot_id", robotId)
+            appServerSocket?.emit("ip_information", ipInfo)
+        }
+        handler?.sendEmptyMessage(QUEUE_UPDATE_TO_SERVER)
+        count++
+    }
+
+    private fun getCameraRunning(): Boolean {
+        camera?.let {
+            return camera?.process != null
+        }
+        return false
+    }
+
+    private var appServerSocket: Socket? = null
 
     private fun enableInternal() {
         log(LogLevel.INFO, "starting core...")
@@ -97,13 +130,24 @@ private constructor() {
         Thread{
             audio?.enable()
         }.start()
+
         robotController?.enable()
         textToSpeech?.enable()
         for (component in externalComponents!!) {
             component.enable()
         }
+        appServerSocket = IO.socket("http://letsrobot.tv:8022")
+        appServerSocket?.connect()
+        appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
+            Log.d(TAG, "appServerSocket EVENT_CONNECT_ERROR")
+        }
+        appServerSocket?.on(Socket.EVENT_CONNECT){
+            Log.d(TAG, "appServerSocket is connected!")
+            appServerSocket?.emit("identify_robot_id", robotId)
+        }
         //Ugly way of doing timeouts. Should find a better way
         ControllerMessageManager.subscribe("messageTimeout", onControllerTimeout)
+        handler?.postDelayed(onUpdateServer, 1000)
         log(LogLevel.INFO, "core is started!")
     }
 
@@ -122,6 +166,7 @@ private constructor() {
         for (component in externalComponents!!) {
             component.disable()
         }
+        appServerSocket?.disconnect()
         ControllerMessageManager.unsubscribe("messageTimeout", onControllerTimeout)
         log(LogLevel.INFO, "core is shut down!")
     }
@@ -135,7 +180,7 @@ private constructor() {
         if (running.getAndSet(true)) {
             return false
         }
-        handler.sendEmptyMessage(START)
+        handler?.sendEmptyMessage(START)
         return true
     }
 
@@ -148,7 +193,7 @@ private constructor() {
         if (!running.getAndSet(false)) {
             return false
         }
-        handler.sendEmptyMessage(STOP)
+        handler?.sendEmptyMessage(STOP)
         return true
     }
 
@@ -193,10 +238,12 @@ private constructor() {
         fun build(): Core {
             RobotComponentList.init(context)
             //TODO define preconditions that will throw errors
-            if (robotId == null && cameraId == null) {
+
+            //RobotId MUST be defined, cameraId can be ignored
+            if (robotId == null && cameraId == null || robotId == null) {
                 throw InitializationException()
             }
-            val core = Core()
+            val core = Core(robotId!!, cameraId)
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
             }
@@ -223,6 +270,7 @@ private constructor() {
     companion object {
         private const val START = 1
         private const val STOP = 2
+        private const val QUEUE_UPDATE_TO_SERVER = 3
         private const val TAG = "RobotCore"
         private val running = AtomicBoolean(false)
 
