@@ -27,6 +27,11 @@ To make the robot operational and connected:
  2. Open App if not opened already
  3. Hit enable
 
+## Adding separate components
+
+Add classes that extend Component to app/src/main/java/com/runmyrobot/android_robot_for_phone/myrobot/RobotComponentList.kt
+There are some examples there for Serial motor control
+
 # Some known issues
 
 - Camera streaming will only work if the app has not been backgrounded (turning screen off is fine)
