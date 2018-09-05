@@ -71,7 +71,7 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                 try {
                     val messageRaw = `object`.getString("message")
                     messageRaw?.let{ //In case there is no message object
-                        val index = messageRaw.indexOf(" ")
+                        val index = messageRaw.indexOf("]")
                         //If no spaces or space is last in message, then assume no message
                         if(index == -1 || index == messageRaw.length) return@on
                         val message = messageRaw.subSequence(index+1, messageRaw.length).toString()
