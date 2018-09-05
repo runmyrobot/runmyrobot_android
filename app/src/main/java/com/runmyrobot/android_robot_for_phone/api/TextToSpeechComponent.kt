@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Text to speech component class
  *
- * TODO replace with new implementation
  * TODO different voice or voice options?
  */
 class TextToSpeechComponent internal constructor(val context: Context, private val robotId : String){
@@ -60,7 +59,7 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
         }
         mSocket!!.on(Socket.EVENT_CONNECT) {
             mSocket!!.emit("identify_robot_id", robotId)
-            ttobj.speak("Connected to LetsRobot", TextToSpeech.QUEUE_FLUSH, null)
+            ttobj.speak("OK", TextToSpeech.QUEUE_FLUSH, null)
         }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
             ttobj.speak("Error", TextToSpeech.QUEUE_FLUSH, null)
         }.on("chat_message_with_name"){
