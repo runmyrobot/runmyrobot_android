@@ -70,8 +70,17 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                 Log.d("Log", `object`.toString())
                 ControllerMessageManager.invoke("chat", `object`)
                 try {
-                    val split = `object`.getString("message").split("]".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    ttobj.speak(split[split.size - 1], TextToSpeech.QUEUE_FLUSH, null)
+                    val messageRaw = `object`.getString("message")
+                    messageRaw?.let{ //In case there is no message object
+                        val index = messageRaw.indexOf(" ")
+                        //If no spaces or space is last in message, then assume no message
+                        if(index == -1 || index == messageRaw.length) return@on
+                        val message = messageRaw.subSequence(index+1, messageRaw.length).toString()
+                        Log.d("Log", "Eval to " + message)
+                        if(message.startsWith(".")) //Ignore messages that begin with '.'
+                            return@on
+                        ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null)
+                    }
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
