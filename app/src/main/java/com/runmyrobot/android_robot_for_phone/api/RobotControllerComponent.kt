@@ -22,23 +22,25 @@ import java.util.logging.Level
  *
  * Also grabs chat messages for TTS and sends it to ControllerMessageManager
  */
-class RobotControllerComponent internal constructor(private val robotId: String) : Emitter.Listener {
+class RobotControllerComponent internal constructor(private val robotId: String){
     var running = AtomicBoolean(false)
     private var mSocket: Socket? = null
-    internal var handler: Handler
+    private var handler: Handler
 
-    internal var runnable: Runnable = Runnable { ControllerMessageManager.invoke("messageTimeout", null) }
+    /**
+     * Sends a timeout message via ControllerMessageManager when run
+     */
+    private var runnable: Runnable = Runnable { ControllerMessageManager.invoke("messageTimeout", null) }
 
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
 
     init {
-        java.util.logging.Logger.getLogger(IO::class.java.name).level = Level.FINEST
         try {
-            Looper.prepare() //Known to throw if already initialized. No way other than this to do it
+            Looper.prepare() //Setup our looper
         } catch (ignored: Exception) {
+            //catch exception if looper is already setup
         }
-
         handler = Handler(Looper.myLooper())
     }
 
@@ -71,50 +73,34 @@ class RobotControllerComponent internal constructor(private val robotId: String)
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }
-        mSocket!!.on(Socket.EVENT_CONNECT) {
-            mSocket!!.emit("identify_robot_id", robotId)
-            ControllerMessageManager.invoke(ROBOT_CONNECTED, null)
-        }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
-            ControllerMessageManager.invoke(ROBOT_DISCONNECTED, null)
-            ControllerMessageManager.invoke("stop", null)
-        }.on("command_to_robot") { args ->
-            if (args != null && args[0] is JSONObject) {
-                val `object` = args[0] as JSONObject
-                Log.d("Log", `object`.toString())
-                resetTimer() //TODO validate that this actually works
-                try {
-                    //broadcast what message was sent ex. F, stop, etc
-                    ControllerMessageManager.invoke(`object`.getString("command"), null)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
 
-                //{"command":"F","robot_id":"55555555","user":{"username":"user","anonymous":false},"key_position":"down"}
-                //{"command":"stop","robot_id":"55555555","user":{"username":"user","anonymous":false},"key_position":"up"}
+        mSocket?.let { socket ->
+            socket.on(Socket.EVENT_CONNECT) {
+                mSocket?.emit("identify_robot_id", robotId)
+                ControllerMessageManager.invoke(ROBOT_CONNECTED, null)
+            }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
+                ControllerMessageManager.invoke(ROBOT_DISCONNECTED, null)
+                ControllerMessageManager.invoke("stop", null)
+            }.on("command_to_robot") { args ->
+                if (args != null && args[0] is JSONObject) {
+                    val `object` = args[0] as JSONObject
+                    resetTimer() //resets a timer to prevent a timeout message
+                    try {
+                        //broadcast what message was sent ex. F, stop, etc
+                        ControllerMessageManager.invoke(`object`.getString("command"), null)
+                    } catch (e: JSONException) {
+                        e.printStackTrace() //Message format must be wrong, ignore it
+                    }
+                }
             }
+            socket.connect()
         }
-        /**
-         * controlSocketIO.on('command_to_robot', onHandleCommand)
-         * controlSocketIO.on('disconnect', onHandleControlDisconnect)
-         *
-         * appServerSocketIO.on('exclusive_control', onHandleExclusiveControl)
-         * appServerSocketIO.on('connect', onHandleAppServerConnect)
-         * appServerSocketIO.on('reconnect', onHandleAppServerReconnect)
-         * appServerSocketIO.on('disconnect', onHandleAppServerDisconnect)
-         *
-         * if commandArgs.tts_delay_enabled:
-         * userSocket.on('message_removed', onHandleChatMessageRemoved)
-         *
-         * if commandArgs.enable_chat_server_connection:
-         * chatSocket.on('chat_message_with_name', onHandleChatMessage)
-         * chatSocket.on('connect', onHandleChatConnect)
-         * chatSocket.on('reconnect', onHandleChatReconnect)
-         * chatSocket.on('disconnect', onHandleChatDisconnect)
-         */
-        mSocket!!.connect()
-        //TODO
     }
 
+    /**
+     * Reset timer by clearing handler of runnable, and posting another that is delayed.
+     * When the timer runnable is triggered, a timeout message will be sent to whatever is listening
+     */
     private fun resetTimer() {
         handler.removeCallbacks(runnable)
         handler.postDelayed(runnable, 200)
@@ -124,12 +110,7 @@ class RobotControllerComponent internal constructor(private val robotId: String)
         if (!running.getAndSet(false)) {
             return
         }
-        mSocket!!.disconnect()
-        //TODO
-    }
-
-    override fun call(vararg args: Any) {
-        Log.d("Controller", Arrays.toString(args))
+        mSocket?.disconnect()
     }
 
     companion object {
