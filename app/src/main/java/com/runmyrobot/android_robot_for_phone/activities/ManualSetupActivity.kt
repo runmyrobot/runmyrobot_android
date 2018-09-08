@@ -27,6 +27,9 @@ class ManualSetupActivity : AppCompatActivity() {
             saveButtonStates()
             launchActivity()
         }
+        setupBluetoothButton.setOnClickListener{
+            startActivity(Intent(this, ChooseBluetoothActivity::class.java))
+        }
     }
 
     private fun launchActivity() {
