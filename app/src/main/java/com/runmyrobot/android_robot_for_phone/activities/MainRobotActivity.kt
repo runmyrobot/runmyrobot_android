@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Window
 import android.view.WindowManager
-import com.runmyrobot.android_robot_for_phone.BuildConfig
 import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.api.Core
+import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_main_robot.*
 
 /**
@@ -32,9 +32,12 @@ class MainRobotActivity : Activity(){
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView holder to render the camera to
         builder.holder = cameraSurfaceView.holder
-        builder.robotId = BuildConfig.ROBOT_ID //Pass in our Robot ID
-        builder.cameraId = BuildConfig.CAMERA_ID //Pass in our Camera ID
-        builder.useTTS = true
+        builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
+        if(StoreUtil.getCameraEnabled(this)){
+            builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID
+        }
+        builder.useTTS = StoreUtil.getTTSEnabled(this)
+        builder.useMic = StoreUtil.getMicEnabled(this)
         try {
             core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {

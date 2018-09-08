@@ -2,25 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-/**
- * Get a specified secret from local.properties. Needed to get letsrobot info
- * TODO make configurable through app
- * @param secretID
- * @return String
- */
-String getProp(String secretID) {
-    //Load secrets from the local.properties file
-    File secretPropsFile = file('../local.properties')
-    if (secretPropsFile.exists()) {
-        Properties p = new Properties()
-        p.load(new FileInputStream(secretPropsFile))
-        p.getProperty(secretID, "\"\"")
-    } else {
-        "\"\""
-    }
-
-}
-
 android {
     compileSdkVersion 27
 
@@ -30,14 +11,6 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        buildConfigField "String", "ROBOT_ID", getProp("robot.robotID")
-        buildConfigField "String", "ROBOT_PASS", getProp("robot.robotPass")
-        buildConfigField "String", "CAMERA_ID", getProp("robot.cameraID")
-        buildConfigField "String", "ERROR_REPORTING", getProp("app.reportErrors")
-        String cameraPass = getProp("robot.cameraPass")
-        if (cameraPass == "\"\"") cameraPass = "\"hello\""
-        buildConfigField "String", "CAMERA_PASS", cameraPass
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

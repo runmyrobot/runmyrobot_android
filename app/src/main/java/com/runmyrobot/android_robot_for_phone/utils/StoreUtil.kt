@@ -68,6 +68,34 @@ object StoreUtil {
         return getSharedPrefs(context).getBoolean("errorReporting", false)
     }
 
+    /**
+     * Set bitrate in kbps
+     */
+    fun setBitrate(context: Context, videoBitrate : String){
+        getSharedPrefs(context).edit().putString("videoBitrate", videoBitrate).apply()
+    }
+
+    /**
+     * Get bitrate in kbps
+     */
+    fun getBitrate(context: Context): String {
+        return getSharedPrefs(context).getString("videoBitrate", "10")
+    }
+
+    /**
+     * Set bitrate in kbps
+     */
+    fun setResolution(context: Context, videoResolution : String){
+        getSharedPrefs(context).edit().putString("videoResolution", videoResolution).apply()
+    }
+
+    /**
+     * Get bitrate in kbps
+     */
+    fun getResolution(context: Context): String {
+        return getSharedPrefs(context).getString("videoResolution", "640x480")
+    }
+
     fun SetBluetoothDevice(context: Context, name : String, address : String) {
         getSharedPrefs(context).edit().putString("BTName", name).apply()
         getSharedPrefs(context).edit().putString("BTAddress", address).apply()
