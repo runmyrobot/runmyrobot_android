@@ -72,7 +72,9 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                     val messageRaw = `object`.getString("message")
                     getMessageFromRaw(messageRaw)?.let {
                         //TODO use non-deprecated call? Does not support 4.4 though
-                        ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
+                        if(!ttobj.isSpeaking) {
+                            ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
+                        }
                     }
                 } catch (e: JSONException) {
                     e.printStackTrace()
