@@ -2,17 +2,10 @@ package com.runmyrobot.android_robot_for_phone.api
 
 import android.content.Context
 import android.graphics.ImageFormat
-import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.view.Gravity
 import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.WindowManager
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
@@ -23,7 +16,6 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -40,14 +32,11 @@ class CameraComponent
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(val context: Context, val cameraId: String, var holder: SurfaceHolder) : FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
+constructor(val context: Context, val cameraId: String, val holder: SurfaceHolder) : FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
     internal var ffmpegRunning = AtomicBoolean(false)
     var ffmpeg : FFmpeg
-    private var windowManager: WindowManager? = null
-
-    private var surfaceView: SurfaceView? = null
-
     init {
+        holder.addCallback(this)
         ffmpeg = FFmpeg.getInstance(context)
     }
     var UUID = java.util.UUID.randomUUID().toString()
@@ -61,36 +50,6 @@ constructor(val context: Context, val cameraId: String, var holder: SurfaceHolde
             try {
                 holder.removeCallback(this)
             } catch (e: Exception) {
-            }
-            windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
-
-            val handler = Handler(Looper.getMainLooper())
-            surfaceView ?: kotlin.run {
-                val latch = CountDownLatch(1)
-                handler.post {
-                    surfaceView = SurfaceView(context).also {
-                        @Suppress("DEPRECATION")
-                        val layoutParams = takeIf { Build.VERSION.SDK_INT >= 26 }?.let {
-                            WindowManager.LayoutParams(
-                                    1, 1,
-                                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                                    PixelFormat.TRANSLUCENT
-                            )
-                        } ?: WindowManager.LayoutParams(
-                                1, 1,
-                                //only will work on 25 and below
-                                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                                PixelFormat.TRANSLUCENT
-                        )
-                        layoutParams.gravity = Gravity.START or Gravity.TOP
-                        windowManager?.addView(it, layoutParams)
-                        holder = it.holder
-                    }
-                    latch.countDown()
-                }
-                latch.await()
             }
             holder.addCallback(this)
             val client = OkHttpClient.Builder()
