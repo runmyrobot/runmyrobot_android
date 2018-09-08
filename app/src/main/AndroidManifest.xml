@@ -47,7 +47,8 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
-        <activity android:name=".activities.MainRobotActivity">
+        <activity android:name=".activities.MainRobotActivity"
+            android:keepScreenOn="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
