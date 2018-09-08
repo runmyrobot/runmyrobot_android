@@ -16,8 +16,9 @@ String getProp(String secretID){
         p.load(new FileInputStream(secretPropsFile))
         p.getProperty(secretID, "\"\"")
     } else {
-        //throw new IllegalStateException("secret.properties could not be located for build process")
+        "\"\""
     }
+
 }
 
 android {
