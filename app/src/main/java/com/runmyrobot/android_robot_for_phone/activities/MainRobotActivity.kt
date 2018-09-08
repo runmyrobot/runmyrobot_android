@@ -55,16 +55,6 @@ class MainRobotActivity : Activity(){
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        core?.onPause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        core?.onResume()
-    }
-
     companion object {
         const val LOGTAG = "MainRobot"
     }
