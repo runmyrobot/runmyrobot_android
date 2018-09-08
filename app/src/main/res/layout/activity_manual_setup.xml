@@ -88,7 +88,7 @@
                 android:layout_gravity="start|center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Camera Bitrate"/>
+                android:text="Bitrate (kbps)"/>
             <EditText
                 android:layout_gravity="end|center_vertical"
                 android:id="@+id/bitrateEditText"

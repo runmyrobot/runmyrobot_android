@@ -22,6 +22,10 @@ class ManualSetupActivity : AppCompatActivity() {
         cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
             checkState(isChecked)
         }
+        bitrateEditText.setText(StoreUtil.getBitrate(this))
+        resolutionEditText.setText(StoreUtil.getResolution(this))
+        bitrateEditText.isEnabled = false
+        resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
         applyButton.setOnClickListener {
             saveButtonStates()
@@ -61,7 +65,7 @@ class ManualSetupActivity : AppCompatActivity() {
     fun checkState(cameraChecked : Boolean){
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
-        bitrateEditText.isEnabled = cameraChecked
-        resolutionEditText.isEnabled = cameraChecked
+        //bitrateEditText.isEnabled = cameraChecked //TODO implement these, then enable this
+        //resolutionEditText.isEnabled = cameraChecked
     }
 }
