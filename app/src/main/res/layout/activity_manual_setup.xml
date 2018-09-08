@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginStart="@dimen/activity_horizontal_margin"
+    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+    tools:context=".activities.ManualSetupActivity">
+
+    <GridLayout
+        android:columnCount="2"
+        android:rowCount="1"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_gravity="start|center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Robot ID"/>
+        <EditText
+            android:layout_gravity="end|center_vertical"
+            android:id="@+id/robotIDEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number" />
+    </GridLayout>
+    <Switch
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Camera"/>
+    <LinearLayout
+        android:id="@+id/cameraSettingsLayout"
+        android:layout_width="wrap_content"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+        <GridLayout
+            android:columnCount="2"
+            android:rowCount="1"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_gravity="start|center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera ID"/>
+            <EditText
+                android:layout_gravity="end|center_vertical"
+                android:id="@+id/cameraIDEditText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+        </GridLayout>
+        <GridLayout
+            android:columnCount="2"
+            android:rowCount="1"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_gravity="start|center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera Pass"/>
+            <EditText
+                android:layout_gravity="end|center_vertical"
+                android:id="@+id/cameraPassEditText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="text" />
+        </GridLayout>
+        <GridLayout
+            android:columnCount="2"
+            android:rowCount="1"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_gravity="start|center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera Bitrate"/>
+            <EditText
+                android:layout_gravity="end|center_vertical"
+                android:id="@+id/bitrateText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="text" />
+        </GridLayout>
+        <GridLayout
+            android:columnCount="2"
+            android:rowCount="1"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_gravity="start|center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resolution"/>
+            <EditText
+                android:layout_gravity="end|center_vertical"
+                android:id="@+id/resolutionEditText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="text" />
+        </GridLayout>
+    </LinearLayout>
+    <Switch
+        android:id="@+id/micEnableButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Microphone"/>
+    <Switch
+        android:id="@+id/ttsEnableButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Text To Speech"/>
+    <Switch
+        android:id="@+id/errorReportButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable error reporting"/>
+    <Button
+        android:id="@+id/setupBluetoothButton"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set Bluetooth Device"/>
+
+    <Button
+        android:id="@+id/applyButton"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Apply"/>
+</LinearLayout>
+</ScrollView>

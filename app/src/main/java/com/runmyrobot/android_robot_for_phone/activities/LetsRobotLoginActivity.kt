@@ -6,6 +6,7 @@ import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
 import android.app.LoaderManager.LoaderCallbacks
 import android.content.CursorLoader
+import android.content.Intent
 import android.content.Loader
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -48,6 +49,7 @@ class LetsRobotLoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         })
 
         email_sign_in_button.setOnClickListener { attemptLogin() }
+        email_skip_button.setOnClickListener { skipLogin() }
     }
 
     private fun populateAutoComplete() {
@@ -56,6 +58,10 @@ class LetsRobotLoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         }
 
         loaderManager.initLoader(0, null, this)
+    }
+
+    private fun skipLogin(){
+        startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
     private fun mayRequestContacts(): Boolean {
