@@ -32,6 +32,7 @@ android {
         buildConfigField "String", "ROBOT_ID", getProp("robot.robotID")
         buildConfigField "String", "ROBOT_PASS", getProp("robot.robotPass")
         buildConfigField "String", "CAMERA_ID", getProp("robot.cameraID")
+        buildConfigField "String", "ERROR_REPORTING", getProp("app.reportErrors")
         String cameraPass = getProp("robot.cameraPass")
         if(cameraPass == "\"\"") cameraPass = "\"hello\""
         buildConfigField "String", "CAMERA_PASS", cameraPass
@@ -68,6 +69,7 @@ dependencies {
     //implementation project(':controller-api')
     //implementation project(':logging')
     implementation 'com.akexorcist:bluetoothspp:1.0.0'
+    implementation 'com.bugsnag:bugsnag-android:4.+'
 }
 repositories {
     mavenCentral()
