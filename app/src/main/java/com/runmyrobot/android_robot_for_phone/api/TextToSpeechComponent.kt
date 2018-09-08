@@ -70,15 +70,9 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                 ControllerMessageManager.invoke("chat", `object`)
                 try {
                     val messageRaw = `object`.getString("message")
-                    messageRaw?.let{ //In case there is no message object
-                        val index = messageRaw.indexOf("]")
-                        //If no spaces or space is last in message, then assume no message
-                        if(index == -1 || index == messageRaw.length) return@on
-                        val message = messageRaw.subSequence(index+1, messageRaw.length).toString()
-                        Log.d("Log", "Eval to " + message)
-                        if(message.startsWith(".")) //Ignore messages that begin with '.'
-                            return@on
-                        ttobj.speak(message, TextToSpeech.QUEUE_FLUSH, null)
+                    getMessageFromRaw(messageRaw)?.let {
+                        //TODO use non-deprecated call? Does not support 4.4 though
+                        ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
                     }
                 } catch (e: JSONException) {
                     e.printStackTrace()
@@ -95,5 +89,21 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
             return
         }
         mSocket?.disconnect()
+    }
+
+    companion object {
+        fun getMessageFromRaw(inVal : String?) : String?{
+            inVal?.let{ //In case there is no message object
+                val index = it.indexOf("]").takeIf {
+                    //If no spaces or space is last in message, then assume no message
+                    it != -1 && it < inVal.length
+                } ?: return null
+                return it.subSequence(index+1, it.length).trim().toString().takeIf {
+                    !it.startsWith(".") //don't set if starts with '.'
+                    && !it.isBlank() //don't set if just blank
+                }?.let { it }
+            }
+            return null
+        }
     }
 }
