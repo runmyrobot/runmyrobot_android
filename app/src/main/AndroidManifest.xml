@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.runmyrobot.android_robot_for_phone">
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -18,6 +18,11 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:name=".RobotApplication"
         android:allowBackup="true"
@@ -27,7 +32,8 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
-            android:value="451020ca1fe775c40065ae897c760d61"/>
+            android:value="451020ca1fe775c40065ae897c760d61" />
+
         <service
             android:name=".control.UsbService"
             android:enabled="true"
@@ -49,17 +55,17 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
-        <activity android:name=".activities.MainRobotActivity"
+        <activity
+            android:name=".activities.MainRobotActivity"
             android:keepScreenOn="true">
+        </activity>
+        <activity android:name=".activities.ChooseBluetoothActivity"/>
+        <activity
+            android:name=".activities.LetsRobotLoginActivity"
+            android:label="@string/title_activity_lets_robot_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activities.ChooseBluetoothActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

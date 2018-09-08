@@ -8,7 +8,7 @@ apply plugin: 'kotlin-android-extensions'
  * @param secretID
  * @return String
  */
-String getProp(String secretID){
+String getProp(String secretID) {
     //Load secrets from the local.properties file
     File secretPropsFile = file('../local.properties')
     if (secretPropsFile.exists()) {
@@ -35,7 +35,7 @@ android {
         buildConfigField "String", "CAMERA_ID", getProp("robot.cameraID")
         buildConfigField "String", "ERROR_REPORTING", getProp("app.reportErrors")
         String cameraPass = getProp("robot.cameraPass")
-        if(cameraPass == "\"\"") cameraPass = "\"hello\""
+        if (cameraPass == "\"\"") cameraPass = "\"hello\""
         buildConfigField "String", "CAMERA_PASS", cameraPass
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -55,6 +55,7 @@ dependencies {
         exclude group: 'org.json', module: 'json'
     }
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.android.support:design:27.1.1'
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     // Required for instrumented tests
