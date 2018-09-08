@@ -10,6 +10,7 @@ import android.widget.Toast
 import com.runmyrobot.android_robot_for_phone.api.Component
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.control.UsbService
+import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import java.lang.ref.WeakReference
 
 /**
@@ -28,6 +29,9 @@ import java.lang.ref.WeakReference
  */
 class MotorControl(context: Context) : Component(context) {
     private val TAG = "MotorControl"
+
+    private val motorForwardSpeed = 70.toByte()
+    private val motorBackwardSpeed = (-70).toByte()
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
@@ -53,32 +57,32 @@ class MotorControl(context: Context) : Component(context) {
     private val onForward: (Any?) -> Unit = {
         Log.d(TAG, "onForward")
         val data = ByteArray(2)
-        data[0] = 255.toByte()
-        data[1] = 127.toByte()
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
         usbService?.write(data)
     }
 
     private val onBack: (Any?) -> Unit = {
         Log.d(TAG, "onBack")
         val data = ByteArray(2)
-        data[0] = 128.toByte()
-        data[1] = 1.toByte()
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
         usbService?.write(data)
     }
 
     private val onLeft: (Any?) -> Unit = {
         Log.d(TAG, "onLeft")
         val data = ByteArray(2)
-        data[0] = 128.toByte()
-        data[1] = 127.toByte()
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
         usbService?.write(data)
     }
 
     private val onRight: (Any?) -> Unit = {
         Log.d(TAG, "onRight")
         val data = ByteArray(2)
-        data[0] = 255.toByte()
-        data[1] = 1.toByte()
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
         usbService?.write(data)
     }
 

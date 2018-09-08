@@ -47,6 +47,11 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     var previewRunning = false
     fun enable() {
         try {
+            try {
+                holder.removeCallback(this)
+            } catch (e: Exception) {
+            }
+            holder.addCallback(this)
             val client = OkHttpClient.Builder()
                     .build()
             var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
@@ -129,6 +134,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     fun disable() {
         recording = false
         camera?.stopPreview()
+        holder.removeCallback(this)
         camera?.release()
     }
 

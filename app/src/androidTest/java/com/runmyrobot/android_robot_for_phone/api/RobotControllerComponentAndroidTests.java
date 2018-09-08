@@ -2,7 +2,7 @@ package com.runmyrobot.android_robot_for_phone.api;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.runmyrobot.android_robot_for_phone.test.BuildConfig;
+import com.runmyrobot.android_robot_for_phone.BuildConfig;
 
 import org.junit.Assert;
 import org.junit.Test;

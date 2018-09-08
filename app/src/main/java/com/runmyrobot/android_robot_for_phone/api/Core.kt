@@ -197,6 +197,20 @@ private constructor(val robotId : String, val cameraId : String?) {
         return true
     }
 
+    fun onPause() {
+        if (!running.get()) {
+            return
+        }
+        handler?.sendEmptyMessage(STOP)
+    }
+
+    fun onResume() {
+        if (!running.get()) {
+            return
+        }
+        handler?.sendEmptyMessage(START)
+    }
+
     /**
      * Builder for the Core api.
      * Call build() after changing settings to have the actual Core class returned.
