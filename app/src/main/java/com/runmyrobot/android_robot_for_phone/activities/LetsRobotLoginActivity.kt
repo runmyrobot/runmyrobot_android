@@ -23,6 +23,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import com.runmyrobot.android_robot_for_phone.R
+import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_lets_robot_login.*
 import java.util.*
 
@@ -39,6 +40,9 @@ class LetsRobotLoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lets_robot_login)
         // Set up the login form.
+        StoreUtil.getRobotId(this)?.let{
+            startActivity(Intent(this, MainRobotActivity::class.java))
+        }
         //populateAutoComplete()
         password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {

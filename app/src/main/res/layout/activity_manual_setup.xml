@@ -31,6 +31,7 @@
             android:inputType="number" />
     </GridLayout>
     <Switch
+        android:id="@+id/cameraEnableToggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Enable Camera"/>
@@ -90,7 +91,7 @@
                 android:text="Camera Bitrate"/>
             <EditText
                 android:layout_gravity="end|center_vertical"
-                android:id="@+id/bitrateText"
+                android:id="@+id/bitrateEditText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="10"

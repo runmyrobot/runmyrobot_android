@@ -36,6 +36,14 @@ object StoreUtil {
         return getSharedPrefs(context).getString("cameraPass", "hello")
     }
 
+    fun setCameraEnabled(context: Context, cameraEnabled : Boolean){
+        getSharedPrefs(context).edit().putBoolean("cameraEnabled", cameraEnabled).apply()
+    }
+
+    fun getCameraEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("cameraEnabled", false)
+    }
+
     fun setMicEnabled(context: Context, micEnabled : Boolean){
         getSharedPrefs(context).edit().putBoolean("micEnabled", micEnabled).apply()
     }
