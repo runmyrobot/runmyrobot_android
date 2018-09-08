@@ -35,4 +35,4 @@ cache:
     - $HOME/.android/build-cache
 before_script:
  - chmod +x gradlew
-script: ./gradlew build connectedCheck
+script: ./gradlew build check
