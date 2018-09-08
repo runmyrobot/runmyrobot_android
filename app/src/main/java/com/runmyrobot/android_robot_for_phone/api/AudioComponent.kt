@@ -90,21 +90,23 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
     }
 
     override fun onAudioDataReceived(data: ShortArray?) {
-        val audioDevNum = 1
-        val mic_channels = 1
-        val audioHost = host
-        val audioPort = port
-        val stream_key = com.runmyrobot.android_robot_for_phone.BuildConfig.CAMERA_PASS
-        val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, stream_key)
         try {
-            if(!ffmpegRunning.get())
+            if(!ffmpegRunning.get()){
+                val audioDevNum = 1
+                val mic_channels = 1
+                val audioHost = host
+                val audioPort = port
+                val stream_key = com.runmyrobot.android_robot_for_phone.BuildConfig.CAMERA_PASS
+                val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, stream_key)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         data?.let {
             try {
-                process?.outputStream?.write(ShortToByte_ByteBuffer_Method(it))
+                val buffer = ShortToByte_ByteBuffer_Method(it)
+                buffer?.let { process?.outputStream?.write(it) }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -112,7 +114,7 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
     }
 
     override fun onProgress(message: String?) {
-        Log.d(AudioComponent.LOGTAG, "onProgress : $message")
+//        Log.d(AudioComponent.LOGTAG, "onProgress : $message")
     }
 
     override fun onFailure(message: String?) {
