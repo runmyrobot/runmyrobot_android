@@ -12,6 +12,90 @@ object StoreUtil {
         return context.getSharedPreferences("robotConfig", 0)
     }
 
+    fun setRobotId(context: Context, robotId : String){
+        getSharedPrefs(context).edit().putString("robotId", robotId).apply()
+    }
+
+    fun getRobotId(context: Context) : String?{
+        return getSharedPrefs(context).getString("robotId", null)
+    }
+
+    fun setCameraId(context: Context, cameraId : String){
+        getSharedPrefs(context).edit().putString("cameraId", cameraId).apply()
+    }
+
+    fun getCameraId(context: Context) : String?{
+        return getSharedPrefs(context).getString("cameraId", null)
+    }
+
+    fun setCameraPass(context: Context, cameraId : String){
+        getSharedPrefs(context).edit().putString("cameraPass", cameraId).apply()
+    }
+
+    fun getCameraPass(context: Context) : String{
+        return getSharedPrefs(context).getString("cameraPass", "hello")
+    }
+
+    fun setCameraEnabled(context: Context, cameraEnabled : Boolean){
+        getSharedPrefs(context).edit().putBoolean("cameraEnabled", cameraEnabled).apply()
+    }
+
+    fun getCameraEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("cameraEnabled", false)
+    }
+
+    fun setMicEnabled(context: Context, micEnabled : Boolean){
+        getSharedPrefs(context).edit().putBoolean("micEnabled", micEnabled).apply()
+    }
+
+    fun getMicEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("micEnabled", false)
+    }
+
+    fun setTTSEnabled(context: Context, TTSEnabled : Boolean){
+        getSharedPrefs(context).edit().putBoolean("TTSEnabled", TTSEnabled).apply()
+    }
+
+    fun getTTSEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("TTSEnabled", false)
+    }
+
+    fun setErrorReportingEnabled(context: Context, errorReporting : Boolean){
+        getSharedPrefs(context).edit().putBoolean("errorReporting", errorReporting).apply()
+    }
+
+    fun getErrorReportingEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("errorReporting", false)
+    }
+
+    /**
+     * Set bitrate in kbps
+     */
+    fun setBitrate(context: Context, videoBitrate : String){
+        getSharedPrefs(context).edit().putString("videoBitrate", videoBitrate).apply()
+    }
+
+    /**
+     * Get bitrate in kbps
+     */
+    fun getBitrate(context: Context): String {
+        return getSharedPrefs(context).getString("videoBitrate", "10")
+    }
+
+    /**
+     * Set bitrate in kbps
+     */
+    fun setResolution(context: Context, videoResolution : String){
+        getSharedPrefs(context).edit().putString("videoResolution", videoResolution).apply()
+    }
+
+    /**
+     * Get bitrate in kbps
+     */
+    fun getResolution(context: Context): String {
+        return getSharedPrefs(context).getString("videoResolution", "640x480")
+    }
+
     fun SetBluetoothDevice(context: Context, name : String, address : String) {
         getSharedPrefs(context).edit().putString("BTName", name).apply()
         getSharedPrefs(context).edit().putString("BTAddress", address).apply()
@@ -25,5 +109,13 @@ object StoreUtil {
             return Pair(name, address)
         }
         return null
+    }
+
+    fun setConfigured(context: Context, b: Boolean) {
+        getSharedPrefs(context).edit().putBoolean("configured", b).apply()
+    }
+
+    fun getConfigured(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("configured", false)
     }
 }

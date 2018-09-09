@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceHolder
-import com.runmyrobot.android_robot_for_phone.BuildConfig
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
@@ -241,6 +240,8 @@ private constructor(val robotId : String, val cameraId : String?) {
          * Should chat messages be piped through the android speaker?
          */
         var useTTS = false
+
+        var useMic = false
         var holder: SurfaceHolder? = null
 
         /**
@@ -262,13 +263,15 @@ private constructor(val robotId : String, val cameraId : String?) {
                 core.robotController = RobotControllerComponent(it)
             }
             cameraId?.let{
-                core.audio = AudioComponent(context, cameraId!!)
+                if(useMic) {
+                    core.audio = AudioComponent(context, cameraId!!)
+                }
                 holder?.let {
                     core.camera = CameraComponent(context, cameraId!!, holder!!)
                 }
             }
             if (useTTS) {
-                core.textToSpeech = TextToSpeechComponent(context, BuildConfig.ROBOT_ID)
+                core.textToSpeech = TextToSpeechComponent(context, robotId!!)
             }
             //Set the log level
             core.logLevel = logLevel
