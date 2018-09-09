@@ -52,6 +52,7 @@ class SplashActivity : Activity() {
     }
 
     private fun startNext() {
+        finish()
         if(!StoreUtil.getConfigured(this)){
             startActivity(Intent(this, ManualSetupActivity::class.java))
         }
@@ -85,6 +86,11 @@ class SplashActivity : Activity() {
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
             list.add(Manifest.permission.CAMERA)
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            list.add(Manifest.permission.RECORD_AUDIO)
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {

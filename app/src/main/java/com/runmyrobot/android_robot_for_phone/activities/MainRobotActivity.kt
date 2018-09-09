@@ -27,21 +27,6 @@ class MainRobotActivity : Activity(){
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         setContentView(R.layout.activity_main_robot)
-
-        val builder = Core.Builder(applicationContext) //Initialize the Core Builder
-        //Attach the SurfaceView holder to render the camera to
-        builder.holder = cameraSurfaceView.holder
-        builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
-        if(StoreUtil.getCameraEnabled(this)){
-            builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID
-        }
-        builder.useTTS = StoreUtil.getTTSEnabled(this)
-        builder.useMic = StoreUtil.getMicEnabled(this)
-        try {
-            core = builder.build() //Retrieve the built Core instance
-        } catch (e: Core.InitializationException) {
-            e.printStackTrace()
-        }
         recordButtonMain.setOnClickListener{
             if (recording) {
                 recording = false
@@ -67,7 +52,25 @@ class MainRobotActivity : Activity(){
 
     override fun onResume() {
         super.onResume()
-        core?.onResume()
+        //Call onResume to re-enable it if needed. If null, create it
+        core?.onResume() ?: createCore()
+    }
+
+    private fun createCore() {
+        val builder = Core.Builder(applicationContext) //Initialize the Core Builder
+        //Attach the SurfaceView holder to render the camera to
+        builder.holder = cameraSurfaceView.holder
+        builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
+        if(StoreUtil.getCameraEnabled(this)){
+            builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID
+        }
+        builder.useTTS = StoreUtil.getTTSEnabled(this)
+        builder.useMic = StoreUtil.getMicEnabled(this)
+        try {
+            core = builder.build() //Retrieve the built Core instance
+        } catch (e: Core.InitializationException) {
+            e.printStackTrace()
+        }
     }
 
     companion object {
