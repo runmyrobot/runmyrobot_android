@@ -5,13 +5,18 @@
     android:layout_height="fill_parent">
 
     <Button
-        android:layout_width="fill_parent"
-        android:text="Enable"
+        android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:id="@+id/recordButtonMain" />
+        android:text="Enable"
 
+        android:id="@+id/recordButtonMain" />
+    <Button
+        android:text="Settings"
+        android:id="@+id/settingsButtonMain"
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
     <SurfaceView
         android:id="@+id/cameraSurfaceView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>

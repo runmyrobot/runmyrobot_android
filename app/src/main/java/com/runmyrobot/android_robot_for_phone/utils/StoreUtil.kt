@@ -110,4 +110,12 @@ object StoreUtil {
         }
         return null
     }
+
+    fun setConfigured(context: Context, b: Boolean) {
+        getSharedPrefs(context).edit().putBoolean("configured", b).apply()
+    }
+
+    fun getConfigured(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("configured", false)
+    }
 }

@@ -12,6 +12,7 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.runmyrobot.android_robot_for_phone.R
+import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 class SplashActivity : Activity() {
 
@@ -46,14 +47,23 @@ class SplashActivity : Activity() {
             e.printStackTrace()
         }
         if(checkPermissions()){
+            startNext()
+        }
+    }
+
+    private fun startNext() {
+        if(!StoreUtil.getConfigured(this)){
             startActivity(Intent(this, ManualSetupActivity::class.java))
+        }
+        else{
+            startActivity(Intent(this, MainRobotActivity::class.java))
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(checkPermissions()){
-            startActivity(Intent(this, ManualSetupActivity::class.java))
+            startNext()
         }
     }
 

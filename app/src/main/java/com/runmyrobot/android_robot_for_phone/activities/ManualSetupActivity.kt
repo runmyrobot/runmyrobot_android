@@ -38,6 +38,7 @@ class ManualSetupActivity : AppCompatActivity() {
 
     private fun launchActivity() {
         startActivity(Intent(this, MainRobotActivity::class.java))
+        StoreUtil.setConfigured(this, true)
     }
 
     private fun saveButtonStates() {

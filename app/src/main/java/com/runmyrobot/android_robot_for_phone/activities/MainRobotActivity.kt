@@ -1,6 +1,7 @@
 package com.runmyrobot.android_robot_for_phone.activities
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Window
@@ -53,6 +54,9 @@ class MainRobotActivity : Activity(){
                     core!!.enable() //enable core if we hit the button to enable recording
                 Log.v(LOGTAG, "Recording Started")
             }
+        }
+        settingsButtonMain.setOnClickListener {
+            startActivity(Intent(this, ManualSetupActivity::class.java))
         }
     }
 
