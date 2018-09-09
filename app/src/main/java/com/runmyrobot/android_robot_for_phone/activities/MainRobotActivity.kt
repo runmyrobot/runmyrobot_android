@@ -1,7 +1,6 @@
 package com.runmyrobot.android_robot_for_phone.activities
 
 import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
 import android.view.Window
@@ -25,7 +24,6 @@ class MainRobotActivity : Activity(){
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         setContentView(R.layout.activity_main_robot)
 

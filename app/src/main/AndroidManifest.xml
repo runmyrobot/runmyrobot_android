@@ -57,7 +57,7 @@
         </activity>
         <activity
             android:name=".activities.MainRobotActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="portrait"
             android:keepScreenOn="true" />
         <activity android:name=".activities.ChooseBluetoothActivity" />
         <activity
