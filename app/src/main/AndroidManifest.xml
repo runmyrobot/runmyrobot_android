@@ -43,7 +43,7 @@
             android:name=".activities.UsbInterceptor"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:label="YOUR APPLICATION NAME - This appears in the permission popup"
+            android:label="runmyrobot"
             android:noHistory="true"
             android:process=":UsbEventReceiverActivityProcess"
             android:taskAffinity="com.example.taskAffinityUsbEventReceiver">
@@ -57,18 +57,20 @@
         </activity>
         <activity
             android:name=".activities.MainRobotActivity"
-            android:keepScreenOn="true"></activity>
+            android:screenOrientation="landscape"
+            android:keepScreenOn="true" />
         <activity android:name=".activities.ChooseBluetoothActivity" />
         <activity
             android:name=".activities.LetsRobotLoginActivity"
-            android:label="@string/title_activity_lets_robot_login">
+            android:label="@string/title_activity_lets_robot_login"/>
+        <activity android:name=".activities.ManualSetupActivity" />
+        <activity android:name=".activities.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ManualSetupActivity"></activity>
     </application>
 
 </manifest>

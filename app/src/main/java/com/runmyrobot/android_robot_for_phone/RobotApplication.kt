@@ -2,9 +2,6 @@ package com.runmyrobot.android_robot_for_phone
 
 import android.app.Application
 import com.bugsnag.android.Bugsnag
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 /**
@@ -18,14 +15,6 @@ class RobotApplication : Application() {
         Bugsnag.init(this)
         if(!StoreUtil.getErrorReportingEnabled(this)){
             Bugsnag.setNotifyReleaseStages("")
-        }
-        val ffmpeg = FFmpeg.getInstance(applicationContext)
-        try {
-            ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
-                //TODO maybe catch some error to display to the user
-            })
-        } catch (e: FFmpegNotSupportedException) {
-            e.printStackTrace()
         }
     }
 
