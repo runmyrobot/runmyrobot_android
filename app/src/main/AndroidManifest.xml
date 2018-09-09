@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.runmyrobot.android_robot_for_phone">
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -27,7 +27,8 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
-            android:value="451020ca1fe775c40065ae897c760d61"/>
+            android:value="451020ca1fe775c40065ae897c760d61" />
+
         <service
             android:name=".control.UsbService"
             android:enabled="true"
@@ -37,7 +38,7 @@
             android:name=".activities.UsbInterceptor"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:label="YOUR APPLICATION NAME - This appears in the permission popup"
+            android:label="runmyrobot"
             android:noHistory="true"
             android:process=":UsbEventReceiverActivityProcess"
             android:taskAffinity="com.example.taskAffinityUsbEventReceiver">
@@ -49,17 +50,17 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
-        <activity android:name=".activities.MainRobotActivity"
-            android:keepScreenOn="true">
+        <activity
+            android:name=".activities.MainRobotActivity"
+            android:screenOrientation="portrait"
+            android:keepScreenOn="true" />
+        <activity android:name=".activities.ChooseBluetoothActivity" />
+        <activity android:name=".activities.ManualSetupActivity" />
+        <activity android:name=".activities.SplashActivity"
+            android:label="runmyrobot">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".activities.ChooseBluetoothActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
+import com.runmyrobot.android_robot_for_phone.RobotApplication
 import com.runmyrobot.android_robot_for_phone.utils.RecordingThread
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -96,7 +97,7 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
                 val mic_channels = 1
                 val audioHost = host
                 val audioPort = port
-                val stream_key = com.runmyrobot.android_robot_for_phone.BuildConfig.CAMERA_PASS
+                val stream_key = RobotApplication.Instance.getCameraPass()
                 val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, stream_key)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }
