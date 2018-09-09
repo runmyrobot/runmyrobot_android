@@ -55,11 +55,9 @@
             android:screenOrientation="portrait"
             android:keepScreenOn="true" />
         <activity android:name=".activities.ChooseBluetoothActivity" />
-        <activity
-            android:name=".activities.LetsRobotLoginActivity"
-            android:label="@string/title_activity_lets_robot_login"/>
         <activity android:name=".activities.ManualSetupActivity" />
-        <activity android:name=".activities.SplashActivity">
+        <activity android:name=".activities.SplashActivity"
+            android:label="runmyrobot">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
