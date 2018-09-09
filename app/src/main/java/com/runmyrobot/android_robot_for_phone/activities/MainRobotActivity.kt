@@ -45,18 +45,18 @@ class MainRobotActivity : Activity(){
         recordButtonMain.setOnClickListener{
             if (recording) {
                 recording = false
-                if (core != null)
-                    core!!.disable() //Disable core if we hit the button to disable recording
+                core?.disable() //Disable core if we hit the button to disable recording
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
-                if (core != null)
-                    core!!.enable() //enable core if we hit the button to enable recording
+                core?.enable() //enable core if we hit the button to enable recording
                 Log.v(LOGTAG, "Recording Started")
             }
         }
         settingsButtonMain.setOnClickListener {
             startActivity(Intent(this, ManualSetupActivity::class.java))
+            core?.disable()
+            core = null
         }
     }
 
