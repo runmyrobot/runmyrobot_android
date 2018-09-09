@@ -84,6 +84,9 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             ffmpegRunning.set(false)
             return
         }
+        /**
+         * -analyzeduration 0 -pix_fmt nv21 -s 480x360 -vcodec rawvideo -f image2pipe -i - -s 320x240 -crf 18 -preset ultrafast -vcodec libx264 -f rtp rtp://"+address+":"+port
+         */
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
             val xres = "640"
@@ -109,6 +112,8 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     var height = 0
     var limiter = RateLimiter.create(30.0)
 
+    private lateinit var r: Rect
+
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
         if(!limiter.tryAcquire()) return
         if (width == 0 || height == 0) {
@@ -116,6 +121,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
                 val size = it.previewSize
                 width = size.width
                 height = size.height
+                r = Rect(0, 0, width, height)
             }
         }
         if (!ffmpegRunning.getAndSet(true)) {
@@ -123,7 +129,6 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
         process?.let {
             val im = YuvImage(b, ImageFormat.NV21, width, height, null)
-            val r = Rect(0, 0, width, height)
             try {
                 im.compressToJpeg(r, 100, it.outputStream)
             } catch (e: Exception) {
