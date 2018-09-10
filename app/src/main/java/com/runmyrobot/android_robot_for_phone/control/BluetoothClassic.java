@@ -79,7 +79,8 @@ public class BluetoothClassic {
 
 					break;
 				case DISCONNECT_MESSAGE:
-					connectedThread.cancel();
+					if(connectedThread != null)
+						connectedThread.cancel();
 					break;
 				case SEND_MESSAGE:
 
