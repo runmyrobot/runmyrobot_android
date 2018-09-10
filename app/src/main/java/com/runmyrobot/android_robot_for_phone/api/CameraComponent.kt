@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.hardware.Camera
 import android.util.Log
 import android.view.SurfaceHolder
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
@@ -51,10 +52,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
                 holder.removeCallback(this)
             } catch (e: Exception) {
             }
-            camera?.release()
-            camera = android.hardware.Camera.open()
             holder.addCallback(this)
-            setupCam()
             val client = OkHttpClient.Builder()
                     .build()
             var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
@@ -171,10 +169,6 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     fun disable() {
         recording = false
-        camera?.stopPreview()
-        holder.removeCallback(this)
-        camera?.release()
-        camera = null
     }
 
     override fun onStart() {
@@ -210,6 +204,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         surface = true
+        camera = Camera.open()
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -223,6 +218,8 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
         surface = false
         previewRunning = false
+        camera?.stopPreview()
+        camera?.setPreviewCallback (null)
         camera?.release()
         camera = null
     }
