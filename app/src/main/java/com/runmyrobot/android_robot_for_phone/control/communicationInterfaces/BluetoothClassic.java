@@ -19,6 +19,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+/**
+ * This class handles Bluetooth classic connections. This does not support BLE or Bluetooth Gatt
+ */
 public class BluetoothClassic implements CommunicationInterface {
 	private String tag = "BluetoothClassic";
 	public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");

@@ -48,6 +48,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This connects to an attached USB Serial adapter and can send and receive data from USB
+ *
+ * This cannot do /dev/ttl addresses directly
+ */
 public class UsbService extends Service implements CommunicationInterface{
     //TODO specify connect and disconnect
     public static final String ACTION_USB_READY = "com.felhr.connectivityservices.USB_READY";
@@ -274,6 +279,16 @@ public class UsbService extends Service implements CommunicationInterface{
     public boolean send(@NotNull byte[] byteArray) {
         write(byteArray);
         return isConnected();
+    }
+
+    @Override
+    public void enable() {
+        //Does not apply
+    }
+
+    @Override
+    public void disable() {
+        //Does not apply
     }
 
     public class UsbBinder extends Binder {

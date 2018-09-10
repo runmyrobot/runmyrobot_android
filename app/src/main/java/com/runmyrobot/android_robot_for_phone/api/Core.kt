@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.SurfaceHolder
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.TIMEOUT
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
+import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -235,6 +237,17 @@ private constructor(val robotId : String, val cameraId : String?) {
         internal var context: Context = context.applicationContext
 
         private var logLevel = LogLevel.NONE
+
+        /**
+         * Communication type to use. Ex. Bluetooth or USB
+         */
+        var communication : CommunicationType? = null
+
+        /**
+         * Protocol type to use. Ex. Arduino Raw or Sabertooth Serial
+         */
+        var protocol : ProtocolType? = null
+
         /**
          * Id that should be used to receive chat messages from server
          */
@@ -268,8 +281,16 @@ private constructor(val robotId : String, val cameraId : String?) {
                 throw InitializationException()
             }
             val core = Core(robotId!!, cameraId)
+            //Get list of external components, such as LED code, or more customized motor control
+            core.externalComponents = RobotComponentList.components
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
+                communication?.takeUnless { protocol == null }?.let {
+                    val commClass = it.setup(context)
+                    val protocolClass = commClass?.let {
+                         protocol?.setup(it, context)
+                    }
+                }
             }
             cameraId?.let{
                 if(useMic) {
@@ -285,8 +306,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             //Set the log level
             core.logLevel = logLevel
 
-            //Get list of external components, such as LED code, or motor control
-            core.externalComponents = RobotComponentList.components
+
             return core
         }
     }
