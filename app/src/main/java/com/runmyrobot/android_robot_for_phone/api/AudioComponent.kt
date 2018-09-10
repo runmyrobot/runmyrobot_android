@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Created by Brendon on 9/1/2018.
  */
-class AudioComponent(private val contextA: Context, val cameraId : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
+class AudioComponent(contextA: Context, val cameraId : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
 
     /*audioCommandLine1 = '%s -f mp3 -ar 44100 -ac %d -i pipe: -f mpegts -codec:a mp2 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (ffmpegLocation, robotSettings.mic_channels, audioDevNum, audioHost, audioPort, robotSettings.stream_key)
     */
@@ -33,6 +33,7 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
     private var port: String? = null
 
     private var host: String? = null
+    private val recordingThread = RecordingThread(this)
 
     override fun enable() {
         super.enable()
@@ -61,12 +62,13 @@ class AudioComponent(private val contextA: Context, val cameraId : String) : Com
         if(host == null || port == null){
             throw Exception("Unable to form URL")
         }
-        val recordingThread = RecordingThread(this)
         recordingThread.startRecording()
     }
 
     override fun disable() {
         super.disable()
+        recordingThread.stopRecording()
+
     }
 
 

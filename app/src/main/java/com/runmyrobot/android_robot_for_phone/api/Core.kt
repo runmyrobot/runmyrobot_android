@@ -84,7 +84,11 @@ private constructor(val robotId : String, val cameraId : String?) {
             when (msg.what) {
                 START -> enableInternal()
                 STOP -> disableInternal()
-                QUEUE_UPDATE_TO_SERVER -> handler?.postDelayed(onUpdateServer, 1000)
+                QUEUE_UPDATE_TO_SERVER -> {
+                    if(running.get()) {
+                        handler?.postDelayed(onUpdateServer, 1000)
+                    }
+                }
             }
             true
         }
@@ -122,6 +126,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     private var appServerSocket: Socket? = null
 
     private fun enableInternal() {
+        if(running.getAndSet(true)) return //already enabled
         log(LogLevel.INFO, "starting core...")
         Thread{
             camera?.enable()
@@ -151,6 +156,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     private fun disableInternal() {
+        if(!running.getAndSet(false)) return //already disabled
         log(LogLevel.INFO, "shutting down core...")
         if (robotController != null) {
             robotController!!.disable()
@@ -170,13 +176,15 @@ private constructor(val robotId : String, val cameraId : String?) {
         log(LogLevel.INFO, "core is shut down!")
     }
 
+    private val shouldRun = AtomicBoolean(false)
+
     /**
      * Enable the LetsRobot android core. This will start from scratch.
      * Nothing except settings have been initialized before this call.
      * @return true if successful, false if already started
      */
     fun enable(): Boolean {
-        if (running.getAndSet(true)) {
+        if (shouldRun.getAndSet(true)) {
             return false
         }
         handler?.sendEmptyMessage(START)
@@ -189,7 +197,7 @@ private constructor(val robotId : String, val cameraId : String?) {
      * @return true if disable successful, or false if already in disabled state
      */
     fun disable(): Boolean {
-        if (!running.getAndSet(false)) {
+        if (!shouldRun.getAndSet(false)) {
             return false
         }
         handler?.sendEmptyMessage(STOP)
@@ -197,14 +205,14 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onPause() {
-        if (!running.get()) {
+        if (!shouldRun.get()) {
             return
         }
         handler?.sendEmptyMessage(STOP)
     }
 
     fun onResume() {
-        if (!running.get()) {
+        if (!shouldRun.get()) {
             return
         }
         handler?.sendEmptyMessage(START)
