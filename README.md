@@ -69,8 +69,7 @@ This is completely optional and will be disabled unless enabled through settings
 
 # Some known issues
 
-- Camera streaming will only work if the app has not been backgrounded (turning screen off is fine)
-Will crash if home button is hit
+- Camera streaming will only work if the app has not been backgrounded (turning screen off is fine if no lock screen)
 
 - Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
 
