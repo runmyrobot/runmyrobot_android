@@ -4,18 +4,19 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.COMMAND
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.ROBOT_CONNECTED
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.ROBOT_DISCONNECTED
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.STOP_EVENT
 import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.emitter.Emitter
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URISyntaxException
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Level
 
 /**
  * Handles robot control Socket IO messages and broadcasts them through ControllerMessageManager
@@ -30,7 +31,7 @@ class RobotControllerComponent internal constructor(private val robotId: String)
     /**
      * Sends a timeout message via ControllerMessageManager when run
      */
-    private var runnable: Runnable = Runnable { ControllerMessageManager.invoke("messageTimeout", null) }
+    private var runnable: Runnable = Runnable { ControllerMessageManager.invoke(ControllerMessageManager.TIMEOUT, null) }
 
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
@@ -80,14 +81,14 @@ class RobotControllerComponent internal constructor(private val robotId: String)
                 ControllerMessageManager.invoke(ROBOT_CONNECTED, null)
             }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
                 ControllerMessageManager.invoke(ROBOT_DISCONNECTED, null)
-                ControllerMessageManager.invoke("stop", null)
+                ControllerMessageManager.invoke(STOP_EVENT, null)
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
                     resetTimer() //resets a timer to prevent a timeout message
                     try {
                         //broadcast what message was sent ex. F, stop, etc
-                        ControllerMessageManager.invoke(`object`.getString("command"), null)
+                        ControllerMessageManager.invoke(COMMAND, `object`.getString("command"))
                     } catch (e: JSONException) {
                         e.printStackTrace() //Message format must be wrong, ignore it
                     }
@@ -111,10 +112,5 @@ class RobotControllerComponent internal constructor(private val robotId: String)
             return
         }
         mSocket?.disconnect()
-    }
-
-    companion object {
-        val ROBOT_DISCONNECTED = "robot_disconnect"
-        val ROBOT_CONNECTED = "robot_connect"
     }
 }

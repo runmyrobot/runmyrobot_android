@@ -6,6 +6,7 @@ import android.util.Log
 import com.runmyrobot.android_robot_for_phone.api.Component
 import com.runmyrobot.android_robot_for_phone.control.BluetoothClassic
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.STOP_EVENT
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
@@ -24,21 +25,15 @@ class BluetoothControl(context: Context) : Component(context) {
         address?.second?.let {
             bluetoothClassic.connect(address.second)
         }
-        ControllerMessageManager.subscribe("F", onForward)
-        ControllerMessageManager.subscribe("B", onBack)
-        ControllerMessageManager.subscribe("L", onLeft)
-        ControllerMessageManager.subscribe("R", onRight)
-        ControllerMessageManager.subscribe("stop", onStop)
+        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
+        ControllerMessageManager.subscribe(STOP_EVENT, onStop)
     }
 
     override fun disable() {
         super.disable()
         bluetoothClassic.serviceHandler.sendEmptyMessage(bluetoothClassic.DISCONNECT_MESSAGE)
-        ControllerMessageManager.unsubscribe("F", onForward)
-        ControllerMessageManager.unsubscribe("B", onBack)
-        ControllerMessageManager.unsubscribe("L", onLeft)
-        ControllerMessageManager.unsubscribe("R", onRight)
-        ControllerMessageManager.unsubscribe("stop", onStop)
+        ControllerMessageManager.unsubscribe(ControllerMessageManager.COMMAND, onCommand)
+        ControllerMessageManager.unsubscribe(STOP_EVENT, onStop)
     }
 
     fun sendData(array: ByteArray){
@@ -48,7 +43,18 @@ class BluetoothControl(context: Context) : Component(context) {
         })
     }
 
-    private val onForward: (Any?) -> Unit = {
+    private val onCommand: (Any?) -> Unit = {
+        it?.takeIf { it is String }?.let{
+            when(it as String){
+                "F" -> {onForward()}
+                "B" -> {onBack()}
+                "L" -> {onLeft()}
+                "R" -> {onRight()}
+            }
+        }
+    }
+
+    private fun onForward() {
         Log.d(TAG, "onForward")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
@@ -56,7 +62,7 @@ class BluetoothControl(context: Context) : Component(context) {
         sendData(data)
     }
 
-    private val onBack: (Any?) -> Unit = {
+    private fun onBack() {
         Log.d(TAG, "onBack")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
@@ -64,7 +70,7 @@ class BluetoothControl(context: Context) : Component(context) {
         sendData(data)
     }
 
-    private val onLeft: (Any?) -> Unit = {
+    private fun onLeft() {
         Log.d(TAG, "onLeft")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
@@ -72,7 +78,7 @@ class BluetoothControl(context: Context) : Component(context) {
         sendData(data)
     }
 
-    private val onRight: (Any?) -> Unit = {
+    private fun onRight() {
         Log.d(TAG, "onRight")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)

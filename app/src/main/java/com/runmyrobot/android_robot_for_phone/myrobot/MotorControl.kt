@@ -35,11 +35,8 @@ class MotorControl(context: Context) : Component(context) {
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
-        ControllerMessageManager.subscribe("F", onForward)
-        ControllerMessageManager.subscribe("B", onBack)
-        ControllerMessageManager.subscribe("L", onLeft)
-        ControllerMessageManager.subscribe("R", onRight)
-        ControllerMessageManager.subscribe("stop", onStop)
+        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
+        ControllerMessageManager.subscribe(ControllerMessageManager.STOP_EVENT, onStop)
         setFilters()
         startService(UsbService::class.java, usbConnection, null) // Start UsbService(if it was not started before) and Bind it
     }
@@ -47,50 +44,62 @@ class MotorControl(context: Context) : Component(context) {
     override fun disable() {
         super.disable()
         Log.d(TAG, "disable")
-        ControllerMessageManager.unsubscribe("F", onForward)
-        ControllerMessageManager.unsubscribe("B", onBack)
-        ControllerMessageManager.unsubscribe("L", onLeft)
-        ControllerMessageManager.unsubscribe("R", onRight)
-        ControllerMessageManager.unsubscribe("stop", onStop)
+        ControllerMessageManager.unsubscribe(ControllerMessageManager.COMMAND, onCommand)
+        ControllerMessageManager.unsubscribe(ControllerMessageManager.STOP_EVENT, onStop)
     }
 
-    private val onForward: (Any?) -> Unit = {
+    fun sendData(array: ByteArray){
+        usbService?.write(array)
+    }
+
+    private val onCommand: (Any?) -> Unit = {
+        it?.takeIf { it is String }?.let{
+            when(it as String){
+                "F" -> {onForward()}
+                "B" -> {onBack()}
+                "L" -> {onLeft()}
+                "R" -> {onRight()}
+            }
+        }
+    }
+
+    private fun onForward() {
         Log.d(TAG, "onForward")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
         data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
-        usbService?.write(data)
+        sendData(data)
     }
 
-    private val onBack: (Any?) -> Unit = {
+    private fun onBack() {
         Log.d(TAG, "onBack")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
         data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        usbService?.write(data)
+        sendData(data)
     }
 
-    private val onLeft: (Any?) -> Unit = {
+    private fun onLeft() {
         Log.d(TAG, "onLeft")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
         data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        usbService?.write(data)
+        sendData(data)
     }
 
-    private val onRight: (Any?) -> Unit = {
+    private fun onRight() {
         Log.d(TAG, "onRight")
         val data = ByteArray(2)
         data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
         data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
-        usbService?.write(data)
+        sendData(data)
     }
 
     private val onStop : (Any?) -> Unit  = {
         Log.d(TAG, "onStop")
         val data = ByteArray(1)
         data[0] = 0x00
-        usbService?.write(data)
+        sendData(data)
     }
 
     /**
@@ -150,6 +159,7 @@ class MotorControl(context: Context) : Component(context) {
             }
         }
     }
+
     private var usbService: UsbService? = null
     private var mHandler: MyHandler? = null
     private val usbConnection = object : ServiceConnection {

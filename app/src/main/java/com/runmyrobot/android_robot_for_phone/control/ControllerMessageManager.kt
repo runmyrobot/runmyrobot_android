@@ -27,6 +27,12 @@ import android.util.Log
 class ControllerMessageManager{
     companion object {
         private val subscribers = HashMap<String, ArrayList<(Any?) -> Unit>>()
+        const val COMMAND: String = "command"
+        const val TIMEOUT: String = "timeout"
+        const val ROBOT_DISCONNECTED = "robot_disconnect"
+        const val ROBOT_CONNECTED = "robot_connect"
+        const val STOP_EVENT = "stop_event"
+        const val CHAT = "chat"
 
         /**
          * Subscribe to a control

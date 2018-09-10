@@ -6,6 +6,7 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceHolder
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.TIMEOUT
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -150,7 +151,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             appServerSocket?.emit("identify_robot_id", robotId)
         }
         //Ugly way of doing timeouts. Should find a better way
-        ControllerMessageManager.subscribe("messageTimeout", onControllerTimeout)
+        ControllerMessageManager.subscribe(TIMEOUT, onControllerTimeout)
         handler?.postDelayed(onUpdateServer, 1000)
         log(LogLevel.INFO, "core is started!")
     }
@@ -172,7 +173,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             component.disable()
         }
         appServerSocket?.disconnect()
-        ControllerMessageManager.unsubscribe("messageTimeout", onControllerTimeout)
+        ControllerMessageManager.unsubscribe(TIMEOUT, onControllerTimeout)
         log(LogLevel.INFO, "core is shut down!")
     }
 
