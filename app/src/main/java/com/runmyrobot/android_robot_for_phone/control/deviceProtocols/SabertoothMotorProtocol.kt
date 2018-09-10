@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.myrobot
+package com.runmyrobot.android_robot_for_phone.control.deviceProtocols
 
 import android.content.*
 import android.os.Bundle
@@ -7,9 +7,10 @@ import android.os.IBinder
 import android.os.Message
 import android.util.Log
 import android.widget.Toast
-import com.runmyrobot.android_robot_for_phone.api.Component
+import com.runmyrobot.android_robot_for_phone.api.ControlComponent
+import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
-import com.runmyrobot.android_robot_for_phone.control.UsbService
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.UsbService
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import java.lang.ref.WeakReference
 
@@ -27,11 +28,11 @@ import java.lang.ref.WeakReference
  * - 2 Motors
  * - DIP Configuration (Assumes Lead acid battery): From 1 to 6: 101011
  */
-class MotorControl(context: Context) : Component(context) {
-    private val TAG = "MotorControl"
-
-    private val motorForwardSpeed = 70.toByte()
-    private val motorBackwardSpeed = (-70).toByte()
+class SabertoothMotorProtocol(communicationInterface: CommunicationInterface, context: Context) :
+        ControlComponent(communicationInterface, context) {
+    private val TAG = "SabertoothMotorProtocol"
+    private val motorForwardSpeed = 70.toByte() //scale (-127)-128
+    private val motorBackwardSpeed = (-70).toByte() //scale (-127)-128
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
@@ -54,11 +55,16 @@ class MotorControl(context: Context) : Component(context) {
 
     private val onCommand: (Any?) -> Unit = {
         it?.takeIf { it is String }?.let{
+            //We only worry about the simple motor commands. We could add in half turns though
             when(it as String){
                 "F" -> {onForward()}
                 "B" -> {onBack()}
                 "L" -> {onLeft()}
                 "R" -> {onRight()}
+                "stop" -> {onStop(null)}
+                else -> {
+                    //Control not supported
+                }
             }
         }
     }
@@ -164,7 +170,7 @@ class MotorControl(context: Context) : Component(context) {
     private var mHandler: MyHandler? = null
     private val usbConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, arg1: IBinder) {
-            usbService = (arg1 as UsbService.UsbBinder).getService()
+            usbService = (arg1 as UsbService.UsbBinder).service
             usbService!!.setHandler(mHandler)
         }
 

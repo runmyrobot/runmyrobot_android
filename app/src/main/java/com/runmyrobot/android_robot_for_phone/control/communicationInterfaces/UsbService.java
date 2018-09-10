@@ -22,7 +22,7 @@
  SOFTWARE.
  */
 
-package com.runmyrobot.android_robot_for_phone.control;
+package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -40,12 +40,15 @@ import android.util.Log;
 import com.felhr.usbserial.CDCSerialDevice;
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
+import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UsbService extends Service {
+public class UsbService extends Service implements CommunicationInterface{
     //TODO specify connect and disconnect
     public static final String ACTION_USB_READY = "com.felhr.connectivityservices.USB_READY";
     public static final String ACTION_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
@@ -192,11 +195,11 @@ public class UsbService extends Service {
 
 
     public long lastTime;
+
     /*
      * This function will be called from MainActivity to write data through Serial Port
      */
     public void write(byte[] data) {
-
         if (serialPort != null) {
             serialPort.write(data);
             Log.d("USB SERVICE", "Wrote DATA!");
@@ -261,6 +264,18 @@ public class UsbService extends Service {
         }
     }
 
+    @Override
+    public boolean isConnected() {
+        //This should be enough, but might send a false positive. It won't make anything crash though
+        return serialPort != null;
+    }
+
+    @Override
+    public boolean send(@NotNull byte[] byteArray) {
+        write(byteArray);
+        return isConnected();
+    }
+
     public class UsbBinder extends Binder {
         public UsbService getService() {
             return UsbService.this;
@@ -274,8 +289,6 @@ public class UsbService extends Service {
     private class ConnectionThread extends Thread {
         @Override
         public void run() {
-
-
             serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
             if (serialPort != null) {
                 if (serialPort.open()) {

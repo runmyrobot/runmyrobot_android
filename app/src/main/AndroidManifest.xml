@@ -30,7 +30,7 @@
             android:value="451020ca1fe775c40065ae897c760d61" />
 
         <service
-            android:name=".control.UsbService"
+            android:name=".control.communicationInterfaces.UsbService"
             android:enabled="true"
             android:permission="" />
 

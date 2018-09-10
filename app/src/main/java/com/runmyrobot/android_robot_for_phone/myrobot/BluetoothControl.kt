@@ -4,15 +4,16 @@ import android.content.Context
 import android.os.Message
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.api.Component
-import com.runmyrobot.android_robot_for_phone.control.BluetoothClassic
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
 import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.STOP_EVENT
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.BluetoothClassic
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 /**
  * Created by Brendon on 9/5/2018.
  */
+@Deprecated("Uses old control system. This class will only work with bluetooth")
 class BluetoothControl(context: Context) : Component(context) {
     val TAG = "BluetoothControl"
     val bluetoothClassic = BluetoothClassic(context)

@@ -22,7 +22,7 @@ import android.util.Log
  *
  * }
  *
- * A more thorough example can be seen in MotorControl.kt
+ * A more thorough example can be seen in SabertoothMotorControltorControl.kt
  */
 class ControllerMessageManager{
     companion object {
@@ -60,6 +60,9 @@ class ControllerMessageManager{
         fun invoke(event: String, message : Any? = null){
             val list = subscribers[event]
             Log.d("invoke", event)
+            message?.takeIf { it is String }?.let {
+                Log.d("MessageManager", it.toString())
+            }
             list?.let {
                 //Loop through subscribers
                 it.forEach {
