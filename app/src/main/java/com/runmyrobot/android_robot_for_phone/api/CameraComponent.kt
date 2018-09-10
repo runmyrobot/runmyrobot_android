@@ -51,7 +51,10 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
                 holder.removeCallback(this)
             } catch (e: Exception) {
             }
+            camera?.release()
+            camera = android.hardware.Camera.open()
             holder.addCallback(this)
+            setupCam()
             val client = OkHttpClient.Builder()
                     .build()
             var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
@@ -137,11 +140,41 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
     }
 
+    private fun setupCam(){
+        if (!recording && surface) {
+            camera?.let {
+                if (previewRunning) {
+                    it.stopPreview()
+                }
+
+                try {
+                    val p = it.parameters
+                    val previewSizes = p.supportedPreviewSizes
+
+                    // You need to choose the most appropriate previewSize for your app
+                    val previewSize = previewSizes.get(0) // .... select one of previewSizes here
+                    //p.setPreviewSize(previewSize.width, previewSize.height);
+                    p.setPreviewSize(640, 480)
+                    it.parameters = p
+
+                    it.setPreviewDisplay(holder)
+                    it.setPreviewCallback(this)
+                    Log.v(LOGTAG, "startPreview")
+                    it.startPreview()
+                    previewRunning = true
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
     fun disable() {
         recording = false
         camera?.stopPreview()
         holder.removeCallback(this)
         camera?.release()
+        camera = null
     }
 
     override fun onStart() {
@@ -173,45 +206,14 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     private var camera : android.hardware.Camera? = null
 
+    private var surface = false
+
     override fun surfaceCreated(holder: SurfaceHolder) {
-        camera = android.hardware.Camera.open()
+        surface = true
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        if (!recording) {
-            camera?.let {
-                if (previewRunning) {
-                    it.stopPreview()
-                }
-
-                try {
-                    val p = it.parameters
-                    val previewSizes = p.supportedPreviewSizes
-
-                    // You need to choose the most appropriate previewSize for your app
-                    val previewSize = previewSizes.get(0) // .... select one of previewSizes here
-                    //p.setPreviewSize(previewSize.width, previewSize.height);
-                    p.setPreviewSize(640, 480)
-                    it.parameters = p
-
-                    it.setPreviewDisplay(holder)
-                    it.setPreviewCallback(this)
-                    /*
-                    Log.v(LOGTAG,"Setting up preview callback buffer");
-                    previewCallbackBuffer = new byte[(camcorderProfile.videoFrameWidth * camcorderProfile.videoFrameHeight *
-                                                        ImageFormat.getBitsPerPixel(p.getPreviewFormat()) / 8)];
-                    Log.v(LOGTAG,"setPreviewCallbackWithBuffer");
-                    camera.addCallbackBuffer(previewCallbackBuffer);
-                    camera.setPreviewCallbackWithBuffer(this);
-                    */
-                    Log.v(LOGTAG, "startPreview")
-                    it.startPreview()
-                    previewRunning = true
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        setupCam()
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -219,8 +221,10 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         if (recording) {
             recording = false
         }
+        surface = false
         previewRunning = false
         camera?.release()
+        camera = null
     }
 
     companion object {
