@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Message
+import android.util.Log
 import com.runmyrobot.android_robot_for_phone.activities.ChooseBluetoothActivity
 import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.control.EventManager
@@ -43,6 +44,7 @@ class BluetoothControlComponent : CommunicationInterface {
     }
 
     override fun send(byteArray: ByteArray): Boolean {
+        Log.d("Bluetooth", "message out = $byteArray")
         val message = Message.obtain()
         message.obj = byteArray
         message.what = BluetoothClassic.SEND_MESSAGE
@@ -50,25 +52,30 @@ class BluetoothControlComponent : CommunicationInterface {
     }
 
     override fun initConnection(context: Context) {
+        Log.d("Bluetooth","initConnection")
         bluetoothClassic = BluetoothClassic(context)
         addr = context.getSharedPreferences(CONFIG_PREFS, 0).getString(BLUETOOTH_ADDR, null)
     }
 
     override fun enable() {
+        Log.d("Bluetooth","enable")
         bluetoothClassic?.connect(addr)
         EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
     }
 
     private val onControlEvent: (Any?) -> Unit = {
+        Log.d("Bluetooth","onControlEvent")
         it?.takeIf { it is ByteArray }?.let{ data ->
             bluetoothClassic?.serviceHandler?.sendMessage(Message.obtain().also {
                 it.obj = data as ByteArray
                 it.what = BluetoothClassic.SEND_MESSAGE
             })
+            Log.d("Bluetooth","onControlEvent sent")
         }
     }
 
     override fun disable() {
+        Log.d("Bluetooth","disable")
         bluetoothClassic?.serviceHandler?.sendEmptyMessage(BluetoothClassic.DISCONNECT_MESSAGE)
         EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
     }

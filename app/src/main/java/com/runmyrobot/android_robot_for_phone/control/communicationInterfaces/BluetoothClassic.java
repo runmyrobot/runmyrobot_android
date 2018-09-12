@@ -14,6 +14,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -89,12 +90,12 @@ public class BluetoothClassic{
 						connectedThread.cancel();
 					break;
 				case SEND_MESSAGE:
-
 					byte[] message;
 					try{
 					message = (byte[]) msg.obj;
 					write(message);
 					}catch(Exception e){
+						e.printStackTrace();
 						//Log.e("BLUETOOTH", "CANNOT WRITE");
 						BTStatus = CONNECTION_LOST;
 					}
@@ -130,7 +131,7 @@ public class BluetoothClassic{
 	 * @throws IOException
 	 */
     private void write(byte[] out) throws IOException {
-		//Log.i(tag, "In write void with " + out + " as message");
+		Log.i(tag, "In write void with " + Arrays.toString(out) + " as message");
         connectedThread.write(out);
     }
 
@@ -294,12 +295,11 @@ public class BluetoothClassic{
 	    }
 
 	    public void write(byte[] bytes) throws IOException {
-	    	//Log.i("CONNECTEDTHREAD", "In write void with " + bytes + " as message");
-	        	 if (mmOutStream == null)
-	 	            throw new IOException();
-	            mmOutStream.write(bytes);
-	            //Log.i(tag,"Successfull write");
-
+	    	Log.i("CONNECTEDTHREAD", "In write void with " + bytes + " as message");
+			if (mmOutStream == null)
+				throw new IOException();
+			mmOutStream.write(bytes);
+	        Log.i(tag,"Successfull write");
 	    }
 
 	    public void sendMessage(byte[] message) throws IOException {

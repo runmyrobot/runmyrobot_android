@@ -46,6 +46,7 @@ class ArduinoSendBytesProtocol(context: Context) :
 
     private fun sendBytesWithTerminator(string : String){
         val messageWithTerminator = "$string\r\n"
+        Log.d("Arduino", "message = $messageWithTerminator")
         sendToDevice(messageWithTerminator.toLowerCase().toByteArray(Charset.forName("UTF-8")))
     }
 

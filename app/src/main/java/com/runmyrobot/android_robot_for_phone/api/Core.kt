@@ -7,13 +7,13 @@ import android.util.Log
 import android.view.SurfaceHolder
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.TIMEOUT
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
 import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -285,6 +285,18 @@ private constructor(val robotId : String, val cameraId : String?) {
             core.externalComponents = RobotComponentList.components
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
+                //Setup our protocol, if it exists
+                val protocolClass = protocol?.getInstantiatedClass(context)
+                protocolClass?.let {
+                    //Add it to the component list
+                    core.externalComponents?.add(it)
+                }
+                //Setup our communication, if it exists
+                val communicationClass = communication?.getInstantiatedClass
+                communicationClass?.let {
+                    //Add it to the component list
+                    core.externalComponents?.add(CommunicationComponent(context, it))
+                }
             }
             cameraId?.let{
                 if(useMic) {

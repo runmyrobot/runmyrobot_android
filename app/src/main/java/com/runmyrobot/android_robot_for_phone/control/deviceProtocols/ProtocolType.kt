@@ -13,7 +13,7 @@ enum class ProtocolType {
     fun getInstantiatedClass(context: Context) : ControlComponent{
         return when(this){
             ArduinoRaw -> ArduinoSendBytesProtocol(context)
-            SabertoothSimplifiedSerial -> SabertoothMotorProtocol(context)
+            SabertoothSimplifiedSerial -> BluetoothControl(context)
         }
     }
 }

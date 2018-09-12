@@ -1,6 +1,7 @@
 package com.runmyrobot.android_robot_for_phone.api
 
 import android.content.Context
+import android.util.Log
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_BYTE_ARRAY
 
@@ -15,6 +16,7 @@ abstract class ControlComponent(context: Context) : Component(context){
      */
     fun sendToDevice(byteArray: ByteArray?){
         byteArray?.let {
+            Log.d("ControlComponent","sendToDevice")
             EventManager.invoke(ROBOT_BYTE_ARRAY, byteArray)
         }
     }
