@@ -1,16 +1,17 @@
 package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces
 
-import android.content.Context
 import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 
 /**
  * Communication types will reside in here
  */
 enum class CommunicationType {
-    BLUETOOTH_CLASSIC,
-    USB_SERVICE;
+    BluetoothClassic,
+    UsbSerial;
 
-    fun setup(context: Context): CommunicationInterface? {
-        return null //TODO
-    }
+    val getInstantiatedClass : CommunicationInterface?
+        get() = when(this){
+            CommunicationType.BluetoothClassic -> BluetoothControlComponent()
+            CommunicationType.UsbSerial -> null
+        }
 }

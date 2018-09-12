@@ -30,6 +30,25 @@
             android:ems="10"
             android:inputType="number" />
     </GridLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Protocol"/>
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/protocolChooser"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Output"/>
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/communicationChooser"/>
+
     <Switch
         android:id="@+id/cameraEnableToggle"
         android:layout_width="match_parent"
@@ -132,12 +151,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Enable error reporting"/>
-    <Button
-        android:id="@+id/setupDeviceButton"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Setup Connection"/>
 
     <Button
         android:id="@+id/applyButton"

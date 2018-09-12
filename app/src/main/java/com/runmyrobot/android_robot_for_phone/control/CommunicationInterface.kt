@@ -5,12 +5,17 @@ import android.content.Context
 import android.content.Intent
 
 /**
- * Created by Brendon on 9/9/2018.
+ * Connection interface for outbound connections.
+ *
+ * This has 2 modes.
+ * 1. Instantiated for setup
+ * 2. Instantiated for use with the control system
  */
 interface CommunicationInterface{
     fun initConnection(context: Context)
     fun enable()
     fun disable()
+
     /**
      * Query this component to see if it needs custom setup
      *

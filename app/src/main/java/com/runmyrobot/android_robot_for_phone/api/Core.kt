@@ -285,12 +285,6 @@ private constructor(val robotId : String, val cameraId : String?) {
             core.externalComponents = RobotComponentList.components
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
-                communication?.takeUnless { protocol == null }?.let {
-                    val commClass = it.setup(context)
-                    val protocolClass = commClass?.let {
-                         protocol?.setup(it, context)
-                    }
-                }
             }
             cameraId?.let{
                 if(useMic) {

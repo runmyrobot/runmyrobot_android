@@ -17,7 +17,7 @@ class BluetoothControlComponent : CommunicationInterface {
     var addr : String? = null
     var name : String? = null
     override fun needsSetup(activity: Activity): Boolean {
-        return activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
+        return !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
     }
 
     override fun setupComponent(activity: Activity): Int {

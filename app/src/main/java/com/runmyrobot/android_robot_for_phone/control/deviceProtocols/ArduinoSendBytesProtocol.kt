@@ -3,15 +3,14 @@ package com.runmyrobot.android_robot_for_phone.control.deviceProtocols
 import android.content.Context
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.api.ControlComponent
-import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import java.nio.charset.Charset
 
 /**
  * Created by Brendon on 9/9/2018.
  */
-class ArduinoSendBytesProtocol(communicationInterface: CommunicationInterface?, context: Context) :
-        ControlComponent(communicationInterface, context) {
+class ArduinoSendBytesProtocol(context: Context) :
+        ControlComponent(context) {
 
     override fun enable() {
         super.enable()

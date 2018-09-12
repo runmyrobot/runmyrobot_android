@@ -8,7 +8,6 @@ import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import com.runmyrobot.android_robot_for_phone.api.ControlComponent
-import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.UsbService
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
@@ -28,8 +27,8 @@ import java.lang.ref.WeakReference
  * - 2 Motors
  * - DIP Configuration (Assumes Lead acid battery): From 1 to 6: 101011
  */
-class SabertoothMotorProtocol(communicationInterface: CommunicationInterface, context: Context) :
-        ControlComponent(communicationInterface, context) {
+class SabertoothMotorProtocol(context: Context) :
+        ControlComponent(context) {
     private val TAG = "SabertoothMotorProtocol"
     private val motorForwardSpeed = 70.toByte() //scale (-127)-128
     private val motorBackwardSpeed = (-70).toByte() //scale (-127)-128
