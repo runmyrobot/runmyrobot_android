@@ -3,11 +3,11 @@ package com.runmyrobot.android_robot_for_phone.api
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.COMMAND
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.ROBOT_CONNECTED
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.ROBOT_DISCONNECTED
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.STOP_EVENT
+import com.runmyrobot.android_robot_for_phone.control.EventManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.COMMAND
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_CONNECTED
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_DISCONNECTED
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.STOP_EVENT
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -19,9 +19,9 @@ import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Handles robot control Socket IO messages and broadcasts them through ControllerMessageManager
+ * Handles robot control Socket IO messages and broadcasts them through EventManager
  *
- * Also grabs chat messages for TTS and sends it to ControllerMessageManager
+ * Also grabs chat messages for TTS and sends it to EventManager
  */
 class RobotControllerComponent internal constructor(private val robotId: String){
     var running = AtomicBoolean(false)
@@ -29,9 +29,9 @@ class RobotControllerComponent internal constructor(private val robotId: String)
     private var handler: Handler
 
     /**
-     * Sends a timeout message via ControllerMessageManager when run
+     * Sends a timeout message via EventManager when run
      */
-    private var runnable: Runnable = Runnable { ControllerMessageManager.invoke(ControllerMessageManager.TIMEOUT, null) }
+    private var runnable: Runnable = Runnable { EventManager.invoke(EventManager.TIMEOUT, null) }
 
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
@@ -78,17 +78,17 @@ class RobotControllerComponent internal constructor(private val robotId: String)
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
                 mSocket?.emit("identify_robot_id", robotId)
-                ControllerMessageManager.invoke(ROBOT_CONNECTED, null)
+                EventManager.invoke(ROBOT_CONNECTED, null)
             }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
-                ControllerMessageManager.invoke(ROBOT_DISCONNECTED, null)
-                ControllerMessageManager.invoke(STOP_EVENT, null)
+                EventManager.invoke(ROBOT_DISCONNECTED, null)
+                EventManager.invoke(STOP_EVENT, null)
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
                     resetTimer() //resets a timer to prevent a timeout message
                     try {
                         //broadcast what message was sent ex. F, stop, etc
-                        ControllerMessageManager.invoke(COMMAND, `object`.getString("command"))
+                        EventManager.invoke(COMMAND, `object`.getString("command"))
                     } catch (e: JSONException) {
                         e.printStackTrace() //Message format must be wrong, ignore it
                     }

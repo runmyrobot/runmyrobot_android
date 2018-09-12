@@ -133,11 +133,11 @@
         android:layout_height="wrap_content"
         android:text="Enable error reporting"/>
     <Button
-        android:id="@+id/setupBluetoothButton"
+        android:id="@+id/setupDeviceButton"
         android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Set Bluetooth Device"/>
+        android:text="Setup Connection"/>
 
     <Button
         android:id="@+id/applyButton"

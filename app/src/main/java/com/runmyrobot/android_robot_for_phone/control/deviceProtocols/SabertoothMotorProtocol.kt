@@ -9,7 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import com.runmyrobot.android_robot_for_phone.api.ControlComponent
 import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.UsbService
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import java.lang.ref.WeakReference
@@ -36,8 +36,8 @@ class SabertoothMotorProtocol(communicationInterface: CommunicationInterface, co
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
-        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.subscribe(ControllerMessageManager.STOP_EVENT, onStop)
+        EventManager.subscribe(EventManager.COMMAND, onCommand)
+        EventManager.subscribe(EventManager.STOP_EVENT, onStop)
         setFilters()
         startService(UsbService::class.java, usbConnection, null) // Start UsbService(if it was not started before) and Bind it
     }
@@ -45,8 +45,8 @@ class SabertoothMotorProtocol(communicationInterface: CommunicationInterface, co
     override fun disable() {
         super.disable()
         Log.d(TAG, "disable")
-        ControllerMessageManager.unsubscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.unsubscribe(ControllerMessageManager.STOP_EVENT, onStop)
+        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
+        EventManager.unsubscribe(EventManager.STOP_EVENT, onStop)
     }
 
     fun sendData(array: ByteArray){

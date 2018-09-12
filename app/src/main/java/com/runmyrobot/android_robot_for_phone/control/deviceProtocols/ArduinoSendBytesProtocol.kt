@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.api.ControlComponent
 import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager
 import java.nio.charset.Charset
 
 /**
@@ -16,15 +16,15 @@ class ArduinoSendBytesProtocol(communicationInterface: CommunicationInterface?, 
     override fun enable() {
         super.enable()
         Log.d(TAG, "enable")
-        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.subscribe(ControllerMessageManager.STOP_EVENT, onStop)
+        EventManager.subscribe(EventManager.COMMAND, onCommand)
+        EventManager.subscribe(EventManager.STOP_EVENT, onStop)
     }
 
     override fun disable() {
         super.disable()
         Log.d(TAG, "disable")
-        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.subscribe(ControllerMessageManager.STOP_EVENT, onStop)
+        EventManager.subscribe(EventManager.COMMAND, onCommand)
+        EventManager.subscribe(EventManager.STOP_EVENT, onStop)
     }
 
     override fun timeout() {

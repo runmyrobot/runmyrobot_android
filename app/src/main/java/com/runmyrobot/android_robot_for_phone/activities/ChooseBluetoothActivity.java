@@ -45,7 +45,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.runmyrobot.android_robot_for_phone.R;
-import com.runmyrobot.android_robot_for_phone.utils.StoreUtil;
 
 import java.util.Set;
 
@@ -165,7 +164,6 @@ public class ChooseBluetoothActivity extends Activity {
             intent.putExtra(EXTRA_DEVICE_NAME, name);
             setResult(Activity.RESULT_OK, intent);
             //save it
-            StoreUtil.INSTANCE.SetBluetoothDevice(getApplicationContext(), name, address);
             finish();
         }
     };

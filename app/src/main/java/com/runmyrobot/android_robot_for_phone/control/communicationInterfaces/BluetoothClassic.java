@@ -1,4 +1,5 @@
 package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces;
+
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,10 +11,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,17 +19,17 @@ import java.util.UUID;
 /**
  * This class handles Bluetooth classic connections. This does not support BLE or Bluetooth Gatt
  */
-public class BluetoothClassic implements CommunicationInterface {
+public class BluetoothClassic{
 	private String tag = "BluetoothClassic";
 	public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	protected static final int SUCCESS_CONNECT = 0;
 	protected static final int MESSAGE_READ = 1;
 	public static final int BLUETOOTH_ADAPTER_MESSAGE = 5;
 	public static final int DESTROY = 6;
-	public final int CONNECT_MESSAGE = 2;
-	public final int DISCONNECT_MESSAGE = 3;
-	public final int SEND_MESSAGE = 4;
-	public final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3;
+	public static final int CONNECT_MESSAGE = 2;
+	public static final int DISCONNECT_MESSAGE = 3;
+	public static final int SEND_MESSAGE = 4;
+	public static final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3;
 	public int BTStatus = CONNECTION_NON_EXISTENT;
 	public BluetoothAdapter btAdapter;
 	private IntentFilter filter;
@@ -136,19 +133,6 @@ public class BluetoothClassic implements CommunicationInterface {
 		//Log.i(tag, "In write void with " + out + " as message");
         connectedThread.write(out);
     }
-
-	@Override
-	public boolean isConnected() {
-		return BTStatus == CONNECTION_STABLE;
-	}
-
-	@Override
-	public boolean send(@NotNull byte[] byteArray) {
-		Message message= Message.obtain();
-		message.obj = byteArray;
-		message.what = SEND_MESSAGE;
-		return isConnected() && serviceHandler != null && serviceHandler.sendMessage(message);
-	}
 
 	public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
     	public String tag;

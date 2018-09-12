@@ -11,16 +11,6 @@ enum class CommunicationType {
     USB_SERVICE;
 
     fun setup(context: Context): CommunicationInterface? {
-        return when(this){
-            BLUETOOTH_CLASSIC -> {
-                null //TODO
-            }
-            USB_SERVICE -> {
-                null //TODO
-            }
-            else -> {
-                null //TODO
-            }
-        }
+        return null //TODO
     }
 }

@@ -4,8 +4,8 @@ import android.content.Context
 import android.os.Message
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.api.Component
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager.Companion.STOP_EVENT
+import com.runmyrobot.android_robot_for_phone.control.EventManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.STOP_EVENT
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.BluetoothClassic
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
@@ -26,21 +26,21 @@ class BluetoothControl(context: Context) : Component(context) {
         address?.second?.let {
             bluetoothClassic.connect(address.second)
         }
-        ControllerMessageManager.subscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.subscribe(STOP_EVENT, onStop)
+        EventManager.subscribe(EventManager.COMMAND, onCommand)
+        EventManager.subscribe(STOP_EVENT, onStop)
     }
 
     override fun disable() {
         super.disable()
-        bluetoothClassic.serviceHandler.sendEmptyMessage(bluetoothClassic.DISCONNECT_MESSAGE)
-        ControllerMessageManager.unsubscribe(ControllerMessageManager.COMMAND, onCommand)
-        ControllerMessageManager.unsubscribe(STOP_EVENT, onStop)
+        bluetoothClassic.serviceHandler.sendEmptyMessage(BluetoothClassic.DISCONNECT_MESSAGE)
+        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
+        EventManager.unsubscribe(STOP_EVENT, onStop)
     }
 
     fun sendData(array: ByteArray){
         bluetoothClassic.serviceHandler.sendMessage(Message.obtain().also {
             it.obj = array
-            it.what = bluetoothClassic.SEND_MESSAGE
+            it.what = BluetoothClassic.SEND_MESSAGE
         })
     }
 

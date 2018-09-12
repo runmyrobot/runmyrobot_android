@@ -281,16 +281,6 @@ public class UsbService extends Service implements CommunicationInterface{
         return isConnected();
     }
 
-    @Override
-    public void enable() {
-        //Does not apply
-    }
-
-    @Override
-    public void disable() {
-        //Does not apply
-    }
-
     public class UsbBinder extends Binder {
         public UsbService getService() {
             return UsbService.this;
