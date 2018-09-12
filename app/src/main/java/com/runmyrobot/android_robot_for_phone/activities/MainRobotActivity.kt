@@ -39,6 +39,7 @@ class MainRobotActivity : Activity(){
             }
         }
         settingsButtonMain.setOnClickListener {
+            finish()
             startActivity(Intent(this, ManualSetupActivity::class.java))
             core?.disable()
             core = null

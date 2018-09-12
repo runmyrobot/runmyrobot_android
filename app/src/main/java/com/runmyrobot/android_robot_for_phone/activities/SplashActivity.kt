@@ -80,6 +80,7 @@ class SplashActivity : Activity() {
             return
         }
         //All checks are done. Lets startup the activity!
+        finish()
         startActivity(Intent(this, MainRobotActivity::class.java))
     }
 

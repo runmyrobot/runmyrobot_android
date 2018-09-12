@@ -41,6 +41,10 @@ class ManualSetupActivity : AppCompatActivity() {
         val protocolAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, protocols)
         protocolChooser.adapter = protocolAdapter
 
+        StoreUtil.getProtocolType(this)?.let {
+            protocolChooser.setSelection(it.ordinal)
+        }
+
         //Configure communication spinner
         val communications = ArrayList<String>()
         CommunicationType.values().forEach {
@@ -49,6 +53,9 @@ class ManualSetupActivity : AppCompatActivity() {
         // Creating adapter for spinner
         val commAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, communications)
         communicationChooser.adapter = commAdapter
+        StoreUtil.getCommunicationType(this)?.let {
+            communicationChooser.setSelection(it.ordinal)
+        }
 
         applyButton.setOnClickListener {
             saveButtonStates()
@@ -57,6 +64,7 @@ class ManualSetupActivity : AppCompatActivity() {
     }
 
     private fun launchActivity() {
+        finish()
         startActivity(Intent(this, SplashActivity::class.java))
         StoreUtil.setConfigured(this, true)
     }
