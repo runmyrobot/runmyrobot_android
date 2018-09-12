@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import android.widget.Toast
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
@@ -75,6 +76,7 @@ class SplashActivity : Activity() {
             }
         } ?: run{
             //Something really bad happened here. Not sure how we continue
+            setupError()
             return
         }
         //All checks are done. Lets startup the activity!
@@ -85,7 +87,12 @@ class SplashActivity : Activity() {
      * Show some setup error message. Allow the user to attempt setup again
      */
     private fun setupError() {
-        TODO("Show Error Message")
+        Toast.makeText(this
+                , "Something happened while trying to setup. Please try again"
+                , Toast.LENGTH_LONG).show()
+        StoreUtil.setConfigured(this, false)
+        finish()
+        startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
     private var pendingDeviceSetup: CommunicationInterface? = null
@@ -106,7 +113,6 @@ class SplashActivity : Activity() {
                 }
             }
         }
-        setupError()
         return null
     }
 
