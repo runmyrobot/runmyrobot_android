@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.control
+package com.runmyrobot.android_robot_for_phone.api
 
 import android.app.Activity
 import android.content.Context

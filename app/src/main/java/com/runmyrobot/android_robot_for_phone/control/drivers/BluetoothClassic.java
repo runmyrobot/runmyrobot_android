@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces;
+package com.runmyrobot.android_robot_for_phone.control.drivers;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;

@@ -6,14 +6,15 @@ import android.content.Intent
 import android.os.Message
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.activities.ChooseBluetoothActivity
-import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
+import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_BYTE_ARRAY
+import com.runmyrobot.android_robot_for_phone.control.drivers.BluetoothClassic
 
 /**
  * Created by Brendon on 9/11/2018.
  */
-class BluetoothControlComponent : CommunicationInterface {
+class BluetoothClassicCommunication : CommunicationInterface {
     var bluetoothClassic : BluetoothClassic? = null
     var addr : String? = null
     var name : String? = null

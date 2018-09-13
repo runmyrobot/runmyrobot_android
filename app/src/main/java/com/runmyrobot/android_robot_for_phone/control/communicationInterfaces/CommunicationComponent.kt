@@ -1,8 +1,8 @@
 package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces
 
 import android.content.Context
+import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.api.Component
-import com.runmyrobot.android_robot_for_phone.control.CommunicationInterface
 
 /**
  * Created by Brendon on 9/11/2018.

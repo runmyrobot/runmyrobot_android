@@ -22,7 +22,7 @@
  SOFTWARE.
  */
 
-package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces;
+package com.runmyrobot.android_robot_for_phone.control.drivers;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
