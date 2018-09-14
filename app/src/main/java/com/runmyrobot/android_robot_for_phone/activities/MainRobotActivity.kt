@@ -39,6 +39,7 @@ class MainRobotActivity : Activity(){
             }
         }
         settingsButtonMain.setOnClickListener {
+            finish()
             startActivity(Intent(this, ManualSetupActivity::class.java))
             core?.disable()
             core = null
@@ -66,6 +67,8 @@ class MainRobotActivity : Activity(){
         }
         builder.useTTS = StoreUtil.getTTSEnabled(this)
         builder.useMic = StoreUtil.getMicEnabled(this)
+        builder.protocol = StoreUtil.getProtocolType(this)
+        builder.communication = StoreUtil.getCommunicationType(this)
         try {
             core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {

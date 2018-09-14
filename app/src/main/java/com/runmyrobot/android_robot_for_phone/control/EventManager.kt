@@ -15,18 +15,25 @@ import android.util.Log
  *
  * <br>
  *
- * ``` ControllerMessageManager.subscribe("F", onForward) ```
+ * ``` EventManager.subscribe("F", onForward) ```
  * <br>
  *
  * ...
  *
  * }
  *
- * A more thorough example can be seen in MotorControl.kt
+ * A more thorough example can be seen in SabertoothMotorProtocol.kt
  */
-class ControllerMessageManager{
+class EventManager{
     companion object {
         private val subscribers = HashMap<String, ArrayList<(Any?) -> Unit>>()
+        const val COMMAND: String = "command"
+        const val TIMEOUT: String = "timeout"
+        const val ROBOT_DISCONNECTED = "robot_disconnect"
+        const val ROBOT_CONNECTED = "robot_connect"
+        const val STOP_EVENT = "stop_event"
+        const val ROBOT_BYTE_ARRAY = "robot_byte_array"
+        const val CHAT = "chat"
 
         /**
          * Subscribe to a control
@@ -54,6 +61,9 @@ class ControllerMessageManager{
         fun invoke(event: String, message : Any? = null){
             val list = subscribers[event]
             Log.d("invoke", event)
+            message?.takeIf { it is String }?.let {
+                Log.d("MessageManager", it.toString())
+            }
             list?.let {
                 //Loop through subscribers
                 it.forEach {

@@ -2,6 +2,8 @@ package com.runmyrobot.android_robot_for_phone.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
+import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 
 /**
  * Created by Brendon on 9/5/2018.
@@ -117,5 +119,33 @@ object StoreUtil {
 
     fun getConfigured(context: Context) : Boolean{
         return getSharedPrefs(context).getBoolean("configured", false)
+    }
+
+    fun setCommunicationType(context: Context, type: CommunicationType){
+        getSharedPrefs(context).edit().putString("CommunicationType",type.name).apply()
+    }
+
+    fun getCommunicationType(context: Context): CommunicationType? {
+        return getSharedPrefs(context).getString("CommunicationType", null)?.let{
+            try {
+                CommunicationType.valueOf(it) //Could throw IllegalArgumentException
+            } catch (e: Exception) {
+                null
+            }
+        } //returns null if let does not go through
+    }
+
+    fun setProtocolType(context: Context, type: ProtocolType){
+        getSharedPrefs(context).edit().putString("ProtocolType",type.name).apply()
+    }
+
+    fun getProtocolType(context: Context): ProtocolType? {
+        return getSharedPrefs(context).getString("ProtocolType", null)?.let{
+            try {
+                ProtocolType.valueOf(it) //Could throw IllegalArgumentException
+            } catch (e: Exception) {
+                null
+            }
+        } //returns null if let does not go through
     }
 }

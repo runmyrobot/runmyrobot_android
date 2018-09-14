@@ -1,5 +1,6 @@
-package com.runmyrobot.android_robot_for_phone.myrobot
+package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces
 
+import android.app.Activity
 import android.content.*
 import android.os.Bundle
 import android.os.Handler
@@ -7,104 +8,65 @@ import android.os.IBinder
 import android.os.Message
 import android.util.Log
 import android.widget.Toast
-import com.runmyrobot.android_robot_for_phone.api.Component
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
-import com.runmyrobot.android_robot_for_phone.control.UsbService
-import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
+import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
+import com.runmyrobot.android_robot_for_phone.control.EventManager
+import com.runmyrobot.android_robot_for_phone.control.drivers.UsbService
 import java.lang.ref.WeakReference
 
 /**
- * Sample Motor control component.
- *
- * Added to RobotComponentList to actually be registered with Core
- *
- * Designed to run on a SaberTooth Serial Motor controller via USB Serial
- *
- * Settings Used:
- * - 9600 Baud
- * - Simplified Serial
- * - 1 Motor controller
- * - 2 Motors
- * - DIP Configuration (Assumes Lead acid battery): From 1 to 6: 101011
+ * This is the communication component that interfaces with USBService.class (com.felhr.usbserial)
  */
-class MotorControl(context: Context) : Component(context) {
-    private val TAG = "MotorControl"
+class FelhrUsbSerialCommunication : CommunicationInterface {
 
-    private val motorForwardSpeed = 70.toByte()
-    private val motorBackwardSpeed = (-70).toByte()
+    private val TAG = "FelhrUsb"
+
+    override fun initConnection(context: Context) {
+        setFilters(context)
+        startService(context, UsbService::class.java, usbConnection, null) // Start UsbService(if it was not started before) and Bind it
+    }
+
     override fun enable() {
-        super.enable()
         Log.d(TAG, "enable")
-        ControllerMessageManager.subscribe("F", onForward)
-        ControllerMessageManager.subscribe("B", onBack)
-        ControllerMessageManager.subscribe("L", onLeft)
-        ControllerMessageManager.subscribe("R", onRight)
-        ControllerMessageManager.subscribe("stop", onStop)
-        setFilters()
-        startService(UsbService::class.java, usbConnection, null) // Start UsbService(if it was not started before) and Bind it
+        EventManager.subscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
     override fun disable() {
-        super.disable()
         Log.d(TAG, "disable")
-        ControllerMessageManager.unsubscribe("F", onForward)
-        ControllerMessageManager.unsubscribe("B", onBack)
-        ControllerMessageManager.unsubscribe("L", onLeft)
-        ControllerMessageManager.unsubscribe("R", onRight)
-        ControllerMessageManager.unsubscribe("stop", onStop)
+        EventManager.unsubscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
-    private val onForward: (Any?) -> Unit = {
-        Log.d(TAG, "onForward")
-        val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
-        usbService?.write(data)
+    override fun needsSetup(activity: Activity): Boolean {
+        return false
     }
 
-    private val onBack: (Any?) -> Unit = {
-        Log.d(TAG, "onBack")
-        val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        usbService?.write(data)
+    override fun setupComponent(activity: Activity): Int {
+        return -1
     }
 
-    private val onLeft: (Any?) -> Unit = {
-        Log.d(TAG, "onLeft")
-        val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        usbService?.write(data)
+    override fun receivedComponentSetupDetails(context: Context, intent: Intent?) {
+        //ignore
     }
 
-    private val onRight: (Any?) -> Unit = {
-        Log.d(TAG, "onRight")
-        val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
-        usbService?.write(data)
+    override fun isConnected(): Boolean {
+        return true
     }
 
-    private val onStop : (Any?) -> Unit  = {
-        Log.d(TAG, "onStop")
-        val data = ByteArray(1)
-        data[0] = 0x00
-        usbService?.write(data)
+    override fun send(byteArray: ByteArray): Boolean {
+        usbService?.write(byteArray) //TODO actually get result?
+        return true
     }
 
-    /**
-     * Timeout function. Will be called if we have not received anything recently,
-     * in case a movement command gets stuck
-     */
-    override fun timeout() {
-        onStop(null)
+    private val onSendRobotCommand: (Any?) -> Unit = {
+        Log.d(TAG, "onSendRobotCommand")
+        it?.takeIf { it is ByteArray }?.let{ data ->
+            send(data as ByteArray)
+        }
     }
 
     //Below is all USB Service code from com.felhr.usbservice
     //https://github.com/felHR85/UsbSerial/
 
-    private fun startService(service: Class<*>, serviceConnection: ServiceConnection, extras: Bundle?) {
+    private fun startService(context: Context, service: Class<*>, serviceConnection: ServiceConnection, extras: Bundle?) {
         if (!UsbService.SERVICE_CONNECTED) {
             val startService = Intent(context, service)
             if (extras != null && !extras.isEmpty) {
@@ -121,7 +83,7 @@ class MotorControl(context: Context) : Component(context) {
     }
 
     //Some Intent filters for listening for USB events
-    private fun setFilters() {
+    private fun setFilters(context: Context) {
         val filter = IntentFilter()
         filter.addAction(UsbService.ACTION_USB_PERMISSION_GRANTED)
         filter.addAction(UsbService.ACTION_NO_USB)
@@ -154,7 +116,7 @@ class MotorControl(context: Context) : Component(context) {
     private var mHandler: MyHandler? = null
     private val usbConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, arg1: IBinder) {
-            usbService = (arg1 as UsbService.UsbBinder).getService()
+            usbService = (arg1 as UsbService.UsbBinder).service
             usbService!!.setHandler(mHandler)
         }
 

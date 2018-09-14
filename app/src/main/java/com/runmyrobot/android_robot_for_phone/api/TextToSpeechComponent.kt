@@ -3,7 +3,8 @@ package com.runmyrobot.android_robot_for_phone.api
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.CHAT
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -63,11 +64,9 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
         }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
             ttobj.speak("Error", TextToSpeech.QUEUE_FLUSH, null)
         }.on("chat_message_with_name"){
-            Log.d("Log", "chat_message_with_name")
             if (it[0] is JSONObject) {
                 val `object` = it[0] as JSONObject
-                Log.d("Log", `object`.toString())
-                ControllerMessageManager.invoke("chat", `object`)
+                EventManager.invoke(CHAT, `object`)
                 try {
                     val messageRaw = `object`.getString("message")
                     getMessageFromRaw(messageRaw)?.let {

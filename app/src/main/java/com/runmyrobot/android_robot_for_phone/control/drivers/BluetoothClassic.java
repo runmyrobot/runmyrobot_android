@@ -1,4 +1,5 @@
-package com.runmyrobot.android_robot_for_phone.control;
+package com.runmyrobot.android_robot_for_phone.control.drivers;
+
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -13,28 +14,32 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.UUID;
 
-public class BluetoothClassic {
-	String tag = "NXTMessagingService";
+/**
+ * This class handles Bluetooth classic connections. This does not support BLE or Bluetooth Gatt
+ */
+public class BluetoothClassic{
+	private String tag = "BluetoothClassic";
 	public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	protected static final int SUCCESS_CONNECT = 0;
 	protected static final int MESSAGE_READ = 1;
 	public static final int BLUETOOTH_ADAPTER_MESSAGE = 5;
 	public static final int DESTROY = 6;
-	public final int CONNECT_MESSAGE = 2;
-	public final int DISCONNECT_MESSAGE = 3;
-	public final int SEND_MESSAGE = 4;
-	public final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3;
+	public static final int CONNECT_MESSAGE = 2;
+	public static final int DISCONNECT_MESSAGE = 3;
+	public static final int SEND_MESSAGE = 4;
+	public static final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3;
 	public int BTStatus = CONNECTION_NON_EXISTENT;
 	public BluetoothAdapter btAdapter;
-	IntentFilter filter;
+	private IntentFilter filter;
 
 	public Handler serviceHandler;
-	BluetoothDevice selectedDevice;
-	ConnectThread connect;
-	ConnectedThread connectedThread;
-	Context gContext;
+	private BluetoothDevice selectedDevice;
+	private ConnectThread connect;
+	private ConnectedThread connectedThread;
+	private Context gContext;
 	byte[] readBuffer = {0x00};
 	public BluetoothClassic(Context context){
 		gContext = context;
@@ -47,8 +52,8 @@ public class BluetoothClassic {
 	}
 
 	@SuppressLint("HandlerLeak")
-	public void BluetoothInit(){
-		serviceHandler = new Handler(){ //TODO EVENTBUS (GO AWAY SPELL CHECKER)
+	private void BluetoothInit(){
+		serviceHandler = new Handler(){
 			@Override
 			public void handleMessage(Message msg) {
 				super.handleMessage(msg);
@@ -72,7 +77,9 @@ public class BluetoothClassic {
 					try{
 						//connect.cancel();
 					connectedThread.cancel();
-					}catch(Exception e){}
+					}catch(Exception e){
+						e.printStackTrace();
+					}
 					selectedDevice = (BluetoothDevice)msg.obj;
 					connect = new ConnectThread(selectedDevice);
 					connect.start();
@@ -83,29 +90,28 @@ public class BluetoothClassic {
 						connectedThread.cancel();
 					break;
 				case SEND_MESSAGE:
-
 					byte[] message;
 					try{
 					message = (byte[]) msg.obj;
 					write(message);
 					}catch(Exception e){
+						e.printStackTrace();
 						//Log.e("BLUETOOTH", "CANNOT WRITE");
 						BTStatus = CONNECTION_LOST;
 					}
-
 					break;
 				case DESTROY:
 					try {
 						try {
-							//connect.cancel();
+							connect.cancel();
 						} catch (Exception e) {
-
+							e.printStackTrace();
 						}
 						connectedThread.cancel();
 					} catch (Exception e) {
-
+						e.printStackTrace();
 					}
-					Log.i("NXTBTPROTO", "Destroyed As much as possible!");
+					Log.i(tag, "destroyed");
 					break;
 				}
 			}
@@ -119,11 +125,17 @@ public class BluetoothClassic {
 		serviceHandler.sendMessage(message);
 	}
 
-    public void write(byte[] out) throws IOException {
-		//Log.i(tag, "In write void with " + out + " as message");
+	/**
+	 * Write a message. Please use the send command, which is thread safe
+	 * @param out byte[]
+	 * @throws IOException
+	 */
+    private void write(byte[] out) throws IOException {
+		Log.i(tag, "In write void with " + Arrays.toString(out) + " as message");
         connectedThread.write(out);
     }
-    public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
+
+	public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
     	public String tag;
 		private BluetoothSocket mmSocket;
 	    private BluetoothDevice mmDevice;
@@ -283,12 +295,11 @@ public class BluetoothClassic {
 	    }
 
 	    public void write(byte[] bytes) throws IOException {
-	    	//Log.i("CONNECTEDTHREAD", "In write void with " + bytes + " as message");
-	        	 if (mmOutStream == null)
-	 	            throw new IOException();
-	            mmOutStream.write(bytes);
-	            //Log.i(tag,"Successfull write");
-
+	    	Log.i("CONNECTEDTHREAD", "In write void with " + bytes + " as message");
+			if (mmOutStream == null)
+				throw new IOException();
+			mmOutStream.write(bytes);
+	        Log.i(tag,"Successfull write");
 	    }
 
 	    public void sendMessage(byte[] message) throws IOException {

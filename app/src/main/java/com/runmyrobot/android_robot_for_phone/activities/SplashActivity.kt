@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import android.widget.Toast
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.runmyrobot.android_robot_for_phone.R
+import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 class SplashActivity : Activity() {
@@ -19,12 +21,24 @@ class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+        // Setup App before initializing anything, then go back to do permissions flow
+        // and to do device setup
+        if(!StoreUtil.getConfigured(this)){
+            finish()
+            startActivity(Intent(this, ManualSetupActivity::class.java))
+            return
+        }
+
+        //Load FFMpeg
         val ffmpeg = FFmpeg.getInstance(applicationContext)
         try {
             ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
                 override fun onFinish() {
                     super.onFinish()
                     Log.d("FFMPEG", "onFinish")
+                    runOnUiThread{
+                        next() //run next action
+                    }
                 }
 
                 override fun onSuccess() {
@@ -46,25 +60,79 @@ class SplashActivity : Activity() {
         } catch (e: FFmpegNotSupportedException) {
             e.printStackTrace()
         }
-        if(checkPermissions()){
-            startNext()
-        }
     }
 
-    private fun startNext() {
+    //TODO replace with co-routine once that is stable and stops breaking Android Studio
+    private fun next() {
+        //Check permissions. break out if that returns false
+        if(!checkPermissions()){
+            return
+        }
+        //Setup device. break out if not setup, or if error occurred
+        setupDevice()?.let {
+            if(!it){
+                //setup not complete
+                return
+            }
+        } ?: run{
+            //Something really bad happened here. Not sure how we continue
+            setupError()
+            return
+        }
+        //All checks are done. Lets startup the activity!
         finish()
-        if(!StoreUtil.getConfigured(this)){
-            startActivity(Intent(this, ManualSetupActivity::class.java))
+        startActivity(Intent(this, MainRobotActivity::class.java))
+    }
+
+    /**
+     * Show some setup error message. Allow the user to attempt setup again
+     */
+    private fun setupError() {
+        Toast.makeText(this
+                , "Something happened while trying to setup. Please try again"
+                , Toast.LENGTH_LONG).show()
+        StoreUtil.setConfigured(this, false)
+        finish()
+        startActivity(Intent(this, ManualSetupActivity::class.java))
+    }
+
+    private var pendingDeviceSetup: CommunicationInterface? = null
+
+    private var pendingResultCode: Int = -1
+
+    private fun setupDevice(): Boolean? {
+        val commType = StoreUtil.getCommunicationType(this) // :CommunicationType?
+        commType?.let {
+            val clazz = it.getInstantiatedClass
+            clazz?.let {
+                return if(it.needsSetup(this)){
+                    pendingResultCode = it.setupComponent(this)
+                    pendingDeviceSetup = it
+                    false
+                } else{
+                    true
+                }
+            }
         }
-        else{
-            startActivity(Intent(this, MainRobotActivity::class.java))
-        }
+        return null
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(checkPermissions()){
-            startNext()
+            next()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        //Check if result was due to a pending interface setup
+        pendingDeviceSetup?.takeIf { pendingResultCode == requestCode}?.let {
+            //relay info to interface
+            it.receivedComponentSetupDetails(this, data)
+            pendingDeviceSetup = null
+            pendingResultCode = -1
+            next()
         }
     }
 
@@ -110,24 +178,6 @@ class SplashActivity : Activity() {
         }
         else{
             true
-        }
-    }
-
-    private fun tryRequestPermission(requestCode: Int, perm : String){
-        // Permission is not granted
-        // Should we show an explanation?
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        perm)) {
-            // Show an explanation to the user *asynchronously* -- don't block
-            // this thread waiting for the user's response! After the user
-            // sees the explanation, try again to request the permission.
-        } else {
-            // No explanation needed, we can request the permission.
-
-
-            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-            // app-defined int constant. The callback method gets the
-            // result of the request.
         }
     }
 }

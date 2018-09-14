@@ -5,12 +5,15 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceHolder
-import com.runmyrobot.android_robot_for_phone.control.ControllerMessageManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager
+import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.TIMEOUT
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
+import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -150,7 +153,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             appServerSocket?.emit("identify_robot_id", robotId)
         }
         //Ugly way of doing timeouts. Should find a better way
-        ControllerMessageManager.subscribe("messageTimeout", onControllerTimeout)
+        EventManager.subscribe(TIMEOUT, onControllerTimeout)
         handler?.postDelayed(onUpdateServer, 1000)
         log(LogLevel.INFO, "core is started!")
     }
@@ -172,7 +175,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             component.disable()
         }
         appServerSocket?.disconnect()
-        ControllerMessageManager.unsubscribe("messageTimeout", onControllerTimeout)
+        EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
         log(LogLevel.INFO, "core is shut down!")
     }
 
@@ -234,6 +237,17 @@ private constructor(val robotId : String, val cameraId : String?) {
         internal var context: Context = context.applicationContext
 
         private var logLevel = LogLevel.NONE
+
+        /**
+         * Communication type to use. Ex. Bluetooth or USB
+         */
+        var communication : CommunicationType? = null
+
+        /**
+         * Protocol type to use. Ex. Arduino Raw or Sabertooth Serial
+         */
+        var protocol : ProtocolType? = null
+
         /**
          * Id that should be used to receive chat messages from server
          */
@@ -267,8 +281,22 @@ private constructor(val robotId : String, val cameraId : String?) {
                 throw InitializationException()
             }
             val core = Core(robotId!!, cameraId)
+            //Get list of external components, such as LED code, or more customized motor control
+            core.externalComponents = RobotComponentList.components
             robotId?.let{
                 core.robotController = RobotControllerComponent(it)
+                //Setup our protocol, if it exists
+                val protocolClass = protocol?.getInstantiatedClass(context)
+                protocolClass?.let {
+                    //Add it to the component list
+                    core.externalComponents?.add(it)
+                }
+                //Setup our communication, if it exists
+                val communicationClass = communication?.getInstantiatedClass
+                communicationClass?.let {
+                    //Add it to the component list
+                    core.externalComponents?.add(CommunicationComponent(context, it))
+                }
             }
             cameraId?.let{
                 if(useMic) {
@@ -284,8 +312,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             //Set the log level
             core.logLevel = logLevel
 
-            //Get list of external components, such as LED code, or motor control
-            core.externalComponents = RobotComponentList.components
+
             return core
         }
     }

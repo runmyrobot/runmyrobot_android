@@ -3,9 +3,13 @@ package com.runmyrobot.android_robot_for_phone.activities
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.ArrayAdapter
 import com.runmyrobot.android_robot_for_phone.R
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
+import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_manual_setup.*
+
 
 class ManualSetupActivity : AppCompatActivity() {
 
@@ -27,17 +31,41 @@ class ManualSetupActivity : AppCompatActivity() {
         bitrateEditText.isEnabled = false
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
+
+        //Configure protocol spinner
+        val protocols = ArrayList<String>()
+        ProtocolType.values().forEach {
+            protocols.add(it.name)
+        }
+        // Creating adapter for spinner
+        val protocolAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, protocols)
+        protocolChooser.adapter = protocolAdapter
+
+        StoreUtil.getProtocolType(this)?.let {
+            protocolChooser.setSelection(it.ordinal)
+        }
+
+        //Configure communication spinner
+        val communications = ArrayList<String>()
+        CommunicationType.values().forEach {
+            communications.add(it.name) //TODO maybe check for device support here before showing it?
+        }
+        // Creating adapter for spinner
+        val commAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, communications)
+        communicationChooser.adapter = commAdapter
+        StoreUtil.getCommunicationType(this)?.let {
+            communicationChooser.setSelection(it.ordinal)
+        }
+
         applyButton.setOnClickListener {
             saveButtonStates()
             launchActivity()
         }
-        setupBluetoothButton.setOnClickListener{
-            startActivity(Intent(this, ChooseBluetoothActivity::class.java))
-        }
     }
 
     private fun launchActivity() {
-        startActivity(Intent(this, MainRobotActivity::class.java))
+        finish()
+        startActivity(Intent(this, SplashActivity::class.java))
         StoreUtil.setConfigured(this, true)
     }
 
@@ -61,6 +89,8 @@ class ManualSetupActivity : AppCompatActivity() {
         StoreUtil.setMicEnabled(this, micEnableButton.isChecked)
         StoreUtil.setTTSEnabled(this, ttsEnableButton.isChecked)
         StoreUtil.setErrorReportingEnabled(this, errorReportButton.isChecked)
+        StoreUtil.setCommunicationType(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
+        StoreUtil.setProtocolType(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
     }
 
     fun checkState(cameraChecked : Boolean){
