@@ -13,8 +13,8 @@ import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 
 class BluetoothControl(context: Context) : ControlComponent(context) {
     val TAG = "BluetoothControl"
-    private val motorForwardSpeed = 50.toByte()
-    private val motorBackwardSpeed = (-50).toByte()
+    private val motorForwardSpeed = 127.toByte()
+    private val motorBackwardSpeed = (-127).toByte()
 
     override fun enable() {
         super.enable()
@@ -58,16 +58,16 @@ class BluetoothControl(context: Context) : ControlComponent(context) {
     private fun onLeft() {
         Log.d(TAG, "onLeft")
         val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
         sendToDevice(data)
     }
 
     private fun onRight() {
         Log.d(TAG, "onRight")
         val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
         sendToDevice(data)
     }
 
