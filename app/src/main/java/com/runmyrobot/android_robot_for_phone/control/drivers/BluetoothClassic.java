@@ -77,8 +77,8 @@ public class BluetoothClassic{
 					try{
 						//connect.cancel();
 					connectedThread.cancel();
-					}catch(Exception e){
-						e.printStackTrace();
+					}catch(Exception ignored){
+
 					}
 					selectedDevice = (BluetoothDevice)msg.obj;
 					connect = new ConnectThread(selectedDevice);
@@ -134,6 +134,12 @@ public class BluetoothClassic{
 		Log.i(tag, "In write void with " + Arrays.toString(out) + " as message");
         connectedThread.write(out);
     }
+
+	public void ensurePoweredOn() {
+		if(!btAdapter.isEnabled()) {
+			btAdapter.enable();
+		}
+	}
 
 	public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
     	public String tag;

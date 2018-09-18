@@ -1,6 +1,7 @@
 package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces
 
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.os.Message
@@ -11,6 +12,7 @@ import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_BYTE_ARRAY
 import com.runmyrobot.android_robot_for_phone.control.drivers.BluetoothClassic
 
+
 /**
  * Created by Brendon on 9/11/2018.
  */
@@ -19,13 +21,26 @@ class BluetoothClassicCommunication : CommunicationInterface {
     var addr : String? = null
     var name : String? = null
     override fun needsSetup(activity: Activity): Boolean {
-        return !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
+        val pairingRequired = !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
+        val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        //Return that additional setup is needed if no preferred device OR bluetooth is off
+        return pairingRequired || !mBluetoothAdapter.isEnabled
     }
 
     override fun setupComponent(activity: Activity): Int {
-        activity.startActivityForResult(
-                Intent(activity, ChooseBluetoothActivity::class.java), RESULT_CODE)
-        return RESULT_CODE
+        //Make sure we turn bluetooth on for setup
+        val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if(!mBluetoothAdapter.isEnabled) {
+            mBluetoothAdapter.enable()
+        }
+        //Start an activity to select our preferred device
+        val pairingRequired = !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
+        if(pairingRequired) {
+            activity.startActivityForResult(
+                    Intent(activity, ChooseBluetoothActivity::class.java), RESULT_CODE)
+            return RESULT_CODE
+        }
+        return -1
     }
 
     override fun receivedComponentSetupDetails(context: Context, intent: Intent?) {
@@ -60,6 +75,7 @@ class BluetoothClassicCommunication : CommunicationInterface {
 
     override fun enable() {
         Log.d("Bluetooth","enable")
+        bluetoothClassic?.ensurePoweredOn()
         bluetoothClassic?.connect(addr)
         EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
     }
