@@ -44,15 +44,10 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     var process : Process? = null
     var port: String? = null
     var host: String? = null
-    var recording = false
+    var streaming = AtomicBoolean(false)
     var previewRunning = false
     fun enable() {
         try {
-            try {
-                holder.removeCallback(this)
-            } catch (e: Exception) {
-            }
-            holder.addCallback(this)
             val client = OkHttpClient.Builder()
                     .build()
             var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
@@ -77,14 +72,11 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         if(host == null || port == null){
             throw Exception("Unable to form URL")
         }
-        if(surface){
-            setupCam()
-        }
-        recording = true
+        streaming.set(true)
     }
 
     fun bootFFMPEG(){
-        if(!recording){
+        if(!streaming.get()){
             ffmpegRunning.set(false)
             return
         }
@@ -115,7 +107,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     private lateinit var r: Rect
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
-        if(!recording) return
+        if(!streaming.get()) return
         if(!limiter.tryAcquire()) return
         if (width == 0 || height == 0) {
             camera?.parameters?.let {
@@ -139,7 +131,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     }
 
     private fun setupCam(){
-        if (!recording && surface) {
+        if (!cameraActive.get() && surface) {
             camera?.let {
                 if (previewRunning) {
                     it.stopPreview()
@@ -160,6 +152,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
                     Log.v(LOGTAG, "startPreview")
                     it.startPreview()
                     previewRunning = true
+                    cameraActive.set(true)
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -168,21 +161,22 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     }
 
     fun disable() {
-        recording = false
-        camera?.let {
-            if (previewRunning) {
-                it.stopPreview()
-            }
-        }
+        // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
+        // And sever the stream
+        streaming.set(false)
     }
 
     override fun onStart() {
         ffmpegRunning.set(true)
-        Log.d(LOGTAG, "onStart")
+        @Suppress("ConstantConditionIf")
+        if(shouldLog)
+            Log.d(LOGTAG, "onStart")
     }
 
     override fun onProgress(message: String?) {
-        Log.d(LOGTAG, "onProgress : $message")
+        @Suppress("ConstantConditionIf")
+        if(shouldLog)
+            Log.d(LOGTAG, "onProgress : $message")
     }
 
     override fun onFailure(message: String?) {
@@ -190,16 +184,22 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     }
 
     override fun onSuccess(message: String?) {
-        Log.d(LOGTAG, "onSuccess : $message")
+        @Suppress("ConstantConditionIf")
+        if(shouldLog)
+            Log.d(LOGTAG, "onSuccess : $message")
     }
 
     override fun onFinish() {
-        Log.d(LOGTAG, "onFinish")
+        @Suppress("ConstantConditionIf")
+        if(shouldLog)
+            Log.d(LOGTAG, "onFinish")
         ffmpegRunning.set(false)
     }
 
     override fun onProcess(p0: Process?) {
-        Log.d(LOGTAG, "onProcess")
+        @Suppress("ConstantConditionIf")
+        if(shouldLog)
+            Log.d(LOGTAG, "onProcess")
         this.process = p0
     }
 
@@ -218,9 +218,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.v("CameraAPI", "surfaceDestroyed")
-        if (recording) {
-            recording = false
-        }
+        cameraActive.set(false)
         surface = false
         previewRunning = false
         camera?.stopPreview()
@@ -231,5 +229,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     companion object {
         private const val LOGTAG = "CameraComponent"
+        private const val shouldLog = false
+        private val cameraActive = AtomicBoolean(false)
     }
 }
