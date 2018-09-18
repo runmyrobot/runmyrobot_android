@@ -106,9 +106,16 @@ class SplashActivity : Activity() {
             val clazz = it.getInstantiatedClass
             clazz?.let {
                 return if(it.needsSetup(this)){
-                    pendingResultCode = it.setupComponent(this)
-                    pendingDeviceSetup = it
-                    false
+                    val tmpCode = it.setupComponent(this)
+                    //Sometimes we still need setup without a UI. Will return -1 if that is the case
+                    if(tmpCode == -1){
+                        true
+                    }
+                    else{
+                        pendingResultCode = tmpCode
+                        pendingDeviceSetup = it
+                        false
+                    }
                 } else{
                     true
                 }
