@@ -33,7 +33,7 @@ class CameraComponent
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(val context: Context, val cameraId: String, val holder: SurfaceHolder) : FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
+constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) : Component(context), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
     internal var ffmpegRunning = AtomicBoolean(false)
     var ffmpeg : FFmpeg
     init {
@@ -46,7 +46,8 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     var host: String? = null
     var streaming = AtomicBoolean(false)
     var previewRunning = false
-    fun enable() {
+    override fun enable() {
+        super.enable()
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -160,7 +161,8 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
     }
 
-    fun disable() {
+    override fun disable() {
+        super.disable()
         // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
         // And sever the stream
         streaming.set(false)
