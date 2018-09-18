@@ -77,6 +77,9 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         if(host == null || port == null){
             throw Exception("Unable to form URL")
         }
+        if(surface){
+            setupCam()
+        }
         recording = true
     }
 
@@ -85,9 +88,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             ffmpegRunning.set(false)
             return
         }
-        /**
-         * -analyzeduration 0 -pix_fmt nv21 -s 480x360 -vcodec rawvideo -f image2pipe -i - -s 320x240 -crf 18 -preset ultrafast -vcodec libx264 -f rtp rtp://"+address+":"+port
-         */
+
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
             val xres = "640"
@@ -99,9 +100,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             val video_port = port
             val stream_key = RobotApplication.Instance.getCameraPass()
             //TODO hook up with bitrate and resolution prefs
-                        //"-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p http://letsrobot.tv:11225/"+ RobotApplication.getCameraPass()+"/%s/%s/";
             val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p -vf transpose=1 http://$video_host:$video_port/$stream_key/$xres/$yres/"
-            //val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 25 -codec:v mpeg1video -b:v ${kbps}k -bf 0 -muxdelay 0.001 http://$video_host:${video_port}/${stream_key}/${xres}/${yres}/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()
@@ -116,6 +115,7 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     private lateinit var r: Rect
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
+        if(!recording) return
         if(!limiter.tryAcquire()) return
         if (width == 0 || height == 0) {
             camera?.parameters?.let {
@@ -169,6 +169,11 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
 
     fun disable() {
         recording = false
+        camera?.let {
+            if (previewRunning) {
+                it.stopPreview()
+            }
+        }
     }
 
     override fun onStart() {
