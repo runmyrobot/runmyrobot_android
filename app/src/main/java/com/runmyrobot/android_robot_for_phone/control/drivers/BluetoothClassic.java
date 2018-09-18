@@ -192,7 +192,7 @@ public class BluetoothClassic{
 
 	}
 	private class ConnectThread extends Thread {
-	   	public String tag = "BLUETOOTH";
+	   	public String tag;
 		private final BluetoothSocket mmSocket;
 	    private final BluetoothDevice mmDevice;
 
