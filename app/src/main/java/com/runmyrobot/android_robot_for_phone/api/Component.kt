@@ -9,9 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Ex. can be used as an interface for LEDs based off of control messages
  */
 abstract class Component(val context: Context){
-
+    protected var status : ComponentStatus = ComponentStatus.DISABLED_FROM_SETTINGS
+    init {
+        status = ComponentStatus.DISABLED
+    }
     protected val coreInstance : Core? = null
     protected val enabled = AtomicBoolean(false)
+
 
     /**
      * Called when component should startup. Multiple calls will not trigger setup more than once
@@ -20,7 +24,9 @@ abstract class Component(val context: Context){
      */
     @CallSuper
     open fun enable() : Boolean{
-        return !enabled.getAndSet(true)
+        if(!enabled.getAndSet(true)) return false
+        status = ComponentStatus.CONNECTING
+        return true
     }
 
     /**
@@ -30,7 +36,9 @@ abstract class Component(val context: Context){
      */
     @CallSuper
     open fun disable() : Boolean{
-        return enabled.getAndSet(false)
+        if(enabled.getAndSet(false)) return false
+        status = ComponentStatus.DISABLED
+        return true
     }
 
     /**
