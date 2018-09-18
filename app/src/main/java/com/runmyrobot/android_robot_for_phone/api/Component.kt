@@ -24,7 +24,7 @@ abstract class Component(val context: Context){
      */
     @CallSuper
     open fun enable() : Boolean{
-        if(!enabled.getAndSet(true)) return false
+        if(enabled.getAndSet(true)) return false
         status = ComponentStatus.CONNECTING
         return true
     }
@@ -36,7 +36,7 @@ abstract class Component(val context: Context){
      */
     @CallSuper
     open fun disable() : Boolean{
-        if(enabled.getAndSet(false)) return false
+        if(!enabled.getAndSet(false)) return false
         status = ComponentStatus.DISABLED
         return true
     }
