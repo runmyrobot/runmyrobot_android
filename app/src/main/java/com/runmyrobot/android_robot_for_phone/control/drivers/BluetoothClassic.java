@@ -77,8 +77,8 @@ public class BluetoothClassic{
 					try{
 						//connect.cancel();
 					connectedThread.cancel();
-					}catch(Exception e){
-						e.printStackTrace();
+					}catch(Exception ignored){
+
 					}
 					selectedDevice = (BluetoothDevice)msg.obj;
 					connect = new ConnectThread(selectedDevice);
@@ -135,6 +135,12 @@ public class BluetoothClassic{
         connectedThread.write(out);
     }
 
+	public void ensurePoweredOn() {
+		if(!btAdapter.isEnabled()) {
+			btAdapter.enable();
+		}
+	}
+
 	public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
     	public String tag;
 		private BluetoothSocket mmSocket;
@@ -186,7 +192,7 @@ public class BluetoothClassic{
 
 	}
 	private class ConnectThread extends Thread {
-	   	public String tag;
+	   	public String tag = "BLUETOOTH";
 		private final BluetoothSocket mmSocket;
 	    private final BluetoothDevice mmDevice;
 
