@@ -12,13 +12,15 @@ class CommunicationComponent(context: Context, val communicationInterface: Commu
         communicationInterface.initConnection(context)
     }
 
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean {
+        if(!super.enable()) return false
         communicationInterface.enable()
+        return true
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         communicationInterface.disable()
+        return true
     }
 }

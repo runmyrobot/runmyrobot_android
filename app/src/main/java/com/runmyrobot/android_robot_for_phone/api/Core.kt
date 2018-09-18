@@ -284,7 +284,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             //Get list of external components, such as LED code, or more customized motor control
             core.externalComponents = RobotComponentList.components
             robotId?.let{
-                core.robotController = RobotControllerComponent(it)
+                core.robotController = RobotControllerComponent(context, it)
                 //Setup our protocol, if it exists
                 val protocolClass = protocol?.getInstantiatedClass(context)
                 protocolClass?.let {

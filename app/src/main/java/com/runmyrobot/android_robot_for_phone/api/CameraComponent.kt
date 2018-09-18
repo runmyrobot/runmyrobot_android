@@ -46,8 +46,8 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
     var host: String? = null
     var streaming = AtomicBoolean(false)
     var previewRunning = false
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean{
+        if(!super.enable()) return false
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -74,6 +74,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
             throw Exception("Unable to form URL")
         }
         streaming.set(true)
+        return true
     }
 
     fun bootFFMPEG(){
@@ -161,11 +162,12 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         }
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
         // And sever the stream
         streaming.set(false)
+        return true
     }
 
     override fun onStart() {

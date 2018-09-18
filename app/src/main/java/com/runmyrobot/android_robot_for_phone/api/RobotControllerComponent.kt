@@ -1,5 +1,6 @@
 package com.runmyrobot.android_robot_for_phone.api
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Also grabs chat messages for TTS and sends it to EventManager
  */
-class RobotControllerComponent internal constructor(private val robotId: String){
+class RobotControllerComponent internal constructor(context : Context, private val robotId: String) : Component(context){
     var running = AtomicBoolean(false)
     private var mSocket: Socket? = null
     private var handler: Handler
@@ -45,9 +46,9 @@ class RobotControllerComponent internal constructor(private val robotId: String)
         handler = Handler(Looper.myLooper())
     }
 
-    fun enable() {
-        if (running.getAndSet(true)) {
-            return
+    override fun enable() : Boolean{
+        if(!super.enable()){
+            return false
         }
 
         var host: String? = null
@@ -96,6 +97,7 @@ class RobotControllerComponent internal constructor(private val robotId: String)
             }
             socket.connect()
         }
+        return true
     }
 
     /**
@@ -107,10 +109,9 @@ class RobotControllerComponent internal constructor(private val robotId: String)
         handler.postDelayed(runnable, 200)
     }
 
-    fun disable() {
-        if (!running.getAndSet(false)) {
-            return
-        }
+    override fun disable() : Boolean {
+        if(!super.disable()) return false
         mSocket?.disconnect()
+        return true
     }
 }

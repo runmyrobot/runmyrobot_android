@@ -35,8 +35,8 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     private var host: String? = null
     private val recordingThread = RecordingThread(this)
 
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean{
+        if(!super.enable()) return false
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -63,12 +63,13 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
             throw Exception("Unable to form URL")
         }
         recordingThread.startRecording()
+        return true
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         recordingThread.stopRecording()
-
+        return true
     }
 
 

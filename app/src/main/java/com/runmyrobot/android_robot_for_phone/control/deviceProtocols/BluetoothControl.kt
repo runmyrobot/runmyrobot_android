@@ -16,16 +16,18 @@ class BluetoothControl(context: Context) : ControlComponent(context) {
     private val motorForwardSpeed = 50.toByte()
     private val motorBackwardSpeed = (-50).toByte()
 
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean {
+        if(!super.enable()) return false
         EventManager.subscribe(EventManager.COMMAND, onCommand)
         EventManager.subscribe(STOP_EVENT, onStop)
+        return true
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean {
+        if(!super.disable()) return false
         EventManager.unsubscribe(EventManager.COMMAND, onCommand)
         EventManager.unsubscribe(STOP_EVENT, onStop)
+        return true
     }
 
     private val onCommand: (Any?) -> Unit = {

@@ -15,23 +15,22 @@ abstract class Component(val context: Context){
 
     /**
      * Called when component should startup. Multiple calls will not trigger setup more than once
+     *
+     * Return false if value was already true
      */
     @CallSuper
-    open fun enable(){
-        if(enabled.getAndSet(true)){
-            return
-        }
-
+    open fun enable() : Boolean{
+        return !enabled.getAndSet(true)
     }
 
     /**
      * Called when component should shut down
+     *
+     * return false if value was already false
      */
     @CallSuper
-    open fun disable(){
-        if(enabled.getAndSet(true)){
-            return
-        }
+    open fun disable() : Boolean{
+        return enabled.getAndSet(true)
     }
 
     /**
