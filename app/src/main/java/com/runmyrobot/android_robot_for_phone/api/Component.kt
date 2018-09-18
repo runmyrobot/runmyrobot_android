@@ -30,7 +30,7 @@ abstract class Component(val context: Context){
      */
     @CallSuper
     open fun disable() : Boolean{
-        return enabled.getAndSet(true)
+        return enabled.getAndSet(false)
     }
 
     /**
