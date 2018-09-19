@@ -201,6 +201,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         if(shouldLog)
             Log.d(LOGTAG, "onFinish")
         ffmpegRunning.set(false)
+        status = ComponentStatus.DISABLED
     }
 
     override fun onProcess(p0: Process?) {
