@@ -11,7 +11,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:orientation="horizontal">
-        <ImageView
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
             android:layout_margin="8dp"
             android:id="@+id/cloudStatusIcon"
             android:layout_width="38dp"
@@ -19,7 +19,7 @@
             android:background="@drawable/circle"
             android:scaleType="centerInside"
             android:src="@drawable/ic_cloud_black_24dp"/>
-        <ImageView
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
             android:layout_margin="8dp"
             android:id="@+id/cameraStatusIcon"
             android:layout_width="38dp"
@@ -27,7 +27,7 @@
             android:background="@drawable/circle"
             android:scaleType="centerInside"
             android:src="@drawable/ic_camera_alt_black_24dp"/>
-        <ImageView
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
             android:layout_margin="8dp"
             android:id="@+id/micStatusIcon"
             android:layout_width="38dp"
@@ -35,7 +35,7 @@
             android:background="@drawable/circle"
             android:scaleType="centerInside"
             android:src="@drawable/ic_mic_black_24dp"/>
-        <ImageView
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
             android:layout_margin="8dp"
             android:id="@+id/ttsStatusIcon"
             android:layout_width="38dp"
@@ -43,7 +43,7 @@
             android:background="@drawable/circle"
             android:scaleType="centerInside"
             android:src="@drawable/ic_record_voice_over_black_24dp"/>
-        <ImageView
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
             android:layout_margin="8dp"
             android:id="@+id/robotStatusIcon"
             android:layout_width="38dp"

@@ -9,7 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Ex. can be used as an interface for LEDs based off of control messages
  */
 abstract class Component(val context: Context){
-    protected var status : ComponentStatus = ComponentStatus.DISABLED_FROM_SETTINGS
+    private var _status: ComponentStatus = ComponentStatus.DISABLED_FROM_SETTINGS
+    var status : ComponentStatus
+        get() = _status
+        set(value) {
+            _status = value
+        }
+
     init {
         status = ComponentStatus.DISABLED
     }
