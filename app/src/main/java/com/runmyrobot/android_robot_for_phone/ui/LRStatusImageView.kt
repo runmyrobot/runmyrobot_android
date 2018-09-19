@@ -50,8 +50,11 @@ class LRStatusImageView @JvmOverloads constructor(
     override fun run() {
         component?.let {
             setStatus(it.status)
-        } ?: setStatus(loopStatus())
-        uiHandler.postDelayed(this, 1000)
+            uiHandler.postDelayed(this, 100)
+        } ?: run{
+            setStatus(loopStatus())
+            uiHandler.postDelayed(this, 1000)
+        }
     }
 
     var i = 0
