@@ -80,6 +80,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     private var handler: Handler? = null
 
     init {
+        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         handlerThread.start()
         handler = Handler(handlerThread.looper){
             msg ->
@@ -177,6 +178,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
         appServerSocket?.disconnect()
         EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
+        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         log(LogLevel.INFO, "core is shut down!")
     }
 
