@@ -38,17 +38,19 @@ class LRStatusImageView @JvmOverloads constructor(
 
     fun setStatus(componentStatus: ComponentStatus){
         background = when(componentStatus){
-            ComponentStatus.DISABLED_FROM_SETTINGS -> setDrawableColor(background, R.color.colorIndicatorGrey)
-            ComponentStatus.DISABLED -> setDrawableColor(background, R.color.colorIndicatorWhite)
-            ComponentStatus.CONNECTING -> setDrawableColor(background, R.color.colorIndicatorYellow)
-            ComponentStatus.STABLE -> setDrawableColor(background, R.color.colorIndicatorGreen)
-            ComponentStatus.INTERMITTENT -> setDrawableColor(background, R.color.colorIndicatorOrange)
-            ComponentStatus.ERROR -> setDrawableColor(background, R.color.colorIndicatorRR)
+            ComponentStatus.DISABLED_FROM_SETTINGS -> setDrawableColor(background, R.color.colorIndicatorDisabledFromSettings)
+            ComponentStatus.DISABLED -> setDrawableColor(background, R.color.colorIndicatorDisabled)
+            ComponentStatus.CONNECTING -> setDrawableColor(background, R.color.colorIndicatorConnecting)
+            ComponentStatus.STABLE -> setDrawableColor(background, R.color.colorIndicatorStable)
+            ComponentStatus.INTERMITTENT -> setDrawableColor(background, R.color.colorIndicatorUnstable)
+            ComponentStatus.ERROR -> setDrawableColor(background, R.color.colorIndicatorError)
         }
     }
 
     override fun run() {
-        setStatus(loopStatus())
+        component?.let {
+            setStatus(it.status)
+        } ?: setStatus(loopStatus())
         uiHandler.postDelayed(this, 1000)
     }
 
@@ -68,9 +70,5 @@ class LRStatusImageView @JvmOverloads constructor(
 
     fun setComponentInterface(component: Component) {
         this.component = component
-    }
-
-    companion object {
-        var numButton = 0
     }
 }

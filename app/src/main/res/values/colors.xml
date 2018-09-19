@@ -3,10 +3,10 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="colorIndicatorGrey">#263238</color>
-    <color name="colorIndicatorWhite">#FFFFFF</color>
-    <color name="colorIndicatorGreen">#1B5E20</color>
-    <color name="colorIndicatorYellow">#FFD600</color>
-    <color name="colorIndicatorOrange">#E65100</color>
-    <color name="colorIndicatorRR">#B71C1C</color>
+    <color name="colorIndicatorDisabledFromSettings">#263238</color>
+    <color name="colorIndicatorDisabled">#000000</color>
+    <color name="colorIndicatorStable">#1B5E20</color>
+    <color name="colorIndicatorConnecting">#FFD600</color>
+    <color name="colorIndicatorUnstable">#E65100</color>
+    <color name="colorIndicatorError">#B71C1C</color>
 </resources>
