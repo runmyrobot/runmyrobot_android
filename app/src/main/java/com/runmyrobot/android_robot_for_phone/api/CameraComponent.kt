@@ -80,9 +80,10 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
     fun bootFFMPEG(){
         if(!streaming.get()){
             ffmpegRunning.set(false)
+            status = ComponentStatus.DISABLED
             return
         }
-
+        status = ComponentStatus.CONNECTING
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
             val xres = "640"
@@ -181,10 +182,12 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         @Suppress("ConstantConditionIf")
         if(shouldLog)
             Log.d(LOGTAG, "onProgress : $message")
+        status = ComponentStatus.STABLE
     }
 
     override fun onFailure(message: String?) {
         Log.e(LOGTAG, "progress : $message")
+        status = ComponentStatus.ERROR
     }
 
     override fun onSuccess(message: String?) {
