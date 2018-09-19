@@ -134,6 +134,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
 
     override fun onFinish() {
         Log.d(AudioComponent.LOGTAG, "onFinish")
+        status = ComponentStatus.DISABLED
         ffmpegRunning.set(false)
     }
 
