@@ -2,6 +2,7 @@ package com.runmyrobot.android_robot_for_phone.api
 
 import android.content.Context
 import android.support.annotation.CallSuper
+import com.runmyrobot.android_robot_for_phone.control.EventManager
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -14,6 +15,7 @@ abstract class Component(val context: Context){
         get() = _status
         set(value) {
             _status = value
+            EventManager.invoke(javaClass.name, value)
         }
 
     init {

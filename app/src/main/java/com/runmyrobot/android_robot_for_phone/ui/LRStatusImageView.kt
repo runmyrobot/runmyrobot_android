@@ -8,8 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.api.Component
 import com.runmyrobot.android_robot_for_phone.api.ComponentStatus
+import com.runmyrobot.android_robot_for_phone.control.EventManager
 
 /**
  * Status view that will communicate directly with a chosen component
@@ -18,7 +18,8 @@ class LRStatusImageView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : android.support.v7.widget.AppCompatImageView(context, attrs, defStyleAttr), Runnable {
     private var uiHandler : Handler = Handler(Looper.getMainLooper())
-    private var component: Component? = null
+    private var component: String? = null
+    private var status : ComponentStatus? = null
     val values = ComponentStatus.values()
     init{
         uiHandler.post(this)
@@ -48,8 +49,8 @@ class LRStatusImageView @JvmOverloads constructor(
     }
 
     override fun run() {
-        component?.let {
-            setStatus(it.status)
+        status?.let {
+            setStatus(it)
             uiHandler.postDelayed(this, 100)
         } ?: run{
             setStatus(loopStatus())
@@ -71,7 +72,15 @@ class LRStatusImageView @JvmOverloads constructor(
         return status
     }
 
-    fun setComponentInterface(component: Component) {
+    private val onStatus: (Any?) -> Unit = {
+        it?.takeIf { it is ComponentStatus }?.let{
+            status = it as ComponentStatus
+        }
+    }
+
+    fun setComponentInterface(component: String) {
+        this.component?.let { EventManager.unsubscribe(it, onStatus) }
         this.component = component
+        EventManager.subscribe(component, onStatus)
     }
 }

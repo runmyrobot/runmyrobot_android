@@ -35,12 +35,12 @@ class Core
 private constructor(val robotId : String, val cameraId : String?) {
     private val handlerThread: HandlerThread = HandlerThread("bg-thread")
     private var logLevel = LogLevel.NONE
-    private var camera: CameraComponent? = null
-    private var audio: AudioComponent? = null
-    private var robotController: RobotControllerComponent? = null
-    private var textToSpeech: TextToSpeechComponent? = null
+    var camera: CameraComponent? = null
+    var audio: AudioComponent? = null
+    var robotController: RobotControllerComponent? = null
+    var textToSpeech: TextToSpeechComponent? = null
     private var externalComponents: ArrayList<Component>? = null
-    private val onControllerTimeout = fun(_: Any?) {
+    private var onControllerTimeout = fun(_: Any?) {
         for (component in externalComponents!!) {
             component.timeout()
         }
