@@ -132,22 +132,10 @@ private constructor(val robotId : String, val cameraId : String?) {
         if(running.getAndSet(true)) return //already enabled
         EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
-        Thread{
-            Thread.currentThread().name = "camera"
-            camera?.enable()
-        }.start()
-        Thread{
-            Thread.currentThread().name = "audio"
-            audio?.enable()
-        }.start()
-        Thread{
-            robotController?.enable()
-            Thread.currentThread().name = "Robot"
-        }.start()
-        Thread{
-            textToSpeech?.enable()
-            Thread.currentThread().name = "TTS"
-        }.start()
+        camera?.enable()
+        audio?.enable()
+        robotController?.enable()
+        textToSpeech?.enable()
         for (component in externalComponents!!) {
             component.enable()
         }
