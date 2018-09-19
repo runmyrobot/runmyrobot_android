@@ -130,6 +130,7 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     private fun enableInternal() {
         if(running.getAndSet(true)) return //already enabled
+        EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
         Thread{
             camera?.enable()
@@ -147,10 +148,15 @@ private constructor(val robotId : String, val cameraId : String?) {
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             Log.d(TAG, "appServerSocket EVENT_CONNECT_ERROR")
+            EventManager.invoke(javaClass.name, ComponentStatus.ERROR)
         }
         appServerSocket?.on(Socket.EVENT_CONNECT){
             Log.d(TAG, "appServerSocket is connected!")
+            EventManager.invoke(javaClass.name, ComponentStatus.STABLE)
             appServerSocket?.emit("identify_robot_id", robotId)
+        }
+        appServerSocket?.on(Socket.EVENT_DISCONNECT){
+            EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         }
         //Ugly way of doing timeouts. Should find a better way
         EventManager.subscribe(TIMEOUT, onControllerTimeout)

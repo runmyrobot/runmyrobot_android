@@ -14,6 +14,7 @@ abstract class Component(val context: Context){
     var status : ComponentStatus
         get() = _status
         set(value) {
+            if(_status == value) return //Only set state if changed
             _status = value
             EventManager.invoke(javaClass.name, value)
         }

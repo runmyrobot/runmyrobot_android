@@ -96,6 +96,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     override fun onAudioDataReceived(data: ShortArray?) {
         try {
             if(!ffmpegRunning.get()){
+                status = ComponentStatus.CONNECTING
                 val audioDevNum = 1
                 val mic_channels = 1
                 val audioHost = host
@@ -118,10 +119,12 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     }
 
     override fun onProgress(message: String?) {
+        status = ComponentStatus.STABLE
 //        Log.d(AudioComponent.LOGTAG, "onProgress : $message")
     }
 
     override fun onFailure(message: String?) {
+        status = ComponentStatus.ERROR
         Log.e(AudioComponent.LOGTAG, "progress : $message")
     }
 
