@@ -12,6 +12,7 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
 import com.runmyrobot.android_robot_for_phone.RobotApplication
+import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
@@ -89,13 +90,19 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
             val xres = "640"
             val yres = "480"
 
-            val rotation_option = "" //leave blank
+            val rotationOption = StoreUtil.getOrientation(context).ordinal //leave blank
+            val builder = StringBuilder()
+            for (i in 0..rotationOption){
+                if(i == 0) builder.append("-vf transpose=1")
+                else builder.append(",transpose=1")
+            }
+            print("\"$builder\"")
             val kbps = "20"
             val video_host = host
             val video_port = port
             val stream_key = RobotApplication.Instance.getCameraPass()
             //TODO hook up with bitrate and resolution prefs
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p -vf transpose=1 http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()
@@ -143,7 +150,6 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
                 try {
                     val p = it.parameters
                     val previewSizes = p.supportedPreviewSizes
-
                     // You need to choose the most appropriate previewSize for your app
                     val previewSize = previewSizes.get(0) // .... select one of previewSizes here
                     //p.setPreviewSize(previewSize.width, previewSize.height);
