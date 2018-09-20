@@ -69,6 +69,8 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     override fun disable() : Boolean{
         if(!super.disable()) return false
         recordingThread.stopRecording()
+        process?.destroy()
+        process = null
         return true
     }
 
