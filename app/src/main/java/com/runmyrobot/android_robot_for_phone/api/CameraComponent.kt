@@ -33,7 +33,7 @@ class CameraComponent
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(val context: Context, val cameraId: String, val holder: SurfaceHolder) : FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
+constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) : Component(context), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
     internal var ffmpegRunning = AtomicBoolean(false)
     var ffmpeg : FFmpeg
     init {
@@ -46,7 +46,8 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
     var host: String? = null
     var streaming = AtomicBoolean(false)
     var previewRunning = false
-    fun enable() {
+    override fun enable() : Boolean{
+        if(!super.enable()) return false
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -73,14 +74,16 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
             throw Exception("Unable to form URL")
         }
         streaming.set(true)
+        return true
     }
 
     fun bootFFMPEG(){
         if(!streaming.get()){
             ffmpegRunning.set(false)
+            status = ComponentStatus.DISABLED
             return
         }
-
+        status = ComponentStatus.CONNECTING
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
             val xres = "640"
@@ -160,10 +163,12 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         }
     }
 
-    fun disable() {
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
         // And sever the stream
         streaming.set(false)
+        return true
     }
 
     override fun onStart() {
@@ -177,10 +182,12 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         @Suppress("ConstantConditionIf")
         if(shouldLog)
             Log.d(LOGTAG, "onProgress : $message")
+        status = ComponentStatus.STABLE
     }
 
     override fun onFailure(message: String?) {
         Log.e(LOGTAG, "progress : $message")
+        status = ComponentStatus.ERROR
     }
 
     override fun onSuccess(message: String?) {
@@ -194,6 +201,9 @@ constructor(val context: Context, val cameraId: String, val holder: SurfaceHolde
         if(shouldLog)
             Log.d(LOGTAG, "onFinish")
         ffmpegRunning.set(false)
+        process?.destroy()
+        process = null
+        status = ComponentStatus.DISABLED
     }
 
     override fun onProcess(p0: Process?) {

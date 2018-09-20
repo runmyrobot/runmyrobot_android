@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.api.Core
+import com.runmyrobot.android_robot_for_phone.RobotApplication
+import com.runmyrobot.android_robot_for_phone.api.*
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_main_robot.*
 
@@ -44,6 +46,17 @@ class MainRobotActivity : Activity(){
             core?.disable()
             core = null
         }
+
+        initIndicators()
+    }
+
+    private fun initIndicators() {
+        cloudStatusIcon.setComponentInterface(Core::class.java.name)
+        cameraStatusIcon.setComponentInterface(CameraComponent::class.java.name)
+        robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.name)
+        micStatusIcon.setComponentInterface(AudioComponent::class.java.name)
+        ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.name)
+        robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.name)
     }
 
     override fun onPause() {
@@ -72,6 +85,7 @@ class MainRobotActivity : Activity(){
         try {
             core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {
+            RobotApplication.Instance.reportError(e)
             e.printStackTrace()
         }
     }

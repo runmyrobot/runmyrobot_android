@@ -9,6 +9,7 @@ import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
+import com.runmyrobot.android_robot_for_phone.api.ComponentStatus
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.drivers.UsbService
 import java.lang.ref.WeakReference
@@ -17,7 +18,6 @@ import java.lang.ref.WeakReference
  * This is the communication component that interfaces with USBService.class (com.felhr.usbserial)
  */
 class FelhrUsbSerialCommunication : CommunicationInterface {
-
     private val TAG = "FelhrUsb"
 
     override fun initConnection(context: Context) {
@@ -61,6 +61,10 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         it?.takeIf { it is ByteArray }?.let{ data ->
             send(data as ByteArray)
         }
+    }
+
+    override fun getStatus(): ComponentStatus {
+        return ComponentStatus.ERROR //TODO
     }
 
     //Below is all USB Service code from com.felhr.usbservice

@@ -12,6 +12,7 @@ import android.content.Intent
  * 2. Instantiated for use with the control system
  */
 interface CommunicationInterface{
+    fun getStatus() : ComponentStatus
     fun initConnection(context: Context)
     fun enable()
     fun disable()

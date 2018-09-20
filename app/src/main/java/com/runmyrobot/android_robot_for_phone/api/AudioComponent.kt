@@ -35,8 +35,8 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     private var host: String? = null
     private val recordingThread = RecordingThread(this)
 
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean{
+        if(!super.enable()) return false
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -63,12 +63,15 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
             throw Exception("Unable to form URL")
         }
         recordingThread.startRecording()
+        return true
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         recordingThread.stopRecording()
-
+        process?.destroy()
+        process = null
+        return true
     }
 
 
@@ -95,6 +98,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     override fun onAudioDataReceived(data: ShortArray?) {
         try {
             if(!ffmpegRunning.get()){
+                status = ComponentStatus.CONNECTING
                 val audioDevNum = 1
                 val mic_channels = 1
                 val audioHost = host
@@ -117,10 +121,12 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     }
 
     override fun onProgress(message: String?) {
+        status = ComponentStatus.STABLE
 //        Log.d(AudioComponent.LOGTAG, "onProgress : $message")
     }
 
     override fun onFailure(message: String?) {
+        status = ComponentStatus.ERROR
         Log.e(AudioComponent.LOGTAG, "progress : $message")
     }
 
@@ -130,6 +136,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
 
     override fun onFinish() {
         Log.d(AudioComponent.LOGTAG, "onFinish")
+        status = ComponentStatus.DISABLED
         ffmpegRunning.set(false)
     }
 

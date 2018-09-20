@@ -12,18 +12,20 @@ import java.nio.charset.Charset
 class ArduinoSendBytesProtocol(context: Context) :
         ControlComponent(context) {
 
-    override fun enable() {
-        super.enable()
+    override fun enable() : Boolean{
+        if(!super.enable()) return false
         Log.d(TAG, "enable")
         EventManager.subscribe(EventManager.COMMAND, onCommand)
         EventManager.subscribe(EventManager.STOP_EVENT, onStop)
+        return true
     }
 
-    override fun disable() {
-        super.disable()
+    override fun disable() : Boolean{
+        if(!super.disable()) return false
         Log.d(TAG, "disable")
         EventManager.subscribe(EventManager.COMMAND, onCommand)
         EventManager.subscribe(EventManager.STOP_EVENT, onStop)
+        return true
     }
 
     override fun timeout() {

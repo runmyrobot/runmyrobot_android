@@ -33,6 +33,7 @@ class EventManager{
         const val ROBOT_CONNECTED = "robot_connect"
         const val STOP_EVENT = "stop_event"
         const val ROBOT_BYTE_ARRAY = "robot_byte_array"
+        const val ROBOT_MOTOR_STATUS = "ROBOT_MOTOR_STATUS"
         const val CHAT = "chat"
 
         /**
@@ -60,10 +61,7 @@ class EventManager{
          */
         fun invoke(event: String, message : Any? = null){
             val list = subscribers[event]
-            Log.d("invoke", event)
-            message?.takeIf { it is String }?.let {
-                Log.d("MessageManager", it.toString())
-            }
+            Log.d("invoke", "$event : ${message.toString()}")
             list?.let {
                 //Loop through subscribers
                 it.forEach {

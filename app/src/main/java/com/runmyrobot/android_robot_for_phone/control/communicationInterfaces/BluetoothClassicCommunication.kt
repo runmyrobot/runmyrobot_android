@@ -8,6 +8,7 @@ import android.os.Message
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.activities.ChooseBluetoothActivity
 import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
+import com.runmyrobot.android_robot_for_phone.api.ComponentStatus
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.ROBOT_BYTE_ARRAY
 import com.runmyrobot.android_robot_for_phone.control.drivers.BluetoothClassic
@@ -55,7 +56,7 @@ class BluetoothClassicCommunication : CommunicationInterface {
     }
 
     override fun isConnected(): Boolean {
-        return false
+        return bluetoothClassic?.BTStatus == BluetoothClassic.CONNECTION_STABLE
         //return BTStatus == BluetoothClassic.CONNECTION_STABLE;
     }
 
@@ -95,6 +96,20 @@ class BluetoothClassicCommunication : CommunicationInterface {
         Log.d("Bluetooth","disable")
         bluetoothClassic?.serviceHandler?.sendEmptyMessage(BluetoothClassic.DISCONNECT_MESSAGE)
         EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+    }
+
+    override fun getStatus(): ComponentStatus {
+        bluetoothClassic?.BTStatus?.let{
+            return when(it){
+                BluetoothClassic.CONNECTION_STABLE -> ComponentStatus.STABLE
+                BluetoothClassic.CONNECTING -> ComponentStatus.CONNECTING
+                BluetoothClassic.CONNECTION_LOST -> ComponentStatus.INTERMITTENT
+                BluetoothClassic.CONNECTION_NON_EXISTENT -> ComponentStatus.DISABLED
+                BluetoothClassic.CONNECTION_NOT_POSSIBLE -> ComponentStatus.ERROR
+                else -> ComponentStatus.ERROR
+            }
+        }
+        return ComponentStatus.DISABLED
     }
 
     companion object {

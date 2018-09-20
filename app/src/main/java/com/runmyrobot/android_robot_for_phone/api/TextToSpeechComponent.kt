@@ -5,6 +5,7 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.control.EventManager
 import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.CHAT
+import com.runmyrobot.android_robot_for_phone.utils.ValueUtil
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -14,23 +15,21 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.URISyntaxException
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Text to speech component class
  *
  * TODO different voice or voice options?
  */
-class TextToSpeechComponent internal constructor(val context: Context, private val robotId : String){
+class TextToSpeechComponent internal constructor(context: Context, private val robotId : String) : Component(context){
     private var ttobj: TextToSpeech = TextToSpeech(context, TextToSpeech.OnInitListener {})
     private var mSocket: Socket? = null
-    var running = AtomicBoolean(false)
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
 
-    fun enable() {
-        if (running.getAndSet(true)) {
-            return
+    override fun enable() : Boolean{
+        if(!super.enable()){
+            return false
         }
         ttobj.language = Locale.US
         var host: String? = null
@@ -55,15 +54,18 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
             val url = String.format("http://%s:%s", host, port)
             mSocket = IO.socket(url)
         } catch (e: URISyntaxException) {
+            status = ComponentStatus.ERROR
             e.printStackTrace()
-            return
         }
-        mSocket!!.on(Socket.EVENT_CONNECT) {
+        mSocket?.on(Socket.EVENT_CONNECT) {
             mSocket!!.emit("identify_robot_id", robotId)
+            status = ComponentStatus.STABLE
+            ttobj.setPitch(.5f)
             ttobj.speak("OK", TextToSpeech.QUEUE_FLUSH, null)
-        }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
-            ttobj.speak("Error", TextToSpeech.QUEUE_FLUSH, null)
-        }.on("chat_message_with_name"){
+        }?.on(Socket.EVENT_CONNECT_ERROR) {
+            Log.d("Robot", "Err")
+            status = ComponentStatus.ERROR
+        }?.on("chat_message_with_name"){
             if (it[0] is JSONObject) {
                 val `object` = it[0] as JSONObject
                 EventManager.invoke(CHAT, `object`)
@@ -72,6 +74,8 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                     getMessageFromRaw(messageRaw)?.let {
                         //TODO use non-deprecated call? Does not support 4.4 though
                         if(!ttobj.isSpeaking) {
+                            val pitch = 1f
+                            ttobj.setPitch(pitch)
                             ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
                         }
                     }
@@ -79,17 +83,26 @@ class TextToSpeechComponent internal constructor(val context: Context, private v
                     e.printStackTrace()
                 }
             }
-        }.on(Socket.EVENT_DISCONNECT){
+        }?.on(Socket.EVENT_DISCONNECT){
+            val pitch = .5f
+            ttobj.setPitch(pitch)
             ttobj.speak("Disconnected", TextToSpeech.QUEUE_FLUSH, null)
+            if(status != ComponentStatus.DISABLED)
+                status = ComponentStatus.INTERMITTENT
         }
         mSocket?.connect()
+        return true
     }
 
-    fun disable() {
-        if (!running.getAndSet(false)) {
-            return
-        }
+    private fun getPitchFromUser(name : String): Float {
+        val scale = Random(name.hashCode().toLong()).nextFloat()
+        return ValueUtil.map(scale,0f, 1f, 0f, 10f, 1.0f)
+    }
+
+    override fun disable() : Boolean {
+        if(!super.disable()) return false
         mSocket?.disconnect()
+        return true
     }
 
     companion object {

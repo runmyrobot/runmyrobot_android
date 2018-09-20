@@ -35,12 +35,12 @@ class Core
 private constructor(val robotId : String, val cameraId : String?) {
     private val handlerThread: HandlerThread = HandlerThread("bg-thread")
     private var logLevel = LogLevel.NONE
-    private var camera: CameraComponent? = null
-    private var audio: AudioComponent? = null
-    private var robotController: RobotControllerComponent? = null
-    private var textToSpeech: TextToSpeechComponent? = null
+    var camera: CameraComponent? = null
+    var audio: AudioComponent? = null
+    var robotController: RobotControllerComponent? = null
+    var textToSpeech: TextToSpeechComponent? = null
     private var externalComponents: ArrayList<Component>? = null
-    private val onControllerTimeout = fun(_: Any?) {
+    private var onControllerTimeout = fun(_: Any?) {
         for (component in externalComponents!!) {
             component.timeout()
         }
@@ -80,6 +80,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     private var handler: Handler? = null
 
     init {
+        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         handlerThread.start()
         handler = Handler(handlerThread.looper){
             msg ->
@@ -130,14 +131,10 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     private fun enableInternal() {
         if(running.getAndSet(true)) return //already enabled
+        EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
-        Thread{
-            camera?.enable()
-        }.start()
-        Thread{
-            audio?.enable()
-        }.start()
-
+        camera?.enable()
+        audio?.enable()
         robotController?.enable()
         textToSpeech?.enable()
         for (component in externalComponents!!) {
@@ -147,10 +144,15 @@ private constructor(val robotId : String, val cameraId : String?) {
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             Log.d(TAG, "appServerSocket EVENT_CONNECT_ERROR")
+            EventManager.invoke(javaClass.name, ComponentStatus.ERROR)
         }
         appServerSocket?.on(Socket.EVENT_CONNECT){
             Log.d(TAG, "appServerSocket is connected!")
+            EventManager.invoke(javaClass.name, ComponentStatus.STABLE)
             appServerSocket?.emit("identify_robot_id", robotId)
+        }
+        appServerSocket?.on(Socket.EVENT_DISCONNECT){
+            EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         }
         //Ugly way of doing timeouts. Should find a better way
         EventManager.subscribe(TIMEOUT, onControllerTimeout)
@@ -176,6 +178,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
         appServerSocket?.disconnect()
         EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
+        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         log(LogLevel.INFO, "core is shut down!")
     }
 
@@ -284,7 +287,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             //Get list of external components, such as LED code, or more customized motor control
             core.externalComponents = RobotComponentList.components
             robotId?.let{
-                core.robotController = RobotControllerComponent(it)
+                core.robotController = RobotControllerComponent(context, it)
                 //Setup our protocol, if it exists
                 val protocolClass = protocol?.getInstantiatedClass(context)
                 protocolClass?.let {
