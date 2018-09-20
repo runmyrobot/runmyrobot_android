@@ -220,6 +220,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
     override fun surfaceCreated(holder: SurfaceHolder) {
         surface = true
         camera = Camera.open()
+        camera?.setDisplayOrientation(90)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
