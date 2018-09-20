@@ -1,15 +1,19 @@
 package com.runmyrobot.android_robot_for_phone.control.communicationInterfaces
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
 import com.runmyrobot.android_robot_for_phone.api.Component
 
 /**
  * Created by Brendon on 9/11/2018.
  */
-class CommunicationComponent(context: Context, val communicationInterface: CommunicationInterface) : Component(context) {
+class CommunicationComponent(context: Context, val communicationInterface: CommunicationInterface) : Component(context) , Runnable{
+    val uiHandler = Handler(Looper.getMainLooper())
     init {
         communicationInterface.initConnection(context)
+        uiHandler.post(this)
     }
 
     override fun enable() : Boolean {
@@ -22,5 +26,10 @@ class CommunicationComponent(context: Context, val communicationInterface: Commu
         if(!super.disable()) return false
         communicationInterface.disable()
         return true
+    }
+
+    override fun run() {
+        status = communicationInterface.getStatus()
+        uiHandler.postDelayed(this, 200)
     }
 }

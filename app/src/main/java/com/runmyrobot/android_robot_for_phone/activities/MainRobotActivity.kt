@@ -9,6 +9,7 @@ import android.view.WindowManager
 import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.RobotApplication
 import com.runmyrobot.android_robot_for_phone.api.*
+import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_main_robot.*
 
@@ -55,6 +56,7 @@ class MainRobotActivity : Activity(){
         robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.name)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.name)
         ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.name)
+        robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.name)
     }
 
     override fun onPause() {

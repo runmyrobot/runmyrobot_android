@@ -30,7 +30,7 @@ public class BluetoothClassic{
 	public static final int CONNECT_MESSAGE = 2;
 	public static final int DISCONNECT_MESSAGE = 3;
 	public static final int SEND_MESSAGE = 4;
-	public static final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3;
+	public static final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3, CONNECTING = 4;
 	public int BTStatus = CONNECTION_NON_EXISTENT;
 	public BluetoothAdapter btAdapter;
 	private IntentFilter filter;
@@ -60,30 +60,24 @@ public class BluetoothClassic{
 				switch(msg.what){
 				case SUCCESS_CONNECT:
 					// DO something
-					//joy1.setVisibility(ImageView.VISIBLE);
 					connectedThread = new ConnectedThread((BluetoothSocket)msg.obj);
 					connectedThread.start();
-					//Toast.makeText(getApplicationContext(), "CONNECT", 0).show();
 					Log.i(tag, "connected");
-					//mainClass.mHandler.obtainMessage(SUCCESS_CONNECT, 0x00, 0x00, "success")
-                    //.sendToTarget();
-					//startActivity(joystickControls);
 					break;
 				case MESSAGE_READ:
 					//byte[] readBuf = (byte[])msg.obj;
 					// TODO make reading code
 					break;
 				case CONNECT_MESSAGE:
+					BTStatus = CONNECTING;
 					try{
-						//connect.cancel();
-					connectedThread.cancel();
+						connectedThread.cancel();
 					}catch(Exception ignored){
 
 					}
 					selectedDevice = (BluetoothDevice)msg.obj;
 					connect = new ConnectThread(selectedDevice);
 					connect.start();
-
 					break;
 				case DISCONNECT_MESSAGE:
 					if(connectedThread != null)
