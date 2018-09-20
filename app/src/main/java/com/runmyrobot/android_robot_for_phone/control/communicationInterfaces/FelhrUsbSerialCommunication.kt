@@ -19,6 +19,7 @@ import java.lang.ref.WeakReference
  */
 class FelhrUsbSerialCommunication : CommunicationInterface {
     private val TAG = "FelhrUsb"
+    private var componentStatus = ComponentStatus.DISABLED
 
     override fun initConnection(context: Context) {
         setFilters(context)
@@ -64,7 +65,7 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
     }
 
     override fun getStatus(): ComponentStatus {
-        return ComponentStatus.ERROR //TODO
+        return componentStatus
     }
 
     //Below is all USB Service code from com.felhr.usbservice
@@ -104,15 +105,30 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 UsbService.ACTION_USB_PERMISSION_GRANTED // USB PERMISSION GRANTED
-                -> Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show()
+                -> {
+                    Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show()
+                    componentStatus = ComponentStatus.STABLE
+                }
                 UsbService.ACTION_USB_PERMISSION_NOT_GRANTED // USB PERMISSION NOT GRANTED
-                -> Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show()
+                -> {
+                    Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show()
+                    componentStatus = ComponentStatus.ERROR
+                }
                 UsbService.ACTION_NO_USB // NO USB CONNECTED
-                -> Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show()
+                -> {
+                    Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show()
+                    //componentStatus = ComponentStatus.DISABLED
+                }
                 UsbService.ACTION_USB_DISCONNECTED // USB DISCONNECTED
-                -> Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show()
+                -> {
+                    Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show()
+                    componentStatus = ComponentStatus.ERROR
+                }
                 UsbService.ACTION_USB_NOT_SUPPORTED // USB NOT SUPPORTED
-                -> Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show()
+                -> {
+                    Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show()
+                    componentStatus = ComponentStatus.ERROR
+                }
             }
         }
     }
