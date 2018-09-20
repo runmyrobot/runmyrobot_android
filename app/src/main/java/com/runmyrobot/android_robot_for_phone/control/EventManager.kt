@@ -65,7 +65,10 @@ class EventManager{
             list?.let {
                 //Loop through subscribers
                 it.forEach {
-                    it(message)
+                    try {
+                        it(message)
+                    } catch (e: Exception) {
+                    }
                 }
             }
         }
