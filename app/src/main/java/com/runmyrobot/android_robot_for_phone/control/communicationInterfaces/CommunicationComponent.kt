@@ -29,7 +29,8 @@ class CommunicationComponent(context: Context, val communicationInterface: Commu
     }
 
     override fun run() {
-        status = communicationInterface.getStatus()
+        if(enabled.get())
+            status = communicationInterface.getStatus()
         uiHandler.postDelayed(this, 200)
     }
 }

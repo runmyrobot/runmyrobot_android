@@ -64,7 +64,7 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
     }
 
     override fun getStatus(): ComponentStatus {
-        return ComponentStatus.ERROR
+        return ComponentStatus.ERROR //TODO
     }
 
     //Below is all USB Service code from com.felhr.usbservice
