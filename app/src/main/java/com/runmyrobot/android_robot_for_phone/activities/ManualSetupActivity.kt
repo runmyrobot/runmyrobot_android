@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ArrayAdapter
 import com.runmyrobot.android_robot_for_phone.R
+import com.runmyrobot.android_robot_for_phone.api.CameraDirection
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
 import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
@@ -57,6 +58,18 @@ class ManualSetupActivity : AppCompatActivity() {
             communicationChooser.setSelection(it.ordinal)
         }
 
+        //Configure communication spinner
+        val orientationChooserList = ArrayList<String>()
+        CameraDirection.values().forEach {
+            orientationChooserList.add(it.toString())
+        }
+        // Creating adapter for spinner
+        val orientationChooserAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, orientationChooserList)
+        orientationChooser.adapter = orientationChooserAdapter
+        StoreUtil.getOrientation(this).also {
+            orientationChooser.setSelection(it.ordinal)
+        }
+
         applyButton.setOnClickListener {
             saveButtonStates()
             launchActivity()
@@ -91,6 +104,7 @@ class ManualSetupActivity : AppCompatActivity() {
         StoreUtil.setErrorReportingEnabled(this, errorReportButton.isChecked)
         StoreUtil.setCommunicationType(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
         StoreUtil.setProtocolType(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
+        StoreUtil.setOrientation(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
     }
 
     fun checkState(cameraChecked : Boolean){

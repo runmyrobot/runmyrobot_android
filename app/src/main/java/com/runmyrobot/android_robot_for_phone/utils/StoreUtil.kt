@@ -2,6 +2,7 @@ package com.runmyrobot.android_robot_for_phone.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.runmyrobot.android_robot_for_phone.api.CameraDirection
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType
 import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolType
 
@@ -147,5 +148,20 @@ object StoreUtil {
                 null
             }
         } //returns null if let does not go through
+    }
+
+    fun setOrientation(context: Context, direction: CameraDirection){
+        getSharedPrefs(context).edit().putString("orientation",direction.name).apply()
+    }
+
+    fun getOrientation(context: Context): CameraDirection {
+        getSharedPrefs(context).getString("orientation", CameraDirection.DIR_90.name)?.let {
+            try {
+                return CameraDirection.valueOf(it) //Could throw IllegalArgumentException
+            } catch (_: Exception) {
+
+            }
+        }
+        return CameraDirection.DIR_90
     }
 }
