@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/FFmpegAndroid-release/FFmpegAndroid-release.iml" filepath="$PROJECT_DIR$/FFmpegAndroid-release/FFmpegAndroid-release.iml" />
       <module fileurl="file://$PROJECT_DIR$/android_robot_for_phone.iml" filepath="$PROJECT_DIR$/android_robot_for_phone.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/runmyrobot_android.iml" filepath="$PROJECT_DIR$/.idea/runmyrobot_android.iml" />
     </modules>
   </component>
 </project>

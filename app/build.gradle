@@ -1,15 +1,27 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
-
+    compileSdkVersion 27
     defaultConfig {
+        buildConfigField "String", "GitHash", "\"${getGitHash()}\""
         applicationId "com.runmyrobot.android_robot_for_phone"
-        minSdkVersion 21
-        targetSdkVersion 22
+        minSdkVersion 19
+        targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName "0.1"
+        versionNameSuffix '.'+versionCode+'-'+getGitHash()
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -20,11 +32,32 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile ('io.socket:socket.io-client:0.7.0') {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation('io.socket:socket.io-client:1.0.0') {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.3.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.android.support:design:27.1.1'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    // Required for instrumented tests
+    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    implementation 'com.github.felHR85:UsbSerial:4.5.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+    //implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    api 'com.google.guava:guava:26.0-android'
+    implementation project(':FFmpegAndroid-release')
+    //implementation project(':controller-api')
+    //implementation project(':logging')
+    implementation 'com.akexorcist:bluetoothspp:1.0.0'
+    implementation 'com.bugsnag:bugsnag-android:4.+'
+    compile 'com.bugsnag:bugsnag-android-ndk:1.+'
+
+}
+repositories {
+    mavenCentral()
 }

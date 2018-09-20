@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/device_list_scroll_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <RelativeLayout
+        android:id="@+id/RelativeLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/title_paired_devices"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="#666"
+            android:paddingLeft="5dp"
+            android:text="Paired devices:"
+            android:textColor="#fff"
+            android:visibility="gone" >
+        </TextView>
+
+        <ListView
+            android:id="@+id/paired_devices"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/title_paired_devices" >
+        </ListView>
+
+        <TextView
+            android:id="@+id/title_new_devices"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/paired_devices"
+            android:background="#666"
+            android:paddingLeft="5dp"
+            android:text="Devices found:"
+            android:textColor="#fff"
+            android:visibility="gone" >
+        </TextView>
+
+        <ListView
+            android:id="@+id/new_devices"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/title_new_devices" >
+        </ListView>
+
+        <TextView
+            android:id="@+id/no_devices"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/new_devices"
+            android:gravity="center"
+            android:text="No devices"
+            android:textSize="18sp" >
+        </TextView>
+
+        <Button
+            android:id="@+id/button_scan"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/no_devices"
+            android:text="Scan" >
+        </Button>
+    </RelativeLayout>
+
+</ScrollView>
