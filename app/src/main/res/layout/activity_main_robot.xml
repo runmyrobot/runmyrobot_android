@@ -64,11 +64,11 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Enable"
+        android:text="@string/power"
 
         android:id="@+id/recordButtonMain" />
     <Button
-        android:text="Settings"
+        android:text="@string/settings"
         android:id="@+id/settingsButtonMain"
         android:layout_width="match_parent"
         android:layout_height="50dp" />
