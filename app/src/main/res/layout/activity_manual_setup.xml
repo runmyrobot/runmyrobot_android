@@ -97,6 +97,14 @@
                 android:ems="10"
                 android:inputType="text" />
         </GridLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Camera Orientation (Degrees)"/>
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/orientationChooser"/>
         <GridLayout
             android:columnCount="2"
             android:rowCount="1"
