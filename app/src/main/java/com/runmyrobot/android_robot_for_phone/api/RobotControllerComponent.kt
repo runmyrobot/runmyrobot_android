@@ -80,9 +80,15 @@ class RobotControllerComponent internal constructor(context : Context, private v
             socket.on(Socket.EVENT_CONNECT) {
                 mSocket?.emit("identify_robot_id", robotId)
                 EventManager.invoke(ROBOT_CONNECTED, null)
-            }.on(Socket.EVENT_CONNECT_ERROR) { Log.d("Robot", "Err") }.on(Socket.EVENT_DISCONNECT) {
+                status = ComponentStatus.STABLE
+            }.on(Socket.EVENT_CONNECT_ERROR) {
+                Log.d("Robot", "Err")
+                status = ComponentStatus.ERROR
+            }.on(Socket.EVENT_DISCONNECT) {
                 EventManager.invoke(ROBOT_DISCONNECTED, null)
                 EventManager.invoke(STOP_EVENT, null)
+                if(status != ComponentStatus.DISABLED)
+                    status = ComponentStatus.INTERMITTENT
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
