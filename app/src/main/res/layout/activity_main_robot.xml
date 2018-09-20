@@ -51,6 +51,14 @@
             android:background="@drawable/circle"
             android:scaleType="centerInside"
             android:src="@drawable/ic_developer_board_white_24dp"/>
+        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            android:layout_margin="8dp"
+            android:id="@+id/robotMotorStatusIcon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/circle"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_robot"/>
     </LinearLayout>
 
     <Button
