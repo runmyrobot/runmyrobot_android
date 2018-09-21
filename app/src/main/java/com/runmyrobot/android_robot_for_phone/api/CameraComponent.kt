@@ -72,9 +72,10 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
             e.printStackTrace()
         }
         if(host == null || port == null){
-            throw Exception("Unable to form URL")
+            status = ComponentStatus.ERROR
         }
-        streaming.set(true)
+        else
+            streaming.set(true)
         return true
     }
 
