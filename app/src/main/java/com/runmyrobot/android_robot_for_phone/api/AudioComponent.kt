@@ -31,7 +31,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
 
     var UUID = java.util.UUID.randomUUID().toString()
     private var port: String? = null
-
+    private var successCounter: Int = 0
     private var host: String? = null
     private val recordingThread = RecordingThread(this)
 
@@ -99,6 +99,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     override fun onAudioDataReceived(data: ShortArray?) {
         try {
             if(!ffmpegRunning.get()){
+                successCounter = 0
                 status = ComponentStatus.CONNECTING
                 val audioDevNum = 1
                 val mic_channels = 1
@@ -122,8 +123,12 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     }
 
     override fun onProgress(message: String?) {
-        status = ComponentStatus.STABLE
-//        Log.d(AudioComponent.LOGTAG, "onProgress : $message")
+        successCounter++
+        status = when {
+            successCounter > 5 -> ComponentStatus.STABLE
+            successCounter > 2 -> ComponentStatus.INTERMITTENT
+            else -> ComponentStatus.CONNECTING
+        }
     }
 
     override fun onFailure(message: String?) {
