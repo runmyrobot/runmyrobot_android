@@ -77,8 +77,6 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
     }
 
-    private var handler: Handler? = null
-
     init {
         EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
         handlerThread.start()
@@ -328,6 +326,9 @@ private constructor(val robotId : String, val cameraId : String?) {
         private const val QUEUE_UPDATE_TO_SERVER = 3
         private const val TAG = "RobotCore"
         private val running = AtomicBoolean(false)
-
+        /**
+         * Core handler
+         */
+        internal var handler: Handler? = null
     }
 }
