@@ -60,9 +60,10 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
             e.printStackTrace()
         }
         if(host == null || port == null){
-            throw Exception("Unable to form URL")
+            status = ComponentStatus.ERROR
         }
-        recordingThread.startRecording()
+        else
+            recordingThread.startRecording()
         return true
     }
 
