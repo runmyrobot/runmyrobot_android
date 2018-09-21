@@ -18,6 +18,7 @@ import com.runmyrobot.android_robot_for_phone.control.drivers.BluetoothClassic
  * Created by Brendon on 9/11/2018.
  */
 class BluetoothClassicCommunication : CommunicationInterface {
+
     var bluetoothClassic : BluetoothClassic? = null
     var addr : String? = null
     var name : String? = null
@@ -103,13 +104,17 @@ class BluetoothClassicCommunication : CommunicationInterface {
             return when(it){
                 BluetoothClassic.CONNECTION_STABLE -> ComponentStatus.STABLE
                 BluetoothClassic.CONNECTING -> ComponentStatus.CONNECTING
-                BluetoothClassic.CONNECTION_LOST -> ComponentStatus.INTERMITTENT
+                BluetoothClassic.CONNECTION_LOST -> ComponentStatus.ERROR
                 BluetoothClassic.CONNECTION_NON_EXISTENT -> ComponentStatus.DISABLED
                 BluetoothClassic.CONNECTION_NOT_POSSIBLE -> ComponentStatus.ERROR
                 else -> ComponentStatus.ERROR
             }
         }
         return ComponentStatus.DISABLED
+    }
+
+    override fun getAutoReboot(): Boolean {
+        return true
     }
 
     companion object {

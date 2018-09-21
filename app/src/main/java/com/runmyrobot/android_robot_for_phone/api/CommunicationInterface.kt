@@ -12,6 +12,10 @@ import android.content.Intent
  * 2. Instantiated for use with the control system
  */
 interface CommunicationInterface{
+    /**
+     * Get if we should try to reboot component with error
+     */
+    fun getAutoReboot() : Boolean
     fun getStatus() : ComponentStatus
     fun initConnection(context: Context)
     fun enable()

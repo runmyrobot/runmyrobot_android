@@ -68,6 +68,10 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         return componentStatus
     }
 
+    override fun getAutoReboot(): Boolean {
+        return false //Auto reboot useless, as we have to wait for something to connect to us
+    }
+
     //Below is all USB Service code from com.felhr.usbservice
     //https://github.com/felHR85/UsbSerial/
 
