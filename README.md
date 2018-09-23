@@ -62,6 +62,17 @@ Add classes that extend Component to app/src/main/java/com/runmyrobot/android_ro
 There are some examples there for Serial motor control and bluetooth control. The app currently defaults
 to bluetooth control
 
+### Devices supported
+ 
+ - SaberTooth Motor Controllers (Simplified Serial), 9600 BAUD
+ - Arduino via raw commands (f, b, l, r, stop, etc), 9600 BAUD
+ - Any device that has the same protocol as SaberTooth
+ 
+### Connection Options
+
+ - Bluetooth Classic (less than 4.0 guaranteed), HC04 would work
+ - USB Serial (https://github.com/felHR85/UsbSerial#devices-supported)
+
 ## Error reporting
 
 Errors will be reported to Bugsnag (In the future it may automatically create issues on github)
