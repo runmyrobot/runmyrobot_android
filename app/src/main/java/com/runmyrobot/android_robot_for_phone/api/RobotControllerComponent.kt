@@ -46,6 +46,8 @@ class RobotControllerComponent internal constructor(context : Context, private v
         handler = Handler(Looper.myLooper())
     }
 
+    private var table = false
+
     override fun enable() : Boolean{
         if(!super.enable()){
             return false
@@ -75,7 +77,15 @@ class RobotControllerComponent internal constructor(context : Context, private v
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }
-
+        EventManager.subscribe(EventManager.CHAT){
+            print(it as String)
+            if(it as? String == ".table on"){
+                table = true
+            }
+            else if(it as? String == ".table off"){
+                table = false
+            }
+        }
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
                 mSocket?.emit("identify_robot_id", robotId)
@@ -92,10 +102,24 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
-                    resetTimer() //resets a timer to prevent a timeout message
                     try {
                         //broadcast what message was sent ex. F, stop, etc
-                        EventManager.invoke(COMMAND, `object`.getString("command"))
+                        val command = `object`.getString("command")
+                        if(table){ //check for table top mode
+                            when(command.toLowerCase()){
+                                "f" -> {
+                                    print("f, Trashing movement. On Table")
+                                    return@on
+                                }
+                                "b" -> {
+                                    print("b, Trashing movement. On Table")
+                                    return@on
+                                }
+                                else -> {}
+                            }
+                        }
+                        resetTimer() //resets a timer to prevent a timeout message
+                        EventManager.invoke(COMMAND, command)
                     } catch (e: JSONException) {
                         e.printStackTrace() //Message format must be wrong, ignore it
                     }
