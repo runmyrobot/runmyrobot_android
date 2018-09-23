@@ -8,11 +8,20 @@ import com.runmyrobot.android_robot_for_phone.control.EventManager.Companion.STO
 import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 
 /**
- * Created by Brendon on 9/5/2018.
+ * Uses the SaberTooth motor controller simplified serial protocol
+ *
+ * Snippet from a SaberTooth Motor Controller Manual
+ *
+ * Sending a character between 1 and 127 will
+ * control motor 1. 1 is full reverse, 64 is stop and 127 is full forward. Sending a character between
+ * 128 and 255 will control motor 2. 128 is full reverse, 192 is stop and 255 is full forward.
+ * Character 0 (hex 0x00) is a special case. Sending this character will shut down both motors.
+ *
+ * Currently hardcoded for a certain speed, but can be changed
  */
 
-class BluetoothControl(context: Context) : ControlComponent(context) {
-    val TAG = "BluetoothControl"
+class SingleByteProtocol(context: Context) : ControlComponent(context) {
+    val TAG = "SingleByteProtocol"
     private val motorForwardSpeed = 50.toByte()
     private val motorBackwardSpeed = (-50).toByte()
 

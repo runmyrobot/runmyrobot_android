@@ -10,7 +10,7 @@ object RobotComponentList{
     val components = ArrayList<Component>()
     fun init(context: Context){
         components.clear()
-        //components.add(BluetoothControl(context)) //SaberTooth Simplified Serial Motor control through USB
+        //components.add(SingleByteProtocol(context)) //SaberTooth Simplified Serial Motor control through USB
         //Add other custom components here to be added to the Core
     }
 }
