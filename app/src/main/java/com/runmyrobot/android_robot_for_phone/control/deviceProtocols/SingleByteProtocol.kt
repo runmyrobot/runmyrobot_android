@@ -22,11 +22,11 @@ import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 
 class SingleByteProtocol(context: Context) : ControlComponent(context) {
     val TAG = "SingleByteProtocol"
-    private val motorForwardSpeed = 127.toByte()
-    private val motorBackwardSpeed = (-127).toByte()
+    private val motorForwardSpeed = 90.toByte()
+    private val motorBackwardSpeed = (-90).toByte()
 
-    private val motorForwardTurnSpeed = 50.toByte()
-    private val motorBackwardTurnSpeed = (-50).toByte()
+    private val motorForwardTurnSpeed = 30.toByte()
+    private val motorBackwardTurnSpeed = (-30).toByte()
 
     override fun enable() : Boolean {
         if(!super.enable()) return false
