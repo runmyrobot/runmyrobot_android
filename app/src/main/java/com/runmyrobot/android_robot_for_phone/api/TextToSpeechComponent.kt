@@ -72,7 +72,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                     val messageRaw = `object`.getString("message")
                     getMessageFromRaw(messageRaw)?.let {
                         //TODO use non-deprecated call? Does not support 4.4 though
-                        if(!it.startsWith(".") && !ttobj.isSpeaking) {
+                        if(isSpeakableText(it) && !ttobj.isSpeaking) {
                             val pitch = 1f
                             ttobj.setPitch(pitch)
                             EventManager.invoke(CHAT, it)
@@ -128,6 +128,12 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 }?.let { it }
             }
             return null
+        }
+
+        fun isSpeakableText(msg : String?) : Boolean{
+            return msg?.let {
+                !it.startsWith(".") && !it.startsWith(" .")
+            } ?: false
         }
     }
 }
