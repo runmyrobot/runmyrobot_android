@@ -22,8 +22,11 @@ import com.runmyrobot.android_robot_for_phone.utils.SabertoothDriverUtil
 
 class SingleByteProtocol(context: Context) : ControlComponent(context) {
     val TAG = "SingleByteProtocol"
-    private val motorForwardSpeed = 50.toByte()
-    private val motorBackwardSpeed = (-50).toByte()
+    private val motorForwardSpeed = 90.toByte()
+    private val motorBackwardSpeed = (-90).toByte()
+
+    private val motorForwardTurnSpeed = 30.toByte()
+    private val motorBackwardTurnSpeed = (-30).toByte()
 
     override fun enable() : Boolean {
         if(!super.enable()) return false
@@ -69,16 +72,16 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
     private fun onLeft() {
         Log.d(TAG, "onLeft")
         val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 1)
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorBackwardTurnSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorForwardTurnSpeed, 1)
         sendToDevice(data)
     }
 
     private fun onRight() {
         Log.d(TAG, "onRight")
         val data = ByteArray(2)
-        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardSpeed, 1)
+        data[0] = SabertoothDriverUtil.getDriveSpeed(motorForwardTurnSpeed, 0)
+        data[1] = SabertoothDriverUtil.getDriveSpeed(motorBackwardTurnSpeed, 1)
         sendToDevice(data)
     }
 

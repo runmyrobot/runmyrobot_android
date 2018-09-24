@@ -68,15 +68,26 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         }?.on("chat_message_with_name"){
             if (it[0] is JSONObject) {
                 val `object` = it[0] as JSONObject
-                EventManager.invoke(CHAT, `object`)
                 try {
                     val messageRaw = `object`.getString("message")
                     getMessageFromRaw(messageRaw)?.let {
                         //TODO use non-deprecated call? Does not support 4.4 though
-                        if(!ttobj.isSpeaking) {
+                        if(isSpeakableText(it) && !ttobj.isSpeaking) {
                             val pitch = 1f
                             ttobj.setPitch(pitch)
+                            EventManager.invoke(CHAT, it)
                             ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
+                        }
+                        else{
+                            if(it == ".table on" && `object`["name"] == Core.owner){
+                                EventManager.invoke(CHAT, it)
+                                ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
+                            }
+                            else if(it == ".table off" && `object`["name"] == Core.owner){
+                                EventManager.invoke(CHAT, it)
+                                ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
+                            }
+                            1
                         }
                     }
                 } catch (e: JSONException) {
@@ -113,11 +124,16 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                     it != -1 && it < inVal.length
                 } ?: return null
                 return it.subSequence(index+1, it.length).trim().toString().takeIf {
-                    !it.startsWith(".") //don't set if starts with '.'
-                    && !it.isBlank() //don't set if just blank
+                    !it.isBlank() //don't set if just blank
                 }?.let { it }
             }
             return null
+        }
+
+        fun isSpeakableText(msg : String?) : Boolean{
+            return msg?.let {
+                !it.startsWith(".") && !it.startsWith(" .")
+            } ?: false
         }
     }
 }

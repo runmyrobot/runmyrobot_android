@@ -17,7 +17,10 @@ class TTSTest{
 
     @Test
     fun testSilence(){
-        Assert.assertEquals(null, TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] .message"))
+        val msg = TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] .message")
+        Assert.assertEquals(false, TextToSpeechComponent.isSpeakableText(msg))
+        val msg2 = TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] Test message")
+        Assert.assertEquals(true, TextToSpeechComponent.isSpeakableText(msg2))
     }
 
     @Test
