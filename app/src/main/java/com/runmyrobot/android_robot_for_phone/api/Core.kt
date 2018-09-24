@@ -13,7 +13,11 @@ import com.runmyrobot.android_robot_for_phone.control.deviceProtocols.ProtocolTy
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList
 import io.socket.client.IO
 import io.socket.client.Socket
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -131,6 +135,19 @@ private constructor(val robotId : String, val cameraId : String?) {
         if(running.getAndSet(true)) return //already enabled
         EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
+        val client = OkHttpClient()
+        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)).build())
+        try {
+            val response = call.execute()
+            if (response.body() != null) {
+                val `object` = JSONObject(response.body()!!.string())
+                owner = `object`.getString("owner")
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
         camera?.enable()
         audio?.enable()
         robotController?.enable()
@@ -330,5 +347,6 @@ private constructor(val robotId : String, val cameraId : String?) {
          * Core handler
          */
         internal var handler: Handler? = null
+        var owner: String? = null
     }
 }

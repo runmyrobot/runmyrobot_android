@@ -79,11 +79,11 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                             ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
                         }
                         else{
-                            if(it == ".table on" && `object`["name"] == "recondelta090"){
+                            if(it == ".table on" && `object`["name"] == Core.owner){
                                 EventManager.invoke(CHAT, it)
                                 ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
                             }
-                            else if(it == ".table off" && `object`["name"] == "recondelta090"){
+                            else if(it == ".table off" && `object`["name"] == Core.owner){
                                 EventManager.invoke(CHAT, it)
                                 ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
                             }
