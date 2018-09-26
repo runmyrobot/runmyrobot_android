@@ -3,7 +3,10 @@ package com.runmyrobot.android_robot_for_phone.activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import com.runmyrobot.android_robot_for_phone.R
@@ -18,12 +21,19 @@ import kotlinx.android.synthetic.main.activity_main_robot.*
  * For camera functionality, this activity needs to have a
  * SurfaceView to pass to the camera component via the Builder
  */
-class MainRobotActivity : Activity(){
+class MainRobotActivity : Activity(), Runnable {
+    override fun run() {
+        if (recording){
+            fakeSleepView.visibility = View.VISIBLE
+        }
+    }
+
     private var recording = false
     var core: Core? = null
-
+    lateinit var handler : Handler
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handler = Handler(Looper.getMainLooper())
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -36,7 +46,11 @@ class MainRobotActivity : Activity(){
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
+                if(StoreUtil.getScreenSleepOverlayEnabled(this)){
+                    handler.postDelayed(this, 5000)
+                }
                 core?.enable() //enable core if we hit the button to enable recording
+
                 Log.v(LOGTAG, "Recording Started")
             }
         }
@@ -46,7 +60,14 @@ class MainRobotActivity : Activity(){
             core?.disable()
             core = null
         }
-
+        fakeSleepView.setOnTouchListener { view, motionEvent ->
+            if(StoreUtil.getScreenSleepOverlayEnabled(this)) {
+                fakeSleepView.visibility = View.INVISIBLE
+                handler.removeCallbacks(this)
+                handler.postDelayed(this, 5000)
+            }
+            return@setOnTouchListener false
+        }
         initIndicators()
     }
 
