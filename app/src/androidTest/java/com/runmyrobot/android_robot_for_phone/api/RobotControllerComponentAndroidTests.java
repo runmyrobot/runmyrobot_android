@@ -1,7 +1,5 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
-import android.support.test.runner.AndroidJUnit4;
-
 import com.runmyrobot.android_robot_for_phone.BuildConfig;
 
 import org.junit.Assert;
@@ -10,6 +8,8 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import androidx.test.runner.AndroidJUnit4;
 
 /**
  * Specifically test just the robot control portion. No motors will move.

@@ -1,8 +1,5 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-
 import com.runmyrobot.android_robot_for_phone.BuildConfig;
 import com.runmyrobot.android_robot_for_phone.myrobot.RobotComponentList;
 
@@ -12,6 +9,9 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 /**
  * Helper test to test core functionality without an activity. Cannot test camera using this

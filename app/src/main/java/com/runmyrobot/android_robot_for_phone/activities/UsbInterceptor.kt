@@ -3,7 +3,7 @@ package com.runmyrobot.android_robot_for_phone.activities
 import android.content.Intent
 import android.hardware.usb.UsbManager
 import android.os.Parcelable
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Used to intercept a USB device being plugged in and save it.
