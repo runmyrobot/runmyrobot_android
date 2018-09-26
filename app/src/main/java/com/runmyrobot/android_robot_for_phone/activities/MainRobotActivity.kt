@@ -2,6 +2,7 @@ package com.runmyrobot.android_robot_for_phone.activities
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +26,7 @@ class MainRobotActivity : Activity(), Runnable {
     override fun run() {
         if (recording){
             fakeSleepView.visibility = View.VISIBLE
+            fakeSleepView.setBackgroundColor(resources.getColor(R.color.black))
         }
     }
 
@@ -47,7 +49,7 @@ class MainRobotActivity : Activity(), Runnable {
             } else {
                 recording = true
                 if(StoreUtil.getScreenSleepOverlayEnabled(this)){
-                    handler.postDelayed(this, 5000)
+                    handler.postDelayed(this, 10000)
                 }
                 core?.enable() //enable core if we hit the button to enable recording
 
@@ -62,9 +64,9 @@ class MainRobotActivity : Activity(), Runnable {
         }
         fakeSleepView.setOnTouchListener { view, motionEvent ->
             if(StoreUtil.getScreenSleepOverlayEnabled(this)) {
-                fakeSleepView.visibility = View.INVISIBLE
+                fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
                 handler.removeCallbacks(this)
-                handler.postDelayed(this, 5000)
+                handler.postDelayed(this, 10000)
             }
             return@setOnTouchListener false
         }
