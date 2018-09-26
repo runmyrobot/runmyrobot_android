@@ -155,6 +155,11 @@
         android:layout_height="wrap_content"
         android:text="Enable Text To Speech"/>
     <Switch
+        android:id="@+id/screenOverlaySettingsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable fake screen timeout"/>
+    <Switch
         android:id="@+id/errorReportButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

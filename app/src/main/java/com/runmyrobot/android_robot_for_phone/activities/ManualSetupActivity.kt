@@ -27,6 +27,7 @@ class ManualSetupActivity : AppCompatActivity() {
         cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
             checkState(isChecked)
         }
+        screenOverlaySettingsButton.isChecked = StoreUtil.getScreenSleepOverlayEnabled(this)
         bitrateEditText.setText(StoreUtil.getBitrate(this))
         resolutionEditText.setText(StoreUtil.getResolution(this))
         bitrateEditText.isEnabled = false
@@ -105,6 +106,7 @@ class ManualSetupActivity : AppCompatActivity() {
         StoreUtil.setCommunicationType(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
         StoreUtil.setProtocolType(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
         StoreUtil.setOrientation(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
+        StoreUtil.setScreenSleepOverlayEnabled(this, screenOverlaySettingsButton.isChecked)
     }
 
     fun checkState(cameraChecked : Boolean){

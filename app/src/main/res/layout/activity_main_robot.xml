@@ -1,79 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_margin="8dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:orientation="horizontal">
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:id="@+id/cloudStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_cloud_white_24dp"/>
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
-            android:layout_margin="8dp"
-            android:id="@+id/cameraStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_camera_alt_white_24dp"/>
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
-            android:layout_margin="8dp"
-            android:id="@+id/micStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_mic_white_24dp"/>
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
-            android:layout_margin="8dp"
-            android:id="@+id/ttsStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_record_voice_over_white_24dp"/>
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
-            android:layout_margin="8dp"
-            android:id="@+id/robotStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_developer_board_white_24dp"/>
-        <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
-            android:layout_margin="8dp"
-            android:id="@+id/robotMotorStatusIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/circle"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_robot"/>
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/cloudStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_cloud_white_24dp" />
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/cameraStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_camera_alt_white_24dp" />
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/micStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_mic_white_24dp" />
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/ttsStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_record_voice_over_white_24dp" />
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/robotStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_developer_board_white_24dp" />
+
+            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+                android:id="@+id/robotMotorStatusIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/circle"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_robot" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/recordButtonMain"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+
+            android:text="@string/power" />
+
+        <Button
+            android:id="@+id/settingsButtonMain"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="@string/settings" />
+
+        <SurfaceView
+            android:id="@+id/cameraSurfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </LinearLayout>
-
-    <Button
+    <View
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="@string/power"
-
-        android:id="@+id/recordButtonMain" />
-    <Button
-        android:text="@string/settings"
-        android:id="@+id/settingsButtonMain"
-        android:layout_width="match_parent"
-        android:layout_height="50dp" />
-    <SurfaceView
-        android:id="@+id/cameraSurfaceView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</LinearLayout>
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:visibility="gone"
+        android:id="@+id/fakeSleepView"/>
+</FrameLayout>
