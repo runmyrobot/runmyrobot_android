@@ -7,7 +7,7 @@ android code to run on robots via LetsRobot api
 
 ### Android Studio
 
-- Version 3.1.4 or higher. May not be buildable on lower versions
+- Version 3.2 or higher. May not be buildable on lower versions
 
 ## Device Limitations
 
@@ -95,7 +95,7 @@ Feel free to add your device to this list if you have tested it via a pull reque
 
 ## Verified functional devices:
 
-- ZTE Speed (4.4 Kitkat)
+- ZTE Speed (4.4 Kitkat), some weird bluetooth issues possible (https://github.com/btelman96/runmyrobot_android/issues/45)
 
 - Motorola Moto Z (8.0.0 Oreo)
 
