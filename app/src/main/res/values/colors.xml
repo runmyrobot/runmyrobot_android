@@ -9,4 +9,5 @@
     <color name="colorIndicatorConnecting">#FFD600</color>
     <color name="colorIndicatorUnstable">#E65100</color>
     <color name="colorIndicatorError">#B71C1C</color>
+    <color name="black">#000000</color>
 </resources>

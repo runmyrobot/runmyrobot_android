@@ -47,6 +47,14 @@ object StoreUtil {
         return getSharedPrefs(context).getBoolean("cameraEnabled", false)
     }
 
+    fun setScreenSleepOverlayEnabled(context: Context, sleepMode : Boolean){
+        getSharedPrefs(context).edit().putBoolean("sleepMode", sleepMode).apply()
+    }
+
+    fun getScreenSleepOverlayEnabled(context: Context) : Boolean{
+        return getSharedPrefs(context).getBoolean("sleepMode", true)
+    }
+
     fun setMicEnabled(context: Context, micEnabled : Boolean){
         getSharedPrefs(context).edit().putBoolean("micEnabled", micEnabled).apply()
     }
