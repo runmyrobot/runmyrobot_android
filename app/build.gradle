@@ -54,6 +54,8 @@ dependencies {
     //implementation project(':controller-api')
     //implementation project(':logging')
     implementation 'com.akexorcist:bluetoothspp:1.0.0'
+    implementation 'com.bugsnag:bugsnag-android:4.+'
+    implementation 'com.bugsnag:bugsnag-android-ndk:1.+'
 }
 repositories {
     mavenCentral()

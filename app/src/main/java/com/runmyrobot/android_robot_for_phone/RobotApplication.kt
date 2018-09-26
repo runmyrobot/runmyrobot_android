@@ -2,6 +2,7 @@ package com.runmyrobot.android_robot_for_phone
 
 import android.app.Application
 import android.widget.Toast
+import com.bugsnag.android.Bugsnag
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 /**
@@ -12,9 +13,9 @@ class RobotApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-
+        Bugsnag.init(this)
         if(!StoreUtil.getErrorReportingEnabled(this)){
-            //TODO enable crash reporting
+            Bugsnag.setNotifyReleaseStages("")
         }
     }
 
@@ -37,7 +38,7 @@ class RobotApplication : Application() {
      */
     fun reportError(e: Exception) {
         if(StoreUtil.getErrorReportingEnabled(this)) {
-            //TODO enable error reporting
+            Bugsnag.notify(e)
             Toast.makeText(this, "ERROR:\n${e.message} " +
                     "\nError has been reported", Toast.LENGTH_LONG).show()
         }
