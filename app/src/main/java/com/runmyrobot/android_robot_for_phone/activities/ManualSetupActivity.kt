@@ -2,8 +2,8 @@ package com.runmyrobot.android_robot_for_phone.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatActivity
 import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.api.CameraDirection
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationType

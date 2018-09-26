@@ -1,8 +1,5 @@
 package com.runmyrobot.android_robot_for_phone.api;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-
 import com.runmyrobot.android_robot_for_phone.test.BuildConfig;
 
 import org.junit.Test;
@@ -10,6 +7,9 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 /**
  * Test TTS on its own, and make sure it can connect to the API

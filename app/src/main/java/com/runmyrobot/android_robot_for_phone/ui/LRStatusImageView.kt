@@ -16,7 +16,7 @@ import com.runmyrobot.android_robot_for_phone.control.EventManager
  */
 class LRStatusImageView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : android.support.v7.widget.AppCompatImageView(context, attrs, defStyleAttr), Runnable {
+) : androidx.appcompat.widget.AppCompatImageView(context, attrs, defStyleAttr), Runnable {
     private var uiHandler : Handler = Handler(Looper.getMainLooper())
     private var component: String? = null
     private var status : ComponentStatus? = null
