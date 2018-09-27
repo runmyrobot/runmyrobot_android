@@ -48,6 +48,8 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     private var table = false
 
+    private var allowControl = true
+
     override fun enable() : Boolean{
         if(!super.enable()){
             return false
@@ -85,6 +87,12 @@ class RobotControllerComponent internal constructor(context : Context, private v
             else if(it as? String == ".table off"){
                 table = false
             }
+            if(it as? String == ".motors off"){
+                allowControl = false
+            }
+            if(it as? String == ".motors on"){
+                allowControl = true
+            }
         }
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
@@ -105,6 +113,10 @@ class RobotControllerComponent internal constructor(context : Context, private v
                     try {
                         //broadcast what message was sent ex. F, stop, etc
                         val command = `object`.getString("command")
+                        if(!allowControl){
+                            print("Trashing movement. Controls disabled")
+                            return@on
+                        }
                         if(table){ //check for table top mode
                             when(command.toLowerCase()){
                                 "f" -> {

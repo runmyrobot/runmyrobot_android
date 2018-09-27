@@ -79,13 +79,24 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                             ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
                         }
                         else{
-                            if(it == ".table on" && `object`["name"] == Core.owner){
-                                EventManager.invoke(CHAT, it)
-                                ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
-                            }
-                            else if(it == ".table off" && `object`["name"] == Core.owner){
-                                EventManager.invoke(CHAT, it)
-                                ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
+                            if(`object`["name"] == Core.owner){
+                                var sendCommand = true
+                                when(it){
+                                    ".table on" -> {
+                                        ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
+                                    ".table off" -> {
+                                        ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
+                                    ".motors off" -> {
+                                        ttobj.speak("Motors turned off", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
+                                    ".motors on" -> {
+                                        ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
+                                    else -> sendCommand = false
+                                }
+                                if(sendCommand) EventManager.invoke(CHAT, it)
                             }
                             1
                         }
