@@ -1,6 +1,9 @@
 package com.runmyrobot.android_robot_for_phone.api
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.runmyrobot.android_robot_for_phone.control.EventManager
@@ -93,6 +96,17 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                                     }
                                     ".motors on" -> {
                                         ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
+                                    ".battery level" ->{
+                                        try {
+                                            val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
+                                                context.registerReceiver(null, ifilter)
+                                            }
+                                            val level: Int? = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                                            val scale: Int? = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                                            ttobj.speak("Internal battery at $level out of $scale", TextToSpeech.QUEUE_FLUSH, null)
+                                        } catch (e: Exception) {
+                                        }
                                     }
                                     else -> sendCommand = false
                                 }
