@@ -36,12 +36,14 @@ class PhoneBatteryMeter : BroadcastReceiver() {
     companion object {
 
         private var receiver : PhoneBatteryMeter? = null
+        private var intent : Intent? = null
 
         fun getReceiver(context: Context) : PhoneBatteryMeter{
             receiver ?: kotlin.run { //if meter is null...
                 receiver = PhoneBatteryMeter() //register a broadcast receiver to the battery
                 val batteryLevelFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-                context.registerReceiver(receiver, batteryLevelFilter)
+                intent = context.registerReceiver(receiver, batteryLevelFilter)
+                receiver!!.onReceive(context, intent!!)
             }
             return receiver!!
         }
@@ -50,6 +52,7 @@ class PhoneBatteryMeter : BroadcastReceiver() {
             receiver?.let {
                 context.unregisterReceiver(it)
             }
+            receiver = null
         }
     }
 }

@@ -25,7 +25,6 @@ import java.util.*
 class TextToSpeechComponent internal constructor(context: Context, private val robotId : String) : Component(context){
     private var ttobj: TextToSpeech = TextToSpeech(context, TextToSpeech.OnInitListener {})
     private var mSocket: Socket? = null
-    private var meter = PhoneBatteryMeter.getReceiver(context.applicationContext)
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
 
@@ -99,7 +98,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                                         ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
                                     }
                                     ".battery level" ->{
-                                        ttobj.speak("Internal battery ${meter.batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
+                                        ttobj.speak("Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
                                     }
                                     else -> sendCommand = false
                                 }
