@@ -3,16 +3,19 @@ package com.runmyrobot.android_robot_for_phone
 import android.app.Application
 import android.widget.Toast
 import com.bugsnag.android.Bugsnag
+import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 
 /**
  * Application class
  */
 class RobotApplication : Application() {
+    var meter : PhoneBatteryMeter? = null
 
     override fun onCreate() {
         super.onCreate()
         instance = this
+        meter = PhoneBatteryMeter.getReceiver(applicationContext)
         Bugsnag.init(this)
         if(!StoreUtil.getErrorReportingEnabled(this)){
             Bugsnag.setNotifyReleaseStages("")
