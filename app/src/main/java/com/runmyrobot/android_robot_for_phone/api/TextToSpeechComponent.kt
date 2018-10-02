@@ -81,7 +81,6 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                         }
                         else{
                             if(`object`["name"] == Core.owner){
-                                var sendCommand = true
                                 val pitch = .5f
                                 ttobj.setPitch(pitch)
                                 when(it){
@@ -100,9 +99,8 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                                     ".battery level" ->{
                                         ttobj.speak("Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
                                     }
-                                    else -> sendCommand = false
                                 }
-                                if(sendCommand) EventManager.invoke(CHAT, it)
+                                EventManager.invoke(CHAT, it)
                             }
                             1
                         }
