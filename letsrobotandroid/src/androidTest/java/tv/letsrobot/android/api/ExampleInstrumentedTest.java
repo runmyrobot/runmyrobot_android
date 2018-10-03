@@ -1,4 +1,4 @@
-package org.btelman.letsrobotapi;
+package tv.letsrobot.android.api;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.btelman.letsrobotapi.test", appContext.getPackageName());
+        assertEquals("tv.letsrobot.android.api.test", appContext.getPackageName());
     }
 }

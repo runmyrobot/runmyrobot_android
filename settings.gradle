@@ -1,1 +1,1 @@
-include ':app', ':FFmpegAndroid-release', ':letsrobotapi'
+include ':app', ':FFmpegAndroid-release', ':letsrobotandroid'

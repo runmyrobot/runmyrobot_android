@@ -1,4 +1,4 @@
-package org.btelman.letsrobotapi;
+package tv.letsrobot.android.api;
 
 import org.junit.Test;
 
