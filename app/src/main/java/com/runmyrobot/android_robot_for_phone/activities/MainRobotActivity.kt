@@ -14,6 +14,7 @@ import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.RobotApplication
 import com.runmyrobot.android_robot_for_phone.api.*
 import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
+import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
 import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_main_robot.*
 
@@ -35,6 +36,7 @@ class MainRobotActivity : Activity(), Runnable {
     lateinit var handler : Handler
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PhoneBatteryMeter.getReceiver(applicationContext)
         handler = Handler(Looper.getMainLooper())
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -91,6 +93,11 @@ class MainRobotActivity : Activity(), Runnable {
         super.onResume()
         //Call onResume to re-enable it if needed. If null, create it
         core?.onResume() ?: createCore()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 
     private fun createCore() {
