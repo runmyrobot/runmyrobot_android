@@ -30,7 +30,7 @@
             android:value="451020ca1fe775c40065ae897c760d61" />
 
         <service
-            android:name=".control.drivers.UsbService"
+            android:name="tv.letsrobot.android.api.control.drivers.UsbService"
             android:enabled="true"
             android:permission="" />
 
@@ -55,7 +55,7 @@
             android:theme="@style/Theme.AppCompat"
             android:screenOrientation="portrait"
             android:keepScreenOn="true" />
-        <activity android:name=".activities.ChooseBluetoothActivity" />
+        <activity android:name="tv.letsrobot.android.api.ChooseBluetoothActivity" />
         <activity android:name=".activities.ManualSetupActivity" />
         <activity android:name=".activities.SplashActivity"
             android:label="runmyrobot">

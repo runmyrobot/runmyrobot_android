@@ -12,10 +12,10 @@ import android.view.Window
 import android.view.WindowManager
 import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.RobotApplication
-import com.runmyrobot.android_robot_for_phone.api.*
-import com.runmyrobot.android_robot_for_phone.control.communicationInterfaces.CommunicationComponent
-import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
 import kotlinx.android.synthetic.main.activity_main_robot.*
+import tv.letsrobot.android.api.api.*
+import tv.letsrobot.android.api.control.communicationInterfaces.CommunicationComponent
+import tv.letsrobot.android.api.control.utils.StoreUtil
 
 /**
  * Main activity for the robot. It has a simple camera UI and a button to connect and disconnect.

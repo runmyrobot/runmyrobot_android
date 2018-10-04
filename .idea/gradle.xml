@@ -11,7 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/FFmpegAndroid-release" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/letsrobotandroid" />
+            <option value="$PROJECT_DIR$/letsrobotandroid-api" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

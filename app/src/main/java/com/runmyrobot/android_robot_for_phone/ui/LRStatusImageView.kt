@@ -8,8 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.api.ComponentStatus
-import com.runmyrobot.android_robot_for_phone.control.EventManager
+import tv.letsrobot.android.api.EventManager
+import tv.letsrobot.android.api.enums.ComponentStatus
 
 /**
  * Status view that will communicate directly with a chosen component

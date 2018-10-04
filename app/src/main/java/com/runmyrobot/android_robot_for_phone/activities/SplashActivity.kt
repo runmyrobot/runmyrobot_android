@@ -13,8 +13,8 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
-import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
+import tv.letsrobot.android.api.api.CommunicationInterface
+import tv.letsrobot.android.api.control.utils.StoreUtil
 
 class SplashActivity : Activity() {
 
