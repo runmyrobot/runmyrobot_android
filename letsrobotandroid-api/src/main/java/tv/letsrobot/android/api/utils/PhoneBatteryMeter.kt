@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.utils
+package tv.letsrobot.android.api.utils
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -38,7 +38,7 @@ class PhoneBatteryMeter : BroadcastReceiver() {
         private var receiver : PhoneBatteryMeter? = null
         private var intent : Intent? = null
 
-        fun getReceiver(context: Context) : PhoneBatteryMeter{
+        fun getReceiver(context: Context) : PhoneBatteryMeter {
             receiver ?: kotlin.run { //if meter is null...
                 receiver = PhoneBatteryMeter() //register a broadcast receiver to the battery
                 val batteryLevelFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)

@@ -3,8 +3,8 @@ package com.runmyrobot.android_robot_for_phone
 import android.app.Application
 import android.widget.Toast
 import com.bugsnag.android.Bugsnag
+import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
-import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
 
 /**
  * Application class

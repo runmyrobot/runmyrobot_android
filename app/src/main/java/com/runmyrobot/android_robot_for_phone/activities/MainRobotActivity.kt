@@ -15,6 +15,7 @@ import com.runmyrobot.android_robot_for_phone.RobotApplication
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.*
+import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
 
 /**

@@ -3,7 +3,6 @@ package tv.letsrobot.android.api.components
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -15,6 +14,7 @@ import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
 import java.io.IOException
 import java.net.URISyntaxException
