@@ -107,7 +107,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
                 val mic_channels = 1
                 val audioHost = host
                 val audioPort = port
-                val stream_key = StoreUtil.getCameraId(context)
+                val stream_key = StoreUtil.getCameraPass(context)
                 val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, stream_key)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }

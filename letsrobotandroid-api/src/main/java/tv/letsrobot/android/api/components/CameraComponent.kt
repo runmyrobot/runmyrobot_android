@@ -105,7 +105,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
             val kbps = "20"
             val video_host = host
             val video_port = port
-            val stream_key = StoreUtil.getCameraId(context)
+            val stream_key = StoreUtil.getCameraPass(context)
             //TODO hook up with bitrate and resolution prefs
             val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b:v 10k -bf 0 -muxdelay 0.001 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
