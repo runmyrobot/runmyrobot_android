@@ -3,6 +3,7 @@ package tv.letsrobot.android.api.components
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -83,7 +84,8 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                         }
                         else{
                             if(`object`["name"] == Core.owner){
-                                var sendCommand = true
+                                val pitch = .5f
+                                ttobj.setPitch(pitch)
                                 when(it){
                                     ".table on" -> {
                                         ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
@@ -97,9 +99,11 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                                     ".motors on" -> {
                                         ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
                                     }
-                                    else -> sendCommand = false
+                                    ".battery level" ->{
+                                        ttobj.speak("Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
+                                    }
                                 }
-                                if(sendCommand) EventManager.invoke(CHAT, it)
+                                EventManager.invoke(CHAT, it)
                             }
                             1
                         }
