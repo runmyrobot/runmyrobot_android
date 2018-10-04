@@ -5,6 +5,9 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceHolder
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.OkHttpClient
@@ -339,6 +342,39 @@ private constructor(val robotId : String, val cameraId : String?) {
     class InitializationException : Exception()
 
     companion object {
+        fun initDependencies(context: Context, done: () -> Unit) {
+            //Load FFMpeg
+            val ffmpeg = FFmpeg.getInstance(context.applicationContext)
+            try {
+                ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
+                    override fun onFinish() {
+                        super.onFinish()
+                        Log.d("FFMPEG", "onFinish")
+                        done() //run next action
+                    }
+
+                    override fun onSuccess() {
+                        super.onSuccess()
+                        Log.d("FFMPEG", "onSuccess")
+                    }
+
+                    override fun onFailure() {
+                        super.onFailure()
+                        Log.d("FFMPEG", "onFailure")
+                    }
+
+                    override fun onStart() {
+                        super.onStart()
+                        Log.d("FFMPEG", "onStart")
+                    }
+                    //TODO maybe catch some error to display to the user
+                })
+            } catch (e: FFmpegNotSupportedException) {
+                e.printStackTrace()
+                done() //run next action
+            }
+        }
+
         private const val START = 1
         private const val STOP = 2
         private const val QUEUE_UPDATE_TO_SERVER = 3

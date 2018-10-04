@@ -31,17 +31,17 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha3'
-    implementation project(':FFmpegAndroid-release')
+    api project(':FFmpegAndroid-release')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation('io.socket:socket.io-client:1.0.0') {
+    api('io.socket:socket.io-client:1.0.0') {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
-    implementation 'com.github.felHR85:UsbSerial:4.5.1'
-    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
-    implementation project(':FFmpegAndroid-release')
+    api 'com.github.felHR85:UsbSerial:4.5.1'
+    api 'com.squareup.okhttp3:okhttp:3.11.0'
+    api project(':FFmpegAndroid-release')
     api 'com.google.guava:guava:26.0-android'
-    implementation 'com.akexorcist:bluetoothspp:1.0.0'
+    api 'com.akexorcist:bluetoothspp:1.0.0'
 }
 repositories {
     mavenCentral()

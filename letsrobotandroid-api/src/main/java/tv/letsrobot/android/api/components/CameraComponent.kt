@@ -256,7 +256,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
 
     companion object {
         private const val LOGTAG = "CameraComponent"
-        private const val shouldLog = false
+        private const val shouldLog = true
         private val cameraActive = AtomicBoolean(false)
     }
 }
