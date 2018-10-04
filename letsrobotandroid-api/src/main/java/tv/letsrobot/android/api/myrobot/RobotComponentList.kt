@@ -1,7 +1,7 @@
 package tv.letsrobot.android.api.myrobot
 
 import android.content.Context
-import tv.letsrobot.android.api.api.Component
+import tv.letsrobot.android.api.interfaces.Component
 
 /**
  * Use this class to inject other Component objects. This will initialize them, but not enable them

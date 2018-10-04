@@ -6,10 +6,10 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import com.runmyrobot.android_robot_for_phone.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
-import tv.letsrobot.android.api.control.communicationInterfaces.CommunicationType
-import tv.letsrobot.android.api.control.deviceProtocols.ProtocolType
-import tv.letsrobot.android.api.control.utils.StoreUtil
 import tv.letsrobot.android.api.enums.CameraDirection
+import tv.letsrobot.android.api.enums.CommunicationType
+import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.utils.StoreUtil
 
 
 class ManualSetupActivity : AppCompatActivity() {
