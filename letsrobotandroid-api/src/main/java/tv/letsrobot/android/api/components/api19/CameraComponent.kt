@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.components
+package tv.letsrobot.android.api.components.api19
 
 import android.content.Context
 import android.graphics.ImageFormat
@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * To make this functional, pass in cameraId and a valid SurfaceHolder to a Core.Builder instance
  *
  * This will grab the camera password automatically from config file
+ *
+ * Does not support USB webcams
  */
 class CameraComponent
 /**
@@ -48,8 +50,7 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
     var host: String? = null
     var streaming = AtomicBoolean(false)
     var previewRunning = false
-    override fun enable() : Boolean{
-        if(!super.enable()) return false
+    override fun enableInternal(){
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -77,7 +78,6 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         }
         else
             streaming.set(true)
-        return true
     }
 
     private var successCounter: Int = 0
@@ -174,12 +174,10 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         }
     }
 
-    override fun disable() : Boolean{
-        if(!super.disable()) return false
+    override fun disableInternal(){
         // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
         // And sever the stream
         streaming.set(false)
-        return true
     }
 
     override fun onStart() {

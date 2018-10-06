@@ -1,7 +1,6 @@
 package tv.letsrobot.android.api.interfaces
 
 import android.content.Context
-import androidx.annotation.CallSuper
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
@@ -27,16 +26,19 @@ abstract class Component(val context: Context){
     protected val coreInstance : Core? = null
     protected val enabled = AtomicBoolean(false)
 
+    protected abstract fun enableInternal()
+    protected abstract fun disableInternal()
+
 
     /**
      * Called when component should startup. Multiple calls will not trigger setup more than once
      *
      * Return false if value was already true
      */
-    @CallSuper
-    open fun enable() : Boolean{
+    fun enable() : Boolean{
         if(enabled.getAndSet(true)) return false
         status = ComponentStatus.CONNECTING
+        enableInternal()
         return true
     }
 
@@ -45,9 +47,9 @@ abstract class Component(val context: Context){
      *
      * return false if value was already false
      */
-    @CallSuper
-    open fun disable() : Boolean{
+    fun disable() : Boolean{
         if(!enabled.getAndSet(false)) return false
+        disableInternal()
         status = ComponentStatus.DISABLED
         return true
     }

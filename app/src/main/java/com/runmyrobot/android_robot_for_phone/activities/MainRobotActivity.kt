@@ -15,7 +15,11 @@ import com.runmyrobot.android_robot_for_phone.RobotApplication
 import com.runmyrobot.android_robot_for_phone.robot.CustomComponentExample
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
-import tv.letsrobot.android.api.components.*
+import tv.letsrobot.android.api.components.AudioComponent
+import tv.letsrobot.android.api.components.CommunicationComponent
+import tv.letsrobot.android.api.components.RobotControllerComponent
+import tv.letsrobot.android.api.components.TextToSpeechComponent
+import tv.letsrobot.android.api.components.api19.CameraComponent
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil

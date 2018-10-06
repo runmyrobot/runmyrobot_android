@@ -7,15 +7,11 @@ import tv.letsrobot.android.api.interfaces.Component
  * Example of a custom component
  */
 class CustomComponentExample(context: Context, customParam : String) : Component(context){
-    override fun enable(): Boolean {
-        if(!super.enable()) return false
+    override fun enableInternal() {
         //add code here
-        return true
     }
 
-    override fun disable(): Boolean {
-        if(!super.disable()) return false //required. Will be removed in future version
+    override fun disableInternal() {
         //Destroy or disable code
-        return true //required. Will be removed in future version
     }
 }

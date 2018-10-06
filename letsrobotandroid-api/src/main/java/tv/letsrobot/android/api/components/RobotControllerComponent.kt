@@ -52,11 +52,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     private var allowControl = true
 
-    override fun enable() : Boolean{
-        if(!super.enable()){
-            return false
-        }
-
+    override fun enableInternal(){
         var host: String? = null
         var port: String? = null
         val client = OkHttpClient()
@@ -141,7 +137,6 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }
             socket.connect()
         }
-        return true
     }
 
     /**
@@ -153,9 +148,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
         handler.postDelayed(runnable, 200)
     }
 
-    override fun disable() : Boolean {
-        if(!super.disable()) return false
+    override fun disableInternal(){
         mSocket?.disconnect()
-        return true
     }
 }

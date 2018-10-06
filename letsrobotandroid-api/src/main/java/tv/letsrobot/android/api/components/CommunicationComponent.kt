@@ -19,17 +19,13 @@ class CommunicationComponent(context: Context, val communicationInterface: Commu
     }
 
     @Synchronized
-    override fun enable() : Boolean {
-        if(!super.enable()) return false
+    override fun enableInternal(){
         communicationInterface.enable()
-        return true
     }
 
     @Synchronized
-    override fun disable() : Boolean{
-        if(!super.disable()) return false
+    override fun disableInternal(){
         communicationInterface.disable()
-        return true
     }
 
     var errorCounter = 0

@@ -37,8 +37,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     private var host: String? = null
     private val recordingThread = RecordingThread(this)
 
-    override fun enable() : Boolean{
-        if(!super.enable()) return false
+    override fun enableInternal(){
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -66,15 +65,12 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
         }
         else
             recordingThread.startRecording()
-        return true
     }
 
-    override fun disable() : Boolean{
-        if(!super.disable()) return false
+    override fun disableInternal(){
         recordingThread.stopRecording()
         process?.destroy()
         process = null
-        return true
     }
 
 

@@ -28,18 +28,14 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
     private val motorForwardTurnSpeed = 30.toByte()
     private val motorBackwardTurnSpeed = (-30).toByte()
 
-    override fun enable() : Boolean {
-        if(!super.enable()) return false
+    override fun enableInternal(){
         EventManager.subscribe(EventManager.COMMAND, onCommand)
         EventManager.subscribe(STOP_EVENT, onStop)
-        return true
     }
 
-    override fun disable() : Boolean {
-        if(!super.disable()) return false
+    override fun disableInternal(){
         EventManager.unsubscribe(EventManager.COMMAND, onCommand)
         EventManager.unsubscribe(STOP_EVENT, onStop)
-        return true
     }
 
     private val onCommand: (Any?) -> Unit = {

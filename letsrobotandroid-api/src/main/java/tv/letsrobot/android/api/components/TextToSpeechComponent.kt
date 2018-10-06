@@ -31,10 +31,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
 
-    override fun enable() : Boolean{
-        if(!super.enable()){
-            return false
-        }
+    override fun enableInternal(){
         ttobj.language = Locale.US
         var host: String? = null
         var port: String? = null
@@ -120,7 +117,6 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 status = ComponentStatus.INTERMITTENT
         }
         mSocket?.connect()
-        return true
     }
 
     private fun getPitchFromUser(name : String): Float {
@@ -128,10 +124,8 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         return ValueUtil.map(scale,0f, 1f, 0f, 10f, 1.0f)
     }
 
-    override fun disable() : Boolean {
-        if(!super.disable()) return false
+    override fun disableInternal(){
         mSocket?.disconnect()
-        return true
     }
 
     companion object {
