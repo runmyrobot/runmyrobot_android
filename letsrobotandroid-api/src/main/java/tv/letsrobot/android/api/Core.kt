@@ -20,7 +20,6 @@ import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.myrobot.RobotComponentList
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -287,6 +286,7 @@ private constructor(val robotId : String, val cameraId : String?) {
 
         var useMic = false
         var holder: SurfaceHolder? = null
+        var externalComponents: ArrayList<Component>? = null
 
         /**
          * Build a configured instance of Core.
@@ -295,7 +295,6 @@ private constructor(val robotId : String, val cameraId : String?) {
          */
         @Throws(InitializationException::class)
         fun build(): Core {
-            RobotComponentList.init(context)
             //TODO define preconditions that will throw errors
 
             //RobotId MUST be defined, cameraId can be ignored
@@ -304,7 +303,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             val core = Core(robotId!!, cameraId)
             //Get list of external components, such as LED code, or more customized motor control
-            core.externalComponents = RobotComponentList.components
+            core.externalComponents = externalComponents
             robotId?.let{
                 core.robotController = RobotControllerComponent(context, it)
                 //Setup our protocol, if it exists

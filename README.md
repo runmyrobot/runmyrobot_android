@@ -58,9 +58,12 @@ To make the robot operational and connected:
 
 ## Adding separate components
 
-Add classes that extend Component to app/src/main/java/com/runmyrobot/android_robot_for_phone/myrobot/RobotComponentList.kt
-There are some examples there for Serial motor control and bluetooth control. The app currently defaults
-to bluetooth control
+Make a class that extends and implements methods of Component
+
+Then add to the Builder's externalComponents list
+
+See CustomComponentExample.kt
+See MainRobotController.kt for an example of CustomComponentExample being added
 
 ### Devices supported
  
@@ -71,7 +74,7 @@ to bluetooth control
 ### Connection Options
 
  - Bluetooth Classic (less than 4.0 guaranteed), HC04 would work
- - USB Serial (https://github.com/felHR85/UsbSerial#devices-supported)
+ - USB Serial (Not working on Android Things 1.0.3 rpi3) (https://github.com/felHR85/UsbSerial#devices-supported)
 
 ## Error reporting
 
@@ -80,7 +83,7 @@ This is completely optional and will be disabled unless enabled through settings
 
 # Some known issues
 
-- Camera streaming will only work if the app has not been backgrounded (turning screen off is fine if no lock screen)
+- Camera streaming will only work if the app has not been backgrounded (turning screen off is fine if no lock screen?)
 
 - Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
 
