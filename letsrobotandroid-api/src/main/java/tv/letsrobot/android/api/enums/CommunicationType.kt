@@ -8,8 +8,8 @@ import tv.letsrobot.android.api.interfaces.communications.FelhrUsbSerialCommunic
  * Communication types will reside in here
  */
 enum class CommunicationType {
-    BluetoothClassic,
-    UsbSerial;
+    UsbSerial,
+    BluetoothClassic;
 
     val getInstantiatedClass : CommunicationInterface?
         get() = when(this){
