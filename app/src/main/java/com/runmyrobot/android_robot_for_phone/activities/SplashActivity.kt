@@ -5,16 +5,13 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.api.CommunicationInterface
-import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
+import tv.letsrobot.android.api.Core
+import tv.letsrobot.android.api.interfaces.CommunicationInterface
+import tv.letsrobot.android.api.utils.StoreUtil
 
 class SplashActivity : Activity() {
 
@@ -29,36 +26,10 @@ class SplashActivity : Activity() {
             return
         }
 
-        //Load FFMpeg
-        val ffmpeg = FFmpeg.getInstance(applicationContext)
-        try {
-            ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
-                override fun onFinish() {
-                    super.onFinish()
-                    Log.d("FFMPEG", "onFinish")
-                    runOnUiThread{
-                        next() //run next action
-                    }
-                }
-
-                override fun onSuccess() {
-                    super.onSuccess()
-                    Log.d("FFMPEG", "onSuccess")
-                }
-
-                override fun onFailure() {
-                    super.onFailure()
-                    Log.d("FFMPEG", "onFailure")
-                }
-
-                override fun onStart() {
-                    super.onStart()
-                    Log.d("FFMPEG", "onStart")
-                }
-                //TODO maybe catch some error to display to the user
-            })
-        } catch (e: FFmpegNotSupportedException) {
-            e.printStackTrace()
+        Core.initDependencies(this){
+            runOnUiThread{
+                next()
+            }
         }
     }
 

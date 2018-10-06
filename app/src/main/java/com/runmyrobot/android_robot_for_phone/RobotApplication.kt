@@ -3,8 +3,8 @@ package com.runmyrobot.android_robot_for_phone
 import android.app.Application
 import android.widget.Toast
 import com.bugsnag.android.Bugsnag
-import com.runmyrobot.android_robot_for_phone.utils.PhoneBatteryMeter
-import com.runmyrobot.android_robot_for_phone.utils.StoreUtil
+import tv.letsrobot.android.api.utils.PhoneBatteryMeter
+import tv.letsrobot.android.api.utils.StoreUtil
 
 /**
  * Application class
@@ -20,18 +20,6 @@ class RobotApplication : Application() {
         if(!StoreUtil.getErrorReportingEnabled(this)){
             Bugsnag.setNotifyReleaseStages("")
         }
-    }
-
-    fun getCameraPass(): String {
-        return StoreUtil.getCameraPass(this)
-    }
-
-    fun getBitrate() : String {
-        return StoreUtil.getBitrate(this)
-    }
-
-    fun getResolution() : String {
-        return StoreUtil.getResolution(this)
     }
 
     /**
