@@ -12,9 +12,11 @@ import android.view.Window
 import android.view.WindowManager
 import com.runmyrobot.android_robot_for_phone.R
 import com.runmyrobot.android_robot_for_phone.RobotApplication
+import com.runmyrobot.android_robot_for_phone.robot.CustomComponentExample
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.*
+import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
 
@@ -24,6 +26,8 @@ import tv.letsrobot.android.api.utils.StoreUtil
  * SurfaceView to pass to the camera component via the Builder
  */
 class MainRobotActivity : Activity(), Runnable {
+    val components = ArrayList<Component>() //arraylist of custom components
+
     override fun run() {
         if (recording){
             fakeSleepView.visibility = View.VISIBLE
@@ -36,14 +40,21 @@ class MainRobotActivity : Activity(), Runnable {
     lateinit var handler : Handler
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PhoneBatteryMeter.getReceiver(applicationContext)
+        PhoneBatteryMeter.getReceiver(applicationContext) //Setup phone battery monitor TODO integrate with component
         handler = Handler(Looper.getMainLooper())
+
+        //Full screen with no title
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setContentView(R.layout.activity_main_robot)
-        recordButtonMain.setOnClickListener{
+        setContentView(R.layout.activity_main_robot) //Set the layout to use for activity
+
+        //Setup a custom component
+        val component = CustomComponentExample(applicationContext, "customString")
+        components.add(component) //add to custom components list
+
+        recordButtonMain.setOnClickListener{ //Hook up power button to start the connection
             if (recording) {
                 recording = false
                 core?.disable() //Disable core if we hit the button to disable recording
@@ -59,29 +70,33 @@ class MainRobotActivity : Activity(), Runnable {
             }
         }
         settingsButtonMain.setOnClickListener {
-            finish()
+            finish() //Stop activity
             startActivity(Intent(this, ManualSetupActivity::class.java))
             core?.disable()
             core = null
         }
+
+        //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
             if(StoreUtil.getScreenSleepOverlayEnabled(this)) {
                 fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
                 handler.removeCallbacks(this)
-                handler.postDelayed(this, 10000)
+                handler.postDelayed(this, 10000) //10 second delay
+                //TODO disable touch if black screen is up
             }
             return@setOnTouchListener false
         }
         initIndicators()
     }
 
-    private fun initIndicators() {
+    private fun initIndicators() { //Indicators for Core Services
         cloudStatusIcon.setComponentInterface(Core::class.java.name)
         cameraStatusIcon.setComponentInterface(CameraComponent::class.java.name)
         robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.name)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.name)
         ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.name)
         robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.name)
+        //To add more, add another icon to the layout file somewhere and pass in your component
     }
 
     override fun onPause() {
@@ -100,6 +115,10 @@ class MainRobotActivity : Activity(), Runnable {
         PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 
+    /**
+     * Create the robot Core object. This will handle enabling all components on its own thread.
+     * Core.Builder is the only way to create the Core to make sure settings do not change wile the robot is running
+     */
     private fun createCore() {
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView holder to render the camera to
@@ -108,14 +127,16 @@ class MainRobotActivity : Activity(), Runnable {
         if(StoreUtil.getCameraEnabled(this)){
             builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID
         }
+        //TODO set camera pass
         builder.useTTS = StoreUtil.getTTSEnabled(this)
         builder.useMic = StoreUtil.getMicEnabled(this)
         builder.protocol = StoreUtil.getProtocolType(this)
         builder.communication = StoreUtil.getCommunicationType(this)
+        builder.externalComponents = components //pass in arrayList of custom components
         try {
             core = builder.build() //Retrieve the built Core instance
         } catch (e: Core.InitializationException) {
-            RobotApplication.Instance.reportError(e)
+            RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()
         }
     }
