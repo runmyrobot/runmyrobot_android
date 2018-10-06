@@ -171,7 +171,7 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     }
 
     companion object {
-        const val LOGTAG = "CameraComponent"
+        const val LOGTAG = "Camera1Component"
         protected const val shouldLog = true
     }
 }

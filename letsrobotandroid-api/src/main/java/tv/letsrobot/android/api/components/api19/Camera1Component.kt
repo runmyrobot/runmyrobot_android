@@ -20,7 +20,7 @@ import java.io.IOException
  *
  * Does not support USB webcams
  */
-class CameraComponent
+class Camera1Component
 /**
  * Init camera object.
  * @param context Needed to access the camera

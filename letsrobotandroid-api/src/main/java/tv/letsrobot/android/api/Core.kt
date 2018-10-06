@@ -16,7 +16,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
 import tv.letsrobot.android.api.components.*
-import tv.letsrobot.android.api.components.api19.CameraComponent
+import tv.letsrobot.android.api.components.api19.Camera1Component
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
@@ -325,7 +325,7 @@ private constructor(val robotId : String, val cameraId : String?) {
                     core.audio = AudioComponent(context, cameraId!!)
                 }
                 holder?.let {
-                    core.camera = CameraComponent(context, cameraId!!, holder!!)
+                    core.camera = Camera1Component(context, cameraId!!, holder!!)
                 }
             }
             if (useTTS) {
