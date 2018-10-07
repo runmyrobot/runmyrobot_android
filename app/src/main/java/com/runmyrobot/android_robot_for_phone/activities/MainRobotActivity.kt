@@ -125,8 +125,8 @@ class MainRobotActivity : Activity(), Runnable {
      */
     private fun createCore() {
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
-        //Attach the SurfaceView holder to render the camera to
-        builder.holder = cameraSurfaceView.holder
+        //Attach the SurfaceView textureView to render the camera to
+        builder.holder = cameraSurfaceView
         builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
         if(StoreUtil.getCameraEnabled(this)){
             builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID

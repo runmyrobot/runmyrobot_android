@@ -3,9 +3,10 @@ package tv.letsrobot.android.api.components.api19
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
+import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.util.Log
-import android.view.SurfaceHolder
+import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.components.CameraBaseComponent
 import java.io.IOException
@@ -26,11 +27,22 @@ class Camera1Component
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(context: Context, cameraId: String, val holder: SurfaceHolder) : CameraBaseComponent(context, cameraId), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
+constructor(context: Context, cameraId: String, val textureView: TextureView) : CameraBaseComponent(context, cameraId), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, TextureView.SurfaceTextureListener {
+
     private lateinit var r: Rect
+    private var camera : android.hardware.Camera? = null
+
+    private var surfaceAvailable = false
 
     init {
-        holder.addCallback(this)
+        Log.v("CameraAPI", "init")
+        textureView.surfaceTextureListener = this
+        if(textureView.isAvailable){
+            Log.v("CameraAPI", "isAvailable")
+            surfaceAvailable = true
+            camera = Camera.open()
+            camera?.setDisplayOrientation(90)
+        }
     }
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
@@ -48,7 +60,9 @@ constructor(context: Context, cameraId: String, val holder: SurfaceHolder) : Cam
     }
 
     private fun setupCam(){
-        if (!cameraActive.get() && surface) {
+        Log.v("CameraAPI", "setupCam")
+        if (!cameraActive.get() && surfaceAvailable) {
+            Log.v("CameraAPI", "!cameraActive.get() && surfaceAvailable")
             camera?.let {
                 if (previewRunning) {
                     it.stopPreview()
@@ -62,8 +76,7 @@ constructor(context: Context, cameraId: String, val holder: SurfaceHolder) : Cam
                     //p.setPreviewSize(previewSize.width, previewSize.height);
                     p.setPreviewSize(640, 480)
                     it.parameters = p
-
-                    it.setPreviewDisplay(holder)
+                    it.setPreviewTexture(textureView.surfaceTexture)
                     it.setPreviewCallback(this)
                     Log.v(LOGTAG, "startPreview")
                     it.startPreview()
@@ -82,28 +95,32 @@ constructor(context: Context, cameraId: String, val holder: SurfaceHolder) : Cam
         streaming.set(false)
     }
 
-    private var camera : android.hardware.Camera? = null
-
-    private var surface = false
-
-    override fun surfaceCreated(holder: SurfaceHolder) {
-        surface = true
-        camera = Camera.open()
-        camera?.setDisplayOrientation(90)
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
+        Log.v("CameraAPI", "onSurfaceTextureSizeChanged")
     }
 
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
+        Log.v("CameraAPI", "onSurfaceTextureUpdated")
         setupCam()
     }
 
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
         Log.v("CameraAPI", "surfaceDestroyed")
         cameraActive.set(false)
-        surface = false
+        surfaceAvailable = false
         previewRunning = false
         camera?.stopPreview()
         camera?.setPreviewCallback (null)
         camera?.release()
         camera = null
+        return true
+    }
+
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+        Log.v("CameraAPI", "onSurfaceTextureAvailable")
+        surfaceAvailable = true
+        camera = Camera.open()
+        camera?.setDisplayOrientation(90)
+        setupCam()
     }
 }

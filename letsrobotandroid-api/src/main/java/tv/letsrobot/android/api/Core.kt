@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.SurfaceHolder
+import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
@@ -286,7 +286,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         var useTTS = false
 
         var useMic = false
-        var holder: SurfaceHolder? = null
+        var holder: TextureView? = null
         var externalComponents: ArrayList<Component>? = null
 
         /**
