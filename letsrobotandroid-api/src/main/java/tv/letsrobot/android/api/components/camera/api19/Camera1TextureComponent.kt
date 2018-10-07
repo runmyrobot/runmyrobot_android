@@ -37,8 +37,6 @@ constructor(context: Context, cameraId: String, textureView: TextureView) : Text
     }
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
-        if(!streaming.get()) return
-        if(!limiter.tryAcquire()) return
         if (width == 0 || height == 0) {
             camera?.parameters?.let {
                 val size = it.previewSize

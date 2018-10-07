@@ -2,6 +2,8 @@ package tv.letsrobot.android.api.components.camera.api21
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.ImageFormat
+import android.graphics.Rect
 import android.hardware.camera2.*
 import android.os.Handler
 import android.os.HandlerThread
@@ -51,8 +53,11 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
                     .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             manager.openCamera(cameraId, mStateCallback, null)
         } catch (e: CameraAccessException) {
+            e.printStackTrace()
         } catch (e: NullPointerException) {
+            e.printStackTrace()
         } catch (e: InterruptedException) {
+            e.printStackTrace()
             throw RuntimeException("Interrupted while trying to lock camera opening.")
         }
 
@@ -105,7 +110,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         try {
             closePreviewSession()
             val texture = textureView.surfaceTexture
-            texture.setDefaultBufferSize(640, 480)
+            texture.setDefaultBufferSize(480, 640)
             mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
 
             val previewSurface = Surface(texture)
@@ -128,6 +133,13 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         }
 
     }
+/*
+    class CaptureCallback : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+            super.onCaptureCompleted(session, request, result)
+            Log.d(LOGTAG, "onCaptureCompleted")
+        }
+    }*/
 
     /**
      * Update the camera preview. [.startPreview] needs to be called in advance.
@@ -140,7 +152,14 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             mPreviewBuilder?.let { setUpCaptureRequestBuilder(it) }
             val thread = HandlerThread("CameraPreview")
             thread.start()
-            mPreviewSession!!.setRepeatingRequest(mPreviewBuilder!!.build(), null, mBackgroundHandler)
+            mPreviewSession!!.setRepeatingRequest(mPreviewBuilder!!.build()
+                    , object : CameraCaptureSession.CaptureCallback(){
+                override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+                    super.onCaptureCompleted(session, request, result)
+                    push(textureView.bitmap, ImageFormat.JPEG, Rect(0,0,480,640))
+                }
+            }
+                    , mBackgroundHandler)
         } catch (e: Exception) {
             e.printStackTrace()
         }
