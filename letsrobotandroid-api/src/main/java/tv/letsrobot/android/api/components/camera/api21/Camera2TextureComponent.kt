@@ -9,7 +9,6 @@ import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
@@ -133,7 +132,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             texture.setDefaultBufferSize(480, 640)
             mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
 
-            val previewSurface = Surface(texture)
+            //val previewSurface = Surface(texture)
             //mPreviewBuilder!!.addTarget(previewSurface)
             mPreviewBuilder!!.addTarget(reader.surface)
 
