@@ -3,8 +3,9 @@ package tv.letsrobot.android.api.components.camera.api21
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.ImageFormat
-import android.graphics.Rect
 import android.hardware.camera2.*
+import android.media.Image
+import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -14,11 +15,13 @@ import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
 
+
 /**
  * Created by Brendon on 10/6/2018.
  */
 @RequiresApi(21)
-class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, surfaceView) {
+class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, surfaceView), ImageReader.OnImageAvailableListener {
+    val reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1)
 
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     /**
@@ -39,6 +42,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
     @SuppressLint("MissingPermission") //Already handled. No way to call this
     override fun setupCamera() {
         startBackgroundThread()
+        reader.setOnImageAvailableListener(this, mBackgroundHandler)
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             /*//TODO MAYBE
@@ -78,6 +82,22 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
      */
     private var mPreviewSession: CameraCaptureSession? = null
 
+    override fun onImageAvailable(reader: ImageReader?) {
+        var image: Image? = null
+        try {
+            image = reader?.acquireLatestImage()
+            val buffer = image!!.planes[0].buffer
+            val imageBytes = ByteArray(buffer.remaining())
+            buffer.get(imageBytes)
+            push(imageBytes, ImageFormat.JPEG, null)
+            //val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } finally {
+            if (image != null) {
+                image.close()
+            }
+        }
+    }
+
     /**
      * [CameraDevice.StateCallback] is called when [CameraDevice] changes its status.
      */
@@ -114,9 +134,10 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
 
             val previewSurface = Surface(texture)
-            mPreviewBuilder!!.addTarget(previewSurface)
+            //mPreviewBuilder!!.addTarget(previewSurface)
+            mPreviewBuilder!!.addTarget(reader.surface)
 
-            mCameraDevice!!.createCaptureSession(listOf(previewSurface),
+            mCameraDevice!!.createCaptureSession(listOf(/*previewSurface, */reader.surface),
                     object : CameraCaptureSession.StateCallback() {
 
                         override fun onConfigured(@NonNull session: CameraCaptureSession) {
@@ -153,12 +174,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             val thread = HandlerThread("CameraPreview")
             thread.start()
             mPreviewSession!!.setRepeatingRequest(mPreviewBuilder!!.build()
-                    , object : CameraCaptureSession.CaptureCallback(){
-                override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
-                    super.onCaptureCompleted(session, request, result)
-                    push(textureView.bitmap, ImageFormat.JPEG, Rect(0,0,480,640))
-                }
-            }
+                    ,null
                     , mBackgroundHandler)
         } catch (e: Exception) {
             e.printStackTrace()

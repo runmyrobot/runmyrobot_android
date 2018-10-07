@@ -2,6 +2,7 @@ package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.os.HandlerThread
@@ -78,7 +79,7 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         streaming.set(false)
     }
 
-    fun push(b : Any?, format : Int, r : Rect){
+    fun push(b : Any?, format : Int, r : Rect?){
         if(!streaming.get()) return
         if(!limiter.tryAcquire()) return
         if (!ffmpegRunning.getAndSet(true)) {
@@ -86,11 +87,20 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         }
         process?.let { _process ->
             (b as? ByteArray)?.let {
-                val im = YuvImage(b, format, width, height, null)
-                try {
-                    im.compressToJpeg(r, 100, _process.outputStream)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                when(format){
+                    ImageFormat.JPEG -> {
+                        _process.outputStream.write(b)
+                    }
+                    ImageFormat.NV21 -> {
+                        val im = YuvImage(b, format, width, height, null)
+                        try {
+                            im.compressToJpeg(r, 100, _process.outputStream)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    else -> {
+                    }
                 }
             } ?: (b as? Bitmap)?.let {
                 b.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
