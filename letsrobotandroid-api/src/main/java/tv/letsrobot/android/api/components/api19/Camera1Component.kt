@@ -96,16 +96,14 @@ constructor(context: Context, cameraId: String, val textureView: TextureView) : 
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.v("CameraAPI", "onSurfaceTextureSizeChanged")
+
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-        Log.v("CameraAPI", "onSurfaceTextureUpdated")
-        setupCam()
+
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        Log.v("CameraAPI", "surfaceDestroyed")
         cameraActive.set(false)
         surfaceAvailable = false
         previewRunning = false
@@ -117,7 +115,6 @@ constructor(context: Context, cameraId: String, val textureView: TextureView) : 
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.v("CameraAPI", "onSurfaceTextureAvailable")
         surfaceAvailable = true
         camera = Camera.open()
         camera?.setDisplayOrientation(90)
