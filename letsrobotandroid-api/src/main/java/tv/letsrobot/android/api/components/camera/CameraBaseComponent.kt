@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.components
+package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
 import android.graphics.Rect
@@ -39,9 +39,12 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
 
     private var handler = HandlerThread("CameraProcessing")
 
+    init {
+        handler.start()
+    }
+
     override fun enableInternal() {
         try {
-            handler.start()
             val client = OkHttpClient.Builder()
                     .build()
             var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
@@ -72,7 +75,6 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
 
     override fun disableInternal() {
         streaming.set(false)
-        handler.quit()
     }
 
     fun push(b : Any?, format : Int, r : Rect){
@@ -126,14 +128,14 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     override fun onStart() {
         ffmpegRunning.set(true)
         @Suppress("ConstantConditionIf")
-        if(CameraBaseComponent.shouldLog)
-            Log.d(CameraBaseComponent.LOGTAG, "onStart")
+        if(shouldLog)
+            Log.d(LOGTAG, "onStart")
     }
 
     override fun onProgress(message: String?) {
         @Suppress("ConstantConditionIf")
-        if(CameraBaseComponent.shouldLog)
-            Log.d(CameraBaseComponent.LOGTAG, "onProgress : $message")
+        if(shouldLog)
+            Log.d(LOGTAG, "onProgress : $message")
         successCounter++
         status = when {
             successCounter > 5 -> ComponentStatus.STABLE
@@ -143,20 +145,20 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     }
 
     override fun onFailure(message: String?) {
-        Log.e(CameraBaseComponent.LOGTAG, "progress : $message")
+        Log.e(LOGTAG, "progress : $message")
         status = ComponentStatus.ERROR
     }
 
     override fun onSuccess(message: String?) {
         @Suppress("ConstantConditionIf")
-        if(CameraBaseComponent.shouldLog)
-            Log.d(CameraBaseComponent.LOGTAG, "onSuccess : $message")
+        if(shouldLog)
+            Log.d(LOGTAG, "onSuccess : $message")
     }
 
     override fun onFinish() {
         @Suppress("ConstantConditionIf")
-        if(CameraBaseComponent.shouldLog)
-            Log.d(CameraBaseComponent.LOGTAG, "onFinish")
+        if(shouldLog)
+            Log.d(LOGTAG, "onFinish")
         ffmpegRunning.set(false)
         process?.destroy()
         process = null
@@ -165,13 +167,13 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
 
     override fun onProcess(p0: Process?) {
         @Suppress("ConstantConditionIf")
-        if(CameraBaseComponent.shouldLog)
-            Log.d(CameraBaseComponent.LOGTAG, "onProcess")
+        if(shouldLog)
+            Log.d(LOGTAG, "onProcess")
         this.process = p0
     }
 
     companion object {
-        const val LOGTAG = "Camera1Component"
+        const val LOGTAG = "Camera1TextureComponent"
         protected const val shouldLog = true
     }
 }

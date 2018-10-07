@@ -1,14 +1,13 @@
-package tv.letsrobot.android.api.components.api19
+package tv.letsrobot.android.api.components.camera.api19
 
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
-import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.util.Log
 import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
-import tv.letsrobot.android.api.components.CameraBaseComponent
+import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
 import java.io.IOException
 
 
@@ -21,28 +20,20 @@ import java.io.IOException
  *
  * Does not support USB webcams
  */
-class Camera1Component
+class Camera1TextureComponent
 /**
  * Init camera object.
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(context: Context, cameraId: String, val textureView: TextureView) : CameraBaseComponent(context, cameraId), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, TextureView.SurfaceTextureListener {
+constructor(context: Context, cameraId: String, textureView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
 
     private lateinit var r: Rect
     private var camera : android.hardware.Camera? = null
 
-    private var surfaceAvailable = false
-
     init {
         Log.v("CameraAPI", "init")
-        textureView.surfaceTextureListener = this
-        if(textureView.isAvailable){
-            Log.v("CameraAPI", "isAvailable")
-            surfaceAvailable = true
-            camera = Camera.open()
-            camera?.setDisplayOrientation(90)
-        }
+        init()
     }
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
@@ -59,8 +50,22 @@ constructor(context: Context, cameraId: String, val textureView: TextureView) : 
         push(b, ImageFormat.NV21, r)
     }
 
-    private fun setupCam(){
-        Log.v("CameraAPI", "setupCam")
+    override fun releaseCamera() {
+        cameraActive.set(false)
+        surfaceAvailable = false
+        previewRunning = false
+        camera?.stopPreview()
+        camera?.setPreviewCallback (null)
+        camera?.release()
+        camera = null
+    }
+
+    override fun setupCamera(){
+        Log.v("CameraAPI", "setupCamera")
+        camera ?: kotlin.run {
+            camera = Camera.open()
+            camera?.setDisplayOrientation(90)
+        }
         if (!cameraActive.get() && surfaceAvailable) {
             Log.v("CameraAPI", "!cameraActive.get() && surfaceAvailable")
             camera?.let {
@@ -93,31 +98,5 @@ constructor(context: Context, cameraId: String, val textureView: TextureView) : 
         // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
         // And sever the stream
         streaming.set(false)
-    }
-
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
-
-    }
-
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-
-    }
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        cameraActive.set(false)
-        surfaceAvailable = false
-        previewRunning = false
-        camera?.stopPreview()
-        camera?.setPreviewCallback (null)
-        camera?.release()
-        camera = null
-        return true
-    }
-
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        surfaceAvailable = true
-        camera = Camera.open()
-        camera?.setDisplayOrientation(90)
-        setupCam()
     }
 }

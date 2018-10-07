@@ -19,7 +19,7 @@ import tv.letsrobot.android.api.components.AudioComponent
 import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
-import tv.letsrobot.android.api.components.api19.Camera1Component
+import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
@@ -95,7 +95,7 @@ class MainRobotActivity : Activity(), Runnable {
 
     private fun initIndicators() { //Indicators for Core Services
         cloudStatusIcon.setComponentInterface(Core::class.java.name)
-        cameraStatusIcon.setComponentInterface(Camera1Component::class.java.name)
+        cameraStatusIcon.setComponentInterface(Camera1TextureComponent::class.java.name)
         robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.name)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.name)
         ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.name)
