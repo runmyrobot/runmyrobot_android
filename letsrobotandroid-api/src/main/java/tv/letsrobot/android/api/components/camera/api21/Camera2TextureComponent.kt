@@ -13,6 +13,9 @@ import android.view.TextureView
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
+import android.hardware.camera2.CaptureRequest
+
+
 
 
 /**
@@ -20,7 +23,7 @@ import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
  */
 @RequiresApi(21)
 class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, surfaceView), ImageReader.OnImageAvailableListener {
-    val reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1)
+    val reader = ImageReader.newInstance(768, 432, ImageFormat.JPEG, 1)
 
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     /**
@@ -68,6 +71,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
 
     override fun releaseCamera() {
         stopBackgroundThread()
+        mCameraDevice?.close()
     }
 
     /**
@@ -129,9 +133,9 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         try {
             closePreviewSession()
             val texture = textureView.surfaceTexture
-            texture.setDefaultBufferSize(480, 640)
-            mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-
+            texture.setDefaultBufferSize(720, 1280)
+            mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+            mPreviewBuilder?.set(CaptureRequest.JPEG_QUALITY, 100.toByte())
             //val previewSurface = Surface(texture)
             //mPreviewBuilder!!.addTarget(previewSurface)
             mPreviewBuilder!!.addTarget(reader.surface)
@@ -182,7 +186,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
     }
 
     private fun setUpCaptureRequestBuilder(builder: CaptureRequest.Builder) {
-        builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO)
     }
 
     private fun closePreviewSession() {

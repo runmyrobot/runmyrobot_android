@@ -89,7 +89,11 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
             (b as? ByteArray)?.let {
                 when(format){
                     ImageFormat.JPEG -> {
+                        try {
                         _process.outputStream.write(b)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                     ImageFormat.NV21 -> {
                         val im = YuvImage(b, format, width, height, null)
