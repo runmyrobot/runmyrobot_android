@@ -2,7 +2,7 @@ package tv.letsrobot.android.api.components.camera.api21
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.ImageFormat
+import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
@@ -13,9 +13,6 @@ import android.view.TextureView
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
-import android.hardware.camera2.CaptureRequest
-
-
 
 
 /**
@@ -23,7 +20,7 @@ import android.hardware.camera2.CaptureRequest
  */
 @RequiresApi(21)
 class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, surfaceView), ImageReader.OnImageAvailableListener {
-    val reader = ImageReader.newInstance(768, 432, ImageFormat.JPEG, 1)
+    val reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1)
 
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     /**
@@ -71,7 +68,6 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
 
     override fun releaseCamera() {
         stopBackgroundThread()
-        mCameraDevice?.close()
     }
 
     /**
@@ -92,13 +88,30 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             val buffer = image!!.planes[0].buffer
             val imageBytes = ByteArray(buffer.remaining())
             buffer.get(imageBytes)
-            push(imageBytes, ImageFormat.JPEG, null)
-            //val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            //push(imageBytes, ImageFormat.JPEG, null)
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            push(overlay(bitmap, null), ImageFormat.JPEG, null)
         } finally {
             if (image != null) {
                 image.close()
             }
         }
+    }
+
+    private fun overlay(bmp1: Bitmap, bmp2: Bitmap?): Bitmap {
+        val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
+        val canvas = Canvas(bmOverlay)
+        canvas.drawBitmap(bmp1, Matrix(), null)
+        bmp2?.let {
+            canvas.drawBitmap(bmp2, Matrix(), null)
+        }
+        val paint = Paint()
+        paint.color = Color.RED
+        paint.textSize = 100f
+        val msg = "Hello World"
+        canvas.drawText(msg, 0, msg.length, 40f, 400f, paint)
+        canvas.drawCircle(40f,400f,2f,paint)
+        return bmOverlay
     }
 
     /**
@@ -133,9 +146,9 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         try {
             closePreviewSession()
             val texture = textureView.surfaceTexture
-            texture.setDefaultBufferSize(720, 1280)
-            mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
-            mPreviewBuilder?.set(CaptureRequest.JPEG_QUALITY, 100.toByte())
+            texture.setDefaultBufferSize(480, 640)
+            mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+
             //val previewSurface = Surface(texture)
             //mPreviewBuilder!!.addTarget(previewSurface)
             mPreviewBuilder!!.addTarget(reader.surface)
@@ -186,7 +199,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
     }
 
     private fun setUpCaptureRequestBuilder(builder: CaptureRequest.Builder) {
-        builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO)
+        builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
     }
 
     private fun closePreviewSession() {
