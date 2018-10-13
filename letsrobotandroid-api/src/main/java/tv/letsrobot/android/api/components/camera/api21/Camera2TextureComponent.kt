@@ -98,6 +98,9 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         }
     }
 
+    /**
+     * Allow overlay of images. Can mess around with canvas drawing too
+     */
     private fun overlay(bmp1: Bitmap, bmp2: Bitmap?): Bitmap {
         val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
         val canvas = Canvas(bmOverlay)
@@ -105,12 +108,6 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         bmp2?.let {
             canvas.drawBitmap(bmp2, Matrix(), null)
         }
-        val paint = Paint()
-        paint.color = Color.RED
-        paint.textSize = 100f
-        val msg = "Hello World"
-        canvas.drawText(msg, 0, msg.length, 40f, 400f, paint)
-        canvas.drawCircle(40f,400f,2f,paint)
         return bmOverlay
     }
 
