@@ -2,7 +2,6 @@ apply plugin: 'com.android.library'
 //https://github.com/btelman96/AndroidUvcDemo
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
 
 
     defaultConfig {
