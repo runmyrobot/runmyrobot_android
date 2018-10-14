@@ -13,6 +13,7 @@ def getGitHash = { ->
 
 android {
     compileSdkVersion 28
+    buildToolsVersion = globalBuildToolsVersion
     defaultConfig {
         buildConfigField "String", "GitHash", "\"${getGitHash()}\""
         applicationId "com.runmyrobot.android_robot_for_phone"
