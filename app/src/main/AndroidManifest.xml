@@ -36,6 +36,8 @@
             android:enabled="true"
             android:permission="" />
 
+        <service android:name="com.ford.openxc.webcam.webcam.WebcamService"/>
+
         <activity
             android:name=".activities.UsbInterceptor"
             android:excludeFromRecents="true"

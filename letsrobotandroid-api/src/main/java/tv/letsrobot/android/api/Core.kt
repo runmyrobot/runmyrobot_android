@@ -21,6 +21,7 @@ import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
+import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
 import tv.letsrobot.android.api.components.camera.api21.Camera2TextureComponent
 import tv.letsrobot.android.api.enums.CommunicationType
@@ -331,7 +332,10 @@ private constructor(val robotId : String, val cameraId : String?) {
                     core.audio = AudioComponent(context, cameraId!!)
                 }
                 holder?.let {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if(true){
+                        core.camera = ExtCameraInterface(context, cameraId!!)
+                    }
+                    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         core.camera = Camera2TextureComponent(context, cameraId!!, holder!!)
                     }
                     else{

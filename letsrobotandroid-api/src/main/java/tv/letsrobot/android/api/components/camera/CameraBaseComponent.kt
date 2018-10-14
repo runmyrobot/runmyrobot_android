@@ -1,10 +1,7 @@
 package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
+import android.graphics.*
 import android.os.HandlerThread
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
@@ -103,9 +100,27 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
                     }
                 }
             } ?: (b as? Bitmap)?.let {
-                b.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                it.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
             }
         }
+    }
+
+    /**
+     * Allow overlay of images. Can mess around with canvas drawing too
+     */
+    private fun overlay(bmp1: Bitmap, bmp2: Bitmap?): Bitmap {
+        val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
+        val canvas = Canvas(bmOverlay)
+        canvas.drawBitmap(bmp1, Matrix(), null)
+        bmp2?.let {
+            canvas.drawBitmap(bmp2, Matrix(), null)
+        }
+        /*var msg = "Testing Camera..."
+        var paint = Paint()
+        paint.color = Color.RED
+        paint.textSize = 20f
+        canvas.drawText(msg, 100f, 100f, paint)*/
+        return bmOverlay
     }
 
     fun byteArrayPush(b : ByteArray, format : Int, r : Rect){

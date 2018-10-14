@@ -2,7 +2,8 @@ package tv.letsrobot.android.api.components.camera.api21
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
@@ -90,25 +91,12 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             buffer.get(imageBytes)
             //push(imageBytes, ImageFormat.JPEG, null)
             val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            push(overlay(bitmap, null), ImageFormat.JPEG, null)
+            push(bitmap, ImageFormat.JPEG, null)
         } finally {
             if (image != null) {
                 image.close()
             }
         }
-    }
-
-    /**
-     * Allow overlay of images. Can mess around with canvas drawing too
-     */
-    private fun overlay(bmp1: Bitmap, bmp2: Bitmap?): Bitmap {
-        val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
-        val canvas = Canvas(bmOverlay)
-        canvas.drawBitmap(bmp1, Matrix(), null)
-        bmp2?.let {
-            canvas.drawBitmap(bmp2, Matrix(), null)
-        }
-        return bmOverlay
     }
 
     /**
