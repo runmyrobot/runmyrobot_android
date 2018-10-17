@@ -359,6 +359,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     companion object {
         fun initDependencies(context: Context, done: () -> Unit) {
             //Load FFMpeg
+            TelemetryManager.init(context)
             val ffmpeg = FFmpeg.getInstance(context.applicationContext)
             try {
                 ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
