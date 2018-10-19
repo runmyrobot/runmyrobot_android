@@ -237,17 +237,23 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onPause() {
-        if (!shouldRun.get()) {
-            return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (!shouldRun.get()) {
+                return
+            }
+            handler?.sendEmptyMessage(STOP)
         }
-        handler?.sendEmptyMessage(STOP)
+        TelemetryManager.Instance?.invoke("onPause", null)
     }
 
     fun onResume() {
-        if (!shouldRun.get()) {
-            return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (!shouldRun.get()) {
+                return
+            }
+            handler?.sendEmptyMessage(START)
         }
-        handler?.sendEmptyMessage(START)
+        TelemetryManager.Instance?.invoke("onResume", null)
     }
 
     /**
@@ -307,6 +313,15 @@ private constructor(val robotId : String, val cameraId : String?) {
 
             //RobotId MUST be defined, cameraId can be ignored
             if (robotId == null && cameraId == null || robotId == null) {
+                TelemetryManager.Instance?.let { tm ->
+                    val robotIdStr = robotId?.let{
+                        "Value"
+                    }
+                    val cameraIdStr = cameraId?.let{
+                        "Value"
+                    }
+                    tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
+                }
                 throw InitializationException()
             }
             val core = Core(robotId!!, cameraId)
@@ -316,15 +331,17 @@ private constructor(val robotId : String, val cameraId : String?) {
                 core.robotController = RobotControllerComponent(context, it)
                 //Setup our protocol, if it exists
                 val protocolClass = protocol?.getInstantiatedClass(context)
-                protocolClass?.let {
+                protocolClass?.let { protocol ->
+                    TelemetryManager.Instance?.invoke("Protocol Selection", protocol::javaClass.name)
                     //Add it to the component list
-                    core.externalComponents?.add(it)
+                    core.externalComponents?.add(protocol)
                 }
                 //Setup our communication, if it exists
                 val communicationClass = communication?.getInstantiatedClass
-                communicationClass?.let {
+                communicationClass?.let { communication ->
                     //Add it to the component list
-                    core.externalComponents?.add(CommunicationComponent(context, it))
+                    TelemetryManager.Instance?.invoke("Communication Selection", communication::javaClass.name)
+                    core.externalComponents?.add(CommunicationComponent(context, communication))
                 }
             }
             cameraId?.let{
@@ -332,13 +349,16 @@ private constructor(val robotId : String, val cameraId : String?) {
                     core.audio = AudioComponent(context, cameraId!!)
                 }
                 holder?.let {
-                    if(true){
+                    if(false/*TODO StoreUtil or autodetect*/){
+                        TelemetryManager.Instance?.invoke("Camera Selection", "ExtCameraInterface")
                         core.camera = ExtCameraInterface(context, cameraId!!)
                     }
                     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera2TextureComponent")
                         core.camera = Camera2TextureComponent(context, cameraId!!, holder!!)
                     }
                     else{
+                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera1TextureComponent")
                         core.camera = Camera1TextureComponent(context, cameraId!!, holder!!)
                     }
                 }
