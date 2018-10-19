@@ -100,7 +100,10 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
                     }
                 }
             } ?: (b as? Bitmap)?.let {
-                it.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                try {
+                    it.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                } catch (e: Exception) {
+                }
             }
         }
     }
