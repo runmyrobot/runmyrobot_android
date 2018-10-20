@@ -58,7 +58,7 @@ class TelemetryManager(val context: Context) : (String, Any?) -> Unit {
                 return _instance
             }
 
-        val dateFormat = SimpleDateFormat("YYYYMMddhhmm", Locale.US)
+        val dateFormat = SimpleDateFormat("yyyyMMddhhmm", Locale.US)
 
         /**
          * Initialize telemetry manager
