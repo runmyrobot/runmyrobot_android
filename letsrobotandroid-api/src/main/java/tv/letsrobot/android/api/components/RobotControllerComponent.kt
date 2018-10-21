@@ -98,6 +98,10 @@ class RobotControllerComponent internal constructor(context : Context, private v
                 mSocket?.emit("identify_robot_id", robotId)
                 EventManager.invoke(ROBOT_CONNECTED, null)
                 status = ComponentStatus.STABLE
+            }.on(Socket.EVENT_RECONNECT) {
+                mSocket?.emit("identify_robot_id", robotId)
+                EventManager.invoke(ROBOT_CONNECTED, null)
+                status = ComponentStatus.STABLE
             }.on(Socket.EVENT_CONNECT_ERROR) {
                 Log.d("Robot", "Err")
                 status = ComponentStatus.ERROR
