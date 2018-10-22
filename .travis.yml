@@ -33,5 +33,5 @@ android:
 before_script:
  - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
  - chmod +x gradlew
- - ls /usr/local/
+
 script: ./gradlew build check
