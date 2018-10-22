@@ -10,15 +10,15 @@ LOCAL_LDLIBS := \
 	-ljnigraphics \
 
 LOCAL_SRC_FILES := \
-	D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni\capture.c \
-	D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni\util.c \
-	D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni\video_device.c \
-	D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni\webcam.c \
-	D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni\yuv.c \
+	$(LOCAL_PATH)\src\main\jni\capture.c \
+	$(LOCAL_PATH)\src\main\jni\util.c \
+	$(LOCAL_PATH)\src\main\jni\video_device.c \
+	$(LOCAL_PATH)\src\main\jni\webcam.c \
+	$(LOCAL_PATH)\src\main\jni\yuv.c \
 
-LOCAL_C_INCLUDES += D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\main\jni
-LOCAL_C_INCLUDES += D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\debug\jni
-LOCAL_C_INCLUDES += D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\arm64_v8a\jni
-LOCAL_C_INCLUDES += D:\Git\Libraries\AndroidUvcDemo\ext_webcam\src\arm64_v8aDebug\jni
+LOCAL_C_INCLUDES += $(LOCAL_PATH)\src\main\jni
+LOCAL_C_INCLUDES += $(LOCAL_PATH)\src\debug\jni
+LOCAL_C_INCLUDES += $(LOCAL_PATH)\src\arm64_v8a\jni
+LOCAL_C_INCLUDES += $(LOCAL_PATH)\src\arm64_v8aDebug\jni
 
 include $(BUILD_SHARED_LIBRARY)
