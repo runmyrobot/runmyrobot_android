@@ -6,8 +6,6 @@ install:
   - echo y | sdkmanager "cmake;3.6.4111459"
   - echo y | sdkmanager "lldb;3.1"
     #  - sdkmanager --update
-before_script:
-  - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
 android:
   components:
     # Uncomment the lines below if you want to
@@ -33,6 +31,7 @@ android:
     - sys-img-armeabi-v7a-android-19
 
 before_script:
+ - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
  - chmod +x gradlew
  - ls /usr/local/
 script: ./gradlew build check
