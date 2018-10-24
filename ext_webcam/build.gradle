@@ -34,3 +34,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
+
+repositories {
+    mavenCentral()
+    google()
+}
