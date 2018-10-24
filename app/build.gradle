@@ -48,5 +48,6 @@ dependencies {
     implementation project(':letsrobotandroid-api')
 }
 repositories {
+    google()
     mavenCentral()
 }

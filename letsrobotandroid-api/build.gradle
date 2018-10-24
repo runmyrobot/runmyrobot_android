@@ -45,6 +45,6 @@ dependencies {
     api project(':ext_webcam')
 }
 repositories {
-    mavenCentral()
     google()
+    mavenCentral()
 }
