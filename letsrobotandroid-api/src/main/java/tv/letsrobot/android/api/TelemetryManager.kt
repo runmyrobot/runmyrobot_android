@@ -23,13 +23,14 @@ class TelemetryManager(val context: Context) : (String, Any?) -> Unit {
     private var batteryOut : PrintStream
     init {
         //main telemetry file
-        telemetryFile = File(context.getExternalFilesDir(null), dateFormat.format(sessionStart))
+        telemetryFile = File(context.getExternalFilesDir(null), "${dateFormat.format(sessionStart)}-logs")
         Log.d("TelemetryManager", "fileDir = ${telemetryFile.absolutePath}")
         telemetryFile.createNewFile()
         out = PrintStream(telemetryFile.outputStream())
         out.println("time,eventName,value,battery")
+        out.println("0, sessionStart, $sessionStart, ")
 
-        batteryFile = File(context.getExternalFilesDir(null), "battery-${dateFormat.format(sessionStart)}")
+        batteryFile = File(context.getExternalFilesDir(null), "${dateFormat.format(sessionStart)}-battery")
         batteryFile.createNewFile()
         batteryOut = PrintStream(batteryFile.outputStream())
         batteryOut.println("time,value")
@@ -53,20 +54,24 @@ class TelemetryManager(val context: Context) : (String, Any?) -> Unit {
         }
     }
 
-    private var lastTime: Long = 0
+    private var lastTime: Double = Double.NEGATIVE_INFINITY
 
     private fun logBattery(data: Any?) {
-        val currTime = System.currentTimeMillis()
+        val currTime = timeSinceStart
         (data as? PhoneBatteryMeter)?.takeIf {
-            currTime - lastTime > TimeUnit.MINUTES.toMillis(1)
+            lastTime == Double.NEGATIVE_INFINITY
+            || currTime - lastTime > TimeUnit.MINUTES.toSeconds(1)
         }?.let {
             batteryOut.println("$currTime,${it.batteryLevel}")
             lastTime = currTime
         }
     }
 
+    private val timeSinceStart: Double
+        get() {return (System.currentTimeMillis()-sessionStart.time)/1000.0}
+
     fun log(eventName : String, data : Any? = null){
-        out.print("${System.currentTimeMillis()}")
+        out.print(timeSinceStart)
         out.print(",")
         out.print(eventName)
         out.print(",")
