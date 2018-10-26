@@ -17,7 +17,7 @@ abstract class Component(val context: Context){
         set(value) {
             if(_status == value) return //Only set state if changed
             _status = value
-            EventManager.invoke(javaClass.name, value)
+            EventManager.invoke(getName(), value)
         }
 
     init {
@@ -28,6 +28,10 @@ abstract class Component(val context: Context){
 
     protected abstract fun enableInternal()
     protected abstract fun disableInternal()
+
+    open fun getName() : String{
+        return javaClass.simpleName
+    }
 
 
     /**

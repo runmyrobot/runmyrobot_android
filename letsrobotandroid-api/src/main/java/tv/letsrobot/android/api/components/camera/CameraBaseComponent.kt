@@ -42,6 +42,11 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         handler.start()
     }
 
+    //override getName so all of the camera classes have the same name
+    override fun getName(): String {
+        return CameraBaseComponent.EVENTNAME
+    }
+
     override fun enableInternal() {
         try {
             val client = OkHttpClient.Builder()
@@ -213,5 +218,6 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     companion object {
         const val LOGTAG = "Camera1TextureComponent"
         protected const val shouldLog = true
+        const val EVENTNAME = "CameraComponent"
     }
 }

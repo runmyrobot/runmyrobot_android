@@ -93,7 +93,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     init {
-        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         handlerThread.start()
         handler = Handler(handlerThread.looper){
             msg ->
@@ -109,7 +109,15 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             true
         }
-
+        EventManager.subscribe(EventManager.CHAT){
+            print(it as String)
+            if(it as? String == ".off"){
+                disable()
+            }
+            else if(it as? String == ".on"){
+                enable()
+            }
+        }
     }
 
     private var count = 0
@@ -144,7 +152,7 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     private fun enableInternal() {
         if(running.getAndSet(true)) return //already enabled
-        EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
         val client = OkHttpClient()
         val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)).build())
@@ -170,15 +178,15 @@ private constructor(val robotId : String, val cameraId : String?) {
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             Log.d(TAG, "appServerSocket EVENT_CONNECT_ERROR")
-            EventManager.invoke(javaClass.name, ComponentStatus.ERROR)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.ERROR)
         }
         appServerSocket?.on(Socket.EVENT_CONNECT){
             Log.d(TAG, "appServerSocket is connected!")
-            EventManager.invoke(javaClass.name, ComponentStatus.STABLE)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.STABLE)
             appServerSocket?.emit("identify_robot_id", robotId)
         }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
-            EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         }
         //Ugly way of doing timeouts. Should find a better way
         EventManager.subscribe(TIMEOUT, onControllerTimeout)
@@ -204,7 +212,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
         appServerSocket?.disconnect()
         EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
-        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         log(LogLevel.INFO, "core is shut down!")
     }
 
@@ -237,7 +245,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onPause() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
             if (!shouldRun.get()) {
                 return
             }
@@ -247,7 +255,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onResume() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
             if (!shouldRun.get()) {
                 return
             }

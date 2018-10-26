@@ -19,7 +19,7 @@ import tv.letsrobot.android.api.components.AudioComponent
 import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
-import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
+import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
@@ -94,12 +94,12 @@ class MainRobotActivity : Activity(), Runnable {
     }
 
     private fun initIndicators() { //Indicators for Core Services
-        cloudStatusIcon.setComponentInterface(Core::class.java.name)
-        cameraStatusIcon.setComponentInterface(Camera1TextureComponent::class.java.name)
-        robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.name)
-        micStatusIcon.setComponentInterface(AudioComponent::class.java.name)
-        ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.name)
-        robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.name)
+        cloudStatusIcon.setComponentInterface(Core::class.java.simpleName)
+        cameraStatusIcon.setComponentInterface(CameraBaseComponent.EVENTNAME)
+        robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.simpleName)
+        micStatusIcon.setComponentInterface(AudioComponent::class.java.simpleName)
+        ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.simpleName)
+        robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.simpleName)
         //To add more, add another icon to the layout file somewhere and pass in your component
     }
 
