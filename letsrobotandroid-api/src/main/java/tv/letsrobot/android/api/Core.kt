@@ -109,15 +109,6 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             true
         }
-        EventManager.subscribe(EventManager.CHAT){
-            print(it as String)
-            if(it as? String == ".off"){
-                disable()
-            }
-            else if(it as? String == ".on"){
-                enable()
-            }
-        }
     }
 
     private var count = 0
