@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
+import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.COMMAND
 import tv.letsrobot.android.api.EventManager.Companion.ROBOT_CONNECTED
@@ -52,11 +53,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     private var allowControl = true
 
-    override fun enable() : Boolean{
-        if(!super.enable()){
-            return false
-        }
-
+    override fun enableInternal(){
         var host: String? = null
         var port: String? = null
         val client = OkHttpClient()
@@ -101,9 +98,17 @@ class RobotControllerComponent internal constructor(context : Context, private v
                 mSocket?.emit("identify_robot_id", robotId)
                 EventManager.invoke(ROBOT_CONNECTED, null)
                 status = ComponentStatus.STABLE
+            }.on(Socket.EVENT_RECONNECT) {
+                mSocket?.emit("identify_robot_id", robotId)
+                EventManager.invoke(ROBOT_CONNECTED, null)
+                status = ComponentStatus.STABLE
             }.on(Socket.EVENT_CONNECT_ERROR) {
                 Log.d("Robot", "Err")
                 status = ComponentStatus.ERROR
+                Core.handler?.post {
+                    disable()
+                    enable()
+                }
             }.on(Socket.EVENT_DISCONNECT) {
                 EventManager.invoke(ROBOT_DISCONNECTED, null)
                 EventManager.invoke(STOP_EVENT, null)
@@ -141,7 +146,6 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }
             socket.connect()
         }
-        return true
     }
 
     /**
@@ -153,9 +157,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
         handler.postDelayed(runnable, 200)
     }
 
-    override fun disable() : Boolean {
-        if(!super.disable()) return false
+    override fun disableInternal(){
         mSocket?.disconnect()
-        return true
     }
 }

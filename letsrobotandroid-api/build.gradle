@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 28
-
+    buildToolsVersion = globalBuildToolsVersion
 
 
     defaultConfig {
@@ -42,7 +42,9 @@ dependencies {
     api project(':FFmpegAndroid-release')
     api 'com.google.guava:guava:26.0-android'
     api 'com.akexorcist:bluetoothspp:1.0.0'
+    api project(':ext_webcam')
 }
 repositories {
+    google()
     mavenCentral()
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.util.Log
+import tv.letsrobot.android.api.EventManager
 
 /**
  * Monitor Battery level by attaching to the battery broadcast receiver, ans storing the results
@@ -30,11 +31,11 @@ class PhoneBatteryMeter : BroadcastReceiver() {
         }
         _batteryLevel = level
         _scale = scale
+        EventManager.invoke(PhoneBatteryMeter::javaClass.name, this)
         Log.d("PhoneBatteryMeter", "rawLevel=$rawLevel : level=$level : scale=$scale")
     }
 
     companion object {
-
         private var receiver : PhoneBatteryMeter? = null
         private var intent : Intent? = null
 

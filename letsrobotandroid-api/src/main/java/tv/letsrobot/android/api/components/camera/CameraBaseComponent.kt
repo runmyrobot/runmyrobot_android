@@ -1,12 +1,9 @@
-package tv.letsrobot.android.api.components
+package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
-import android.hardware.Camera
+import android.graphics.*
+import android.os.HandlerThread
 import android.util.Log
-import android.view.SurfaceHolder
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
@@ -21,35 +18,36 @@ import tv.letsrobot.android.api.utils.StoreUtil
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 /**
- * Class that contains only the camera components for streaming to letsrobot.tv
- *
- * To make this functional, pass in cameraId and a valid SurfaceHolder to a Core.Builder instance
- *
- * This will grab the camera password automatically from config file
+ * Abstracted class for different camera implementations
  */
-class CameraComponent
-/**
- * Init camera object.
- * @param context Needed to access the camera
- * @param cameraId camera id for robot
- */
-constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) : Component(context), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback, SurfaceHolder.Callback {
+abstract class CameraBaseComponent(context: Context, val cameraId: String) : Component(context), FFmpegExecuteResponseHandler {
     internal var ffmpegRunning = AtomicBoolean(false)
-    var ffmpeg : FFmpeg
-    init {
-        holder.addCallback(this)
-        ffmpeg = FFmpeg.getInstance(context)
-    }
-    var UUID = java.util.UUID.randomUUID().toString()
+    protected var ffmpeg : FFmpeg = FFmpeg.getInstance(context)
+    protected var UUID = java.util.UUID.randomUUID().toString()
     var process : Process? = null
-    var port: String? = null
-    var host: String? = null
-    var streaming = AtomicBoolean(false)
-    var previewRunning = false
-    override fun enable() : Boolean{
-        if(!super.enable()) return false
+    protected var port: String? = null
+    protected var host: String? = null
+    protected var streaming = AtomicBoolean(false)
+    protected var previewRunning = false
+    protected var width = 0
+    protected var height = 0
+    protected var limiter = RateLimiter.create(30.0)
+    protected val cameraActive = AtomicBoolean(false)
+    protected var successCounter: Int = 0
+
+    private var handler = HandlerThread("CameraProcessing")
+
+    init {
+        handler.start()
+    }
+
+    //override getName so all of the camera classes have the same name
+    override fun getName(): String {
+        return CameraBaseComponent.EVENTNAME
+    }
+
+    override fun enableInternal() {
         try {
             val client = OkHttpClient.Builder()
                     .build()
@@ -77,10 +75,65 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         }
         else
             streaming.set(true)
-        return true
     }
 
-    private var successCounter: Int = 0
+    override fun disableInternal() {
+        streaming.set(false)
+    }
+
+    fun push(b : Any?, format : Int, r : Rect?){
+        if(!streaming.get()) return
+        if(!limiter.tryAcquire()) return
+        if (!ffmpegRunning.getAndSet(true)) {
+            bootFFMPEG()
+        }
+        process?.let { _process ->
+            (b as? ByteArray)?.let {
+                when(format){
+                    ImageFormat.JPEG -> {
+                        _process.outputStream.write(b)
+                    }
+                    ImageFormat.NV21 -> {
+                        val im = YuvImage(b, format, width, height, null)
+                        try {
+                            im.compressToJpeg(r, 100, _process.outputStream)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    else -> {
+                    }
+                }
+            } ?: (b as? Bitmap)?.let {
+                try {
+                    it.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                } catch (e: Exception) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Allow overlay of images. Can mess around with canvas drawing too
+     */
+    private fun overlay(bmp1: Bitmap, bmp2: Bitmap?): Bitmap {
+        val bmOverlay = Bitmap.createBitmap(bmp1.width, bmp1.height, bmp1.config)
+        val canvas = Canvas(bmOverlay)
+        canvas.drawBitmap(bmp1, Matrix(), null)
+        bmp2?.let {
+            canvas.drawBitmap(bmp2, Matrix(), null)
+        }
+        /*var msg = "Testing Camera..."
+        var paint = Paint()
+        paint.color = Color.RED
+        paint.textSize = 20f
+        canvas.drawText(msg, 100f, 100f, paint)*/
+        return bmOverlay
+    }
+
+    fun byteArrayPush(b : ByteArray, format : Int, r : Rect){
+
+    }
 
     fun bootFFMPEG(){
         if(!streaming.get()){
@@ -113,73 +166,6 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
             e.printStackTrace()
             // Handle if FFmpeg is already running
         }
-    }
-
-    var width = 0
-    var height = 0
-    var limiter = RateLimiter.create(30.0)
-
-    private lateinit var r: Rect
-
-    override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
-        if(!streaming.get()) return
-        if(!limiter.tryAcquire()) return
-        if (width == 0 || height == 0) {
-            camera?.parameters?.let {
-                val size = it.previewSize
-                width = size.width
-                height = size.height
-                r = Rect(0, 0, width, height)
-            }
-        }
-        if (!ffmpegRunning.getAndSet(true)) {
-            bootFFMPEG()
-        }
-        process?.let {
-            val im = YuvImage(b, ImageFormat.NV21, width, height, null)
-            try {
-                im.compressToJpeg(r, 100, it.outputStream)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun setupCam(){
-        if (!cameraActive.get() && surface) {
-            camera?.let {
-                if (previewRunning) {
-                    it.stopPreview()
-                }
-
-                try {
-                    val p = it.parameters
-                    val previewSizes = p.supportedPreviewSizes
-                    // You need to choose the most appropriate previewSize for your app
-                    val previewSize = previewSizes.get(0) // .... select one of previewSizes here
-                    //p.setPreviewSize(previewSize.width, previewSize.height);
-                    p.setPreviewSize(640, 480)
-                    it.parameters = p
-
-                    it.setPreviewDisplay(holder)
-                    it.setPreviewCallback(this)
-                    Log.v(LOGTAG, "startPreview")
-                    it.startPreview()
-                    previewRunning = true
-                    cameraActive.set(true)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    override fun disable() : Boolean{
-        if(!super.disable()) return false
-        // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
-        // And sever the stream
-        streaming.set(false)
-        return true
     }
 
     override fun onStart() {
@@ -229,34 +215,9 @@ constructor(context: Context, val cameraId: String, val holder: SurfaceHolder) :
         this.process = p0
     }
 
-    private var camera : android.hardware.Camera? = null
-
-    private var surface = false
-
-    override fun surfaceCreated(holder: SurfaceHolder) {
-        surface = true
-        camera = Camera.open()
-        camera?.setDisplayOrientation(90)
-    }
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        setupCam()
-    }
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-        Log.v("CameraAPI", "surfaceDestroyed")
-        cameraActive.set(false)
-        surface = false
-        previewRunning = false
-        camera?.stopPreview()
-        camera?.setPreviewCallback (null)
-        camera?.release()
-        camera = null
-    }
-
     companion object {
-        private const val LOGTAG = "CameraComponent"
-        private const val shouldLog = true
-        private val cameraActive = AtomicBoolean(false)
+        const val LOGTAG = "Camera1TextureComponent"
+        protected const val shouldLog = true
+        const val EVENTNAME = "CameraComponent"
     }
 }

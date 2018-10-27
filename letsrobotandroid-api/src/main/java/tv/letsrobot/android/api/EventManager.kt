@@ -27,6 +27,7 @@ import android.util.Log
 class EventManager{
     companion object {
         private val subscribers = HashMap<String, ArrayList<(Any?) -> Unit>>()
+        private val globalListener = ArrayList<(String, Any?) -> Unit>()
         const val COMMAND: String = "command"
         const val TIMEOUT: String = "timeout"
         const val ROBOT_DISCONNECTED = "robot_disconnect"
@@ -45,6 +46,15 @@ class EventManager{
             if(!list.contains(listener))
                 list.add(listener)
             subscribers[event] = list
+        }
+
+        fun subscribe(listener: (String, Any?) -> Unit){
+            if(!globalListener.contains(listener))
+                globalListener.add(listener)
+        }
+
+        fun unsubscribe(listener: (String, Any?) -> Unit){
+            globalListener.remove(listener)
         }
 
         /**
@@ -68,6 +78,13 @@ class EventManager{
                         it(message)
                     } catch (e: Exception) {
                     }
+                }
+            }
+            globalListener.forEach{
+                try {
+                    it(event, message)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }

@@ -21,6 +21,7 @@
     <application
         android:name=".RobotApplication"
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -34,6 +35,8 @@
             android:name="tv.letsrobot.android.api.drivers.UsbService"
             android:enabled="true"
             android:permission="" />
+
+        <service android:name="com.ford.openxc.webcam.webcam.WebcamService"/>
 
         <activity
             android:name=".activities.UsbInterceptor"

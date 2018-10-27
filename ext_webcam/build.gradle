@@ -1,0 +1,41 @@
+apply plugin: 'com.android.library'
+//https://github.com/btelman96/AndroidUvcDemo
+android {
+    compileSdkVersion 28
+    buildToolsVersion = globalBuildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    externalNativeBuild {
+        ndkBuild {
+            // Tells Gradle to find the root ndk-build script in the same
+            // directory as the module's build.gradle file. Gradle requires this
+            // build script to add your ndk-build project as a build dependency and
+            // pull your native sources into your Android project.
+            path "Android.mk"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+repositories {
+    google()
+    mavenCentral()
+}

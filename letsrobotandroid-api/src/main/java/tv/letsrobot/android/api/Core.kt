@@ -1,10 +1,11 @@
 package tv.letsrobot.android.api
 
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.SurfaceHolder
+import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
@@ -15,7 +16,14 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
-import tv.letsrobot.android.api.components.*
+import tv.letsrobot.android.api.components.AudioComponent
+import tv.letsrobot.android.api.components.CommunicationComponent
+import tv.letsrobot.android.api.components.RobotControllerComponent
+import tv.letsrobot.android.api.components.TextToSpeechComponent
+import tv.letsrobot.android.api.components.camera.CameraBaseComponent
+import tv.letsrobot.android.api.components.camera.ExtCameraInterface
+import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
+import tv.letsrobot.android.api.components.camera.api21.Camera2TextureComponent
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
@@ -42,7 +50,7 @@ class Core
 private constructor(val robotId : String, val cameraId : String?) {
     private val handlerThread: HandlerThread = HandlerThread("bg-thread")
     private var logLevel = LogLevel.NONE
-    var camera: CameraComponent? = null
+    var camera: CameraBaseComponent? = null
     var audio: AudioComponent? = null
     var robotController: RobotControllerComponent? = null
     var textToSpeech: TextToSpeechComponent? = null
@@ -85,7 +93,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     init {
-        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         handlerThread.start()
         handler = Handler(handlerThread.looper){
             msg ->
@@ -101,7 +109,6 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             true
         }
-
     }
 
     private var count = 0
@@ -136,7 +143,7 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     private fun enableInternal() {
         if(running.getAndSet(true)) return //already enabled
-        EventManager.invoke(javaClass.name, ComponentStatus.CONNECTING)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
         val client = OkHttpClient()
         val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)).build())
@@ -162,15 +169,15 @@ private constructor(val robotId : String, val cameraId : String?) {
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             Log.d(TAG, "appServerSocket EVENT_CONNECT_ERROR")
-            EventManager.invoke(javaClass.name, ComponentStatus.ERROR)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.ERROR)
         }
         appServerSocket?.on(Socket.EVENT_CONNECT){
             Log.d(TAG, "appServerSocket is connected!")
-            EventManager.invoke(javaClass.name, ComponentStatus.STABLE)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.STABLE)
             appServerSocket?.emit("identify_robot_id", robotId)
         }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
-            EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+            EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         }
         //Ugly way of doing timeouts. Should find a better way
         EventManager.subscribe(TIMEOUT, onControllerTimeout)
@@ -196,7 +203,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
         appServerSocket?.disconnect()
         EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
-        EventManager.invoke(javaClass.name, ComponentStatus.DISABLED)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         log(LogLevel.INFO, "core is shut down!")
     }
 
@@ -229,17 +236,23 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onPause() {
-        if (!shouldRun.get()) {
-            return
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            if (!shouldRun.get()) {
+                return
+            }
+            handler?.sendEmptyMessage(STOP)
         }
-        handler?.sendEmptyMessage(STOP)
+        TelemetryManager.Instance?.invoke("onPause", null)
     }
 
     fun onResume() {
-        if (!shouldRun.get()) {
-            return
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            if (!shouldRun.get()) {
+                return
+            }
+            handler?.sendEmptyMessage(START)
         }
-        handler?.sendEmptyMessage(START)
+        TelemetryManager.Instance?.invoke("onResume", null)
     }
 
     /**
@@ -285,7 +298,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         var useTTS = false
 
         var useMic = false
-        var holder: SurfaceHolder? = null
+        var holder: TextureView? = null
         var externalComponents: ArrayList<Component>? = null
 
         /**
@@ -299,6 +312,15 @@ private constructor(val robotId : String, val cameraId : String?) {
 
             //RobotId MUST be defined, cameraId can be ignored
             if (robotId == null && cameraId == null || robotId == null) {
+                TelemetryManager.Instance?.let { tm ->
+                    val robotIdStr = robotId?.let{
+                        "Value"
+                    }
+                    val cameraIdStr = cameraId?.let{
+                        "Value"
+                    }
+                    tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
+                }
                 throw InitializationException()
             }
             val core = Core(robotId!!, cameraId)
@@ -308,15 +330,17 @@ private constructor(val robotId : String, val cameraId : String?) {
                 core.robotController = RobotControllerComponent(context, it)
                 //Setup our protocol, if it exists
                 val protocolClass = protocol?.getInstantiatedClass(context)
-                protocolClass?.let {
+                protocolClass?.let { protocol ->
+                    TelemetryManager.Instance?.invoke("Protocol Selection", protocol::javaClass.name)
                     //Add it to the component list
-                    core.externalComponents?.add(it)
+                    core.externalComponents?.add(protocol)
                 }
                 //Setup our communication, if it exists
                 val communicationClass = communication?.getInstantiatedClass
-                communicationClass?.let {
+                communicationClass?.let { communication ->
                     //Add it to the component list
-                    core.externalComponents?.add(CommunicationComponent(context, it))
+                    TelemetryManager.Instance?.invoke("Communication Selection", communication::javaClass.name)
+                    core.externalComponents?.add(CommunicationComponent(context, communication))
                 }
             }
             cameraId?.let{
@@ -324,7 +348,18 @@ private constructor(val robotId : String, val cameraId : String?) {
                     core.audio = AudioComponent(context, cameraId!!)
                 }
                 holder?.let {
-                    core.camera = CameraComponent(context, cameraId!!, holder!!)
+                    if(false/*TODO StoreUtil or autodetect*/){
+                        TelemetryManager.Instance?.invoke("Camera Selection", "ExtCameraInterface")
+                        core.camera = ExtCameraInterface(context, cameraId!!)
+                    }
+                    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera2TextureComponent")
+                        core.camera = Camera2TextureComponent(context, cameraId!!, holder!!)
+                    }
+                    else{
+                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera1TextureComponent")
+                        core.camera = Camera1TextureComponent(context, cameraId!!, holder!!)
+                    }
                 }
             }
             if (useTTS) {
@@ -343,6 +378,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     companion object {
         fun initDependencies(context: Context, done: () -> Unit) {
             //Load FFMpeg
+            TelemetryManager.init(context)
             val ffmpeg = FFmpeg.getInstance(context.applicationContext)
             try {
                 ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
