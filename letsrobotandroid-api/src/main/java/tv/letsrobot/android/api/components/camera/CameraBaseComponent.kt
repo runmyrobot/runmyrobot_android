@@ -2,6 +2,7 @@ package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
 import android.graphics.*
+import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
@@ -17,6 +18,7 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.StoreUtil
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Abstracted class for different camera implementations
@@ -34,13 +36,56 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     protected var height = 0
     protected var limiter = RateLimiter.create(30.0)
     protected val cameraActive = AtomicBoolean(false)
+    private val cameraPacketNumber = AtomicLong(1)
     protected var successCounter: Int = 0
 
-    private var handler = HandlerThread("CameraProcessing")
-
+    private var handlerThread = HandlerThread("CameraProcessing")
+    var handler: Handler
     init {
-        handler.start()
+        handlerThread.start()
+        handler = Handler(handlerThread.looper){ message ->
+            when(message.what){
+                CAMERA_PUSH -> {
+                    (message.obj as? CameraPackage)?.takeIf {
+                        it.packetId == cameraPacketNumber.get()
+                    }?.let {
+                        if(streaming.get() && limiter.tryAcquire()) {
+                            if (!ffmpegRunning.getAndSet(true)) {
+                                bootFFMPEG()
+                            }
+                            process?.let { _process ->
+                                (it.b as? ByteArray)?.let { _ ->
+                                    when (it.format) {
+                                        ImageFormat.JPEG -> {
+                                            _process.outputStream.write(it.b)
+                                        }
+                                        ImageFormat.NV21 -> {
+                                            val im = YuvImage(it.b, it.format, width, height, null)
+                                            try {
+                                                im.compressToJpeg(it.r, 100, _process.outputStream)
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                            }
+                                        }
+                                        else -> {
+                                        }
+                                    }
+                                } ?: (it.b as? Bitmap)?.let { image ->
+                                    try {
+                                        image.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                                    } catch (e: Exception) {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else -> {}
+            }
+            return@Handler true
+        }
     }
+
 
     //override getName so all of the camera classes have the same name
     override fun getName(): String {
@@ -81,36 +126,11 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         streaming.set(false)
     }
 
+    private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?, val packetId : Long)
+
     fun push(b : Any?, format : Int, r : Rect?){
-        if(!streaming.get()) return
-        if(!limiter.tryAcquire()) return
-        if (!ffmpegRunning.getAndSet(true)) {
-            bootFFMPEG()
-        }
-        process?.let { _process ->
-            (b as? ByteArray)?.let {
-                when(format){
-                    ImageFormat.JPEG -> {
-                        _process.outputStream.write(b)
-                    }
-                    ImageFormat.NV21 -> {
-                        val im = YuvImage(b, format, width, height, null)
-                        try {
-                            im.compressToJpeg(r, 100, _process.outputStream)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                    else -> {
-                    }
-                }
-            } ?: (b as? Bitmap)?.let {
-                try {
-                    it.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
-                } catch (e: Exception) {
-                }
-            }
-        }
+        handler.obtainMessage(CAMERA_PUSH,
+                CameraPackage(b, format, r, cameraPacketNumber.incrementAndGet())).sendToTarget()
     }
 
     /**
@@ -219,5 +239,6 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         const val LOGTAG = "Camera1TextureComponent"
         protected const val shouldLog = true
         const val EVENTNAME = "CameraComponent"
+        private const val CAMERA_PUSH = 0
     }
 }
