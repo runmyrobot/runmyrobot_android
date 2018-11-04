@@ -93,9 +93,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
             push(bitmap, ImageFormat.JPEG, null)
         } finally {
-            if (image != null) {
-                image.close()
-            }
+            image?.close()
         }
     }
 
