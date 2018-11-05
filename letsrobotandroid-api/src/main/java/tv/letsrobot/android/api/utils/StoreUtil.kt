@@ -87,10 +87,12 @@ object StoreUtil {
     }
 
     /**
-     * Get bitrate in kbps
+     * Get bitrate in kbps. Defaults to 512 if nothing setup
      */
     fun getBitrate(context: Context): String {
-        return getSharedPrefs(context).getString("videoBitrate", "10")
+        return getSharedPrefs(context).getString("videoBitrate", null)
+                ?.let { it }
+                ?: "512"
     }
 
     /**

@@ -15,7 +15,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.android.api.models.CameraSettings
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * Abstracted class for different camera implementations
  */
-abstract class CameraBaseComponent(context: Context, val cameraId: String) : Component(context), FFmpegExecuteResponseHandler {
+abstract class CameraBaseComponent(context: Context, val config: CameraSettings) : Component(context), FFmpegExecuteResponseHandler {
     internal var ffmpegRunning = AtomicBoolean(false)
     protected var ffmpeg : FFmpeg = FFmpeg.getInstance(context)
     protected var UUID = java.util.UUID.randomUUID().toString()
@@ -32,12 +32,12 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     protected var host: String? = null
     protected var streaming = AtomicBoolean(false)
     protected var previewRunning = false
-    protected var width = 0
-    protected var height = 0
-    protected var bitrateKb = 4096
+    protected var width = config.width
+    protected var height = config.height
+    protected var bitrateKb = config.bitrate
 
     //limits pushes to ffmpeg
-    protected var limiter = RateLimiter.create(30.0)
+    protected var limiter = RateLimiter.create(config.frameRate.toDouble())
     protected val cameraActive = AtomicBoolean(false)
     private val cameraPacketNumber = AtomicLong(1)
     protected var successCounter: Int = 0
@@ -99,14 +99,14 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         try {
             val client = OkHttpClient.Builder()
                     .build()
-            var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", cameraId)).build())
+            var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId)).build())
             var response = call.execute()
             if (response.body() != null) {
                 val `object` = JSONObject(response.body()!!.string())
                 Log.d("ROBOT", `object`.toString())
                 port = `object`.getString("mpeg_stream_port")
             }
-            call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_websocket_relay_host/%s", cameraId)).build())
+            call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId)).build())
             response = call.execute()
             if (response.body() != null) {
                 val `object` = JSONObject(response.body()!!.string())
@@ -168,10 +168,10 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
         status = ComponentStatus.CONNECTING
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
-            val xres = "640"
-            val yres = "480"
+            val xres = width
+            val yres = height
 
-            val rotationOption = StoreUtil.getOrientation(context).ordinal //leave blank
+            val rotationOption = config.orientation.ordinal //leave blank
             val builder = StringBuilder()
             for (i in 0..rotationOption){
                 if(i == 0) builder.append("-vf transpose=1")
@@ -181,9 +181,9 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
             val kbps = bitrateKb
             val video_host = host
             val video_port = port
-            val stream_key = StoreUtil.getCameraPass(context)
+            val stream_key = config.pass
             //TODO hook up with resolution prefs
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b ${kbps}k -minrate ${kbps}k -maxrate ${kbps}k -bufsize ${kbps/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${kbps}k -minrate ${kbps}k -maxrate ${kbps}k -bufsize ${kbps/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()

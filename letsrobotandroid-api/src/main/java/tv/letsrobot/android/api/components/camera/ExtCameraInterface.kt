@@ -8,11 +8,12 @@ import android.graphics.ImageFormat
 import android.os.IBinder
 import android.util.Log
 import com.ford.openxc.webcam.webcam.WebcamService
+import tv.letsrobot.android.api.models.CameraSettings
 
 /**
  * Created by Brendon on 10/13/2018.
  */
-class ExtCameraInterface(context: Context, cameraId: String) : CameraBaseComponent(context, cameraId), Runnable{
+class ExtCameraInterface(context: Context, settings: CameraSettings) : CameraBaseComponent(context, settings), Runnable{
 
     private var mWebcamService: WebcamService? = null
     private val mServiceSyncToken = java.lang.Object()
