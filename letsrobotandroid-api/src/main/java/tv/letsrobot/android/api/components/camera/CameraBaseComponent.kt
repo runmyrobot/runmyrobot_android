@@ -34,6 +34,9 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
     protected var previewRunning = false
     protected var width = 0
     protected var height = 0
+    protected var bitrateKb = 4096
+
+    //limits pushes to ffmpeg
     protected var limiter = RateLimiter.create(30.0)
     protected val cameraActive = AtomicBoolean(false)
     private val cameraPacketNumber = AtomicLong(1)
@@ -175,12 +178,12 @@ abstract class CameraBaseComponent(context: Context, val cameraId: String) : Com
                 else builder.append(",transpose=1")
             }
             print("\"$builder\"")
-            val kbps = "20"
+            val kbps = bitrateKb
             val video_host = host
             val video_port = port
             val stream_key = StoreUtil.getCameraPass(context)
             //TODO hook up with bitrate and resolution prefs
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b 4000k -minrate 4000k -maxrate 4000k -bufsize 1835k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate 30 -codec:v mpeg1video -b ${kbps}k -minrate ${kbps}k -maxrate ${kbps}k -bufsize ${kbps/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()
