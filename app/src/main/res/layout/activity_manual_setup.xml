@@ -115,14 +115,14 @@
                 android:layout_gravity="start|center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bitrate (kbps)"/>
+                android:text="Bitrate (kbps)\nless than 500 may not work correctly"/>
             <EditText
                 android:layout_gravity="end|center_vertical"
                 android:id="@+id/bitrateEditText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:inputType="text" />
+                android:inputType="number" />
         </GridLayout>
         <GridLayout
             android:columnCount="2"

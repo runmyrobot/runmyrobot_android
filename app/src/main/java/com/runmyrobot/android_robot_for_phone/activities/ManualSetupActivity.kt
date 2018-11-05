@@ -30,7 +30,7 @@ class ManualSetupActivity : AppCompatActivity() {
         screenOverlaySettingsButton.isChecked = StoreUtil.getScreenSleepOverlayEnabled(this)
         bitrateEditText.setText(StoreUtil.getBitrate(this))
         resolutionEditText.setText(StoreUtil.getResolution(this))
-        bitrateEditText.isEnabled = false
+        bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
@@ -94,7 +94,7 @@ class ManualSetupActivity : AppCompatActivity() {
             StoreUtil.setCameraPass(this, it.toString())
         }
         bitrateEditText.text.takeIf { !it.isBlank() }?.let {
-            //TODO Add pref for this
+            StoreUtil.setBitrate(this, it.toString())
         }
         resolutionEditText.text.takeIf { !it.isBlank() }?.let {
             //TODO Add pref for this
@@ -112,7 +112,7 @@ class ManualSetupActivity : AppCompatActivity() {
     fun checkState(cameraChecked : Boolean){
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
-        //bitrateEditText.isEnabled = cameraChecked //TODO implement these, then enable this
+        bitrateEditText.isEnabled = cameraChecked //TODO implement these, then enable this
         //resolutionEditText.isEnabled = cameraChecked
     }
 }
