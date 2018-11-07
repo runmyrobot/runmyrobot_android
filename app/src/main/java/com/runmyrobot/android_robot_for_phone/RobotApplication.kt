@@ -2,9 +2,8 @@ package com.runmyrobot.android_robot_for_phone
 
 import android.app.Application
 import android.widget.Toast
-import com.bugsnag.android.Bugsnag
+import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
-import tv.letsrobot.android.api.utils.StoreUtil
 
 /**
  * Application class
@@ -16,26 +15,17 @@ class RobotApplication : Application() {
         super.onCreate()
         instance = this
         meter = PhoneBatteryMeter.getReceiver(applicationContext)
-        Bugsnag.init(this)
-        if(!StoreUtil.getErrorReportingEnabled(this)){
-            Bugsnag.setNotifyReleaseStages("")
-        }
     }
 
     /**
      * Report an error. Do not report if user has reporting turned off
      *
-     * Tying every error through here to make it easy to switch error reporting servers in the future
+     * Tying every error through here to make it easy to switch error reporting
      */
     fun reportError(e: Exception) {
-        if(StoreUtil.getErrorReportingEnabled(this)) {
-            Bugsnag.notify(e)
-            Toast.makeText(this, "ERROR:\n${e.message} " +
-                    "\nError has been reported", Toast.LENGTH_LONG).show()
-        }
-        else
-            Toast.makeText(this, "ERROR:\n${e.message} " +
-                    "\nNot reporting since reporting is turned off", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "ERROR:\n${e.message} " +
+                "\n", Toast.LENGTH_LONG).show()
+        TelemetryManager.Instance?.invoke("error", e.toString())
     }
 
     companion object {
