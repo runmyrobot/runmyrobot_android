@@ -29,21 +29,22 @@ class Camera1TextureComponent
  */
 constructor(context: Context, settings: CameraSettings, textureView: TextureView) : TextureViewCameraBaseComponent(context, settings, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
 
-    private lateinit var r: Rect
+    private var r: Rect? = null
     private var camera : android.hardware.Camera? = null
-
+    private var _widthV1 = 0
+    private var _heightV1 = 0
     init {
         Log.v("CameraAPI", "init")
         init()
     }
 
     override fun onPreviewFrame(b: ByteArray?, camera: android.hardware.Camera?) {
-        if (width == 0 || height == 0) {
+        if (_widthV1 == 0 || _heightV1 == 0) {
             camera?.parameters?.let {
                 val size = it.previewSize
-                width = size.width
-                height = size.height
-                r = Rect(0, 0, width, height)
+                _widthV1 = size.width
+                _heightV1 = size.height
+                r = Rect(0, 0, _widthV1, _heightV1)
             }
         }
         push(b, ImageFormat.NV21, r)
@@ -78,7 +79,7 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
                     // You need to choose the most appropriate previewSize for your app
                     val previewSize = previewSizes.get(0) // .... select one of previewSizes here
                     //p.setPreviewSize(previewSize.width, previewSize.height);
-                    p.setPreviewSize(width, height)
+                    p.setPreviewSize(640, 480)
                     it.parameters = p
                     it.setPreviewTexture(textureView.surfaceTexture)
                     it.setPreviewCallback(this)

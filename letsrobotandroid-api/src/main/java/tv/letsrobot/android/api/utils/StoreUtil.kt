@@ -2,6 +2,7 @@ package tv.letsrobot.android.api.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
@@ -173,5 +174,26 @@ object StoreUtil {
             }
         }
         return CameraDirection.DIR_90
+    }
+
+    /**
+     * Use legacy camera1 api.
+     * Useless when api is less than 21, since newer camera api is not supported on those versions
+     */
+    fun setUseLegacyCamera(context: Context, b: Boolean) {
+        getSharedPrefs(context).edit().putBoolean("camera1api", b).apply()
+    }
+
+    /**
+     * Use legacy camera1 api.
+     * Automatically evaluates to true and is ignored if less than api 21
+     */
+    fun getUseLegacyCamera(context: Context): Boolean {
+        return if(Build.VERSION.SDK_INT >= 21){
+            getSharedPrefs(context).getBoolean("camera1api", false)
+        }
+        else{
+            true
+        }
     }
 }

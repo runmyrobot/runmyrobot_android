@@ -138,6 +138,7 @@ class MainRobotActivity : Activity(), Runnable {
                     width = 640, //TODO tie into settings
                     height = 480, //TODO tie into settings
                     bitrate = StoreUtil.getBitrate(this).toInt(),
+                    useLegacyApi = StoreUtil.getUseLegacyCamera(this),
                     orientation = StoreUtil.getOrientation(this))
             builder.cameraSettings = settings
         }

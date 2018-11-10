@@ -145,6 +145,11 @@
         </GridLayout>
     </LinearLayout>
     <Switch
+        android:id="@+id/legacyCameraEnableToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Legacy Camera API (Screen cannot be turned off. Might be faster)"/>
+    <Switch
         android:id="@+id/micEnableButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

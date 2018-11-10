@@ -22,7 +22,7 @@ import tv.letsrobot.android.api.models.CameraSettings
  */
 @RequiresApi(21)
 class Camera2TextureComponent(context: Context, settings: CameraSettings, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, settings, surfaceView), ImageReader.OnImageAvailableListener {
-    val reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1)
+    val reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 10)
 
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     /**
@@ -65,7 +65,6 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
             e.printStackTrace()
             throw RuntimeException("Interrupted while trying to lock camera opening.")
         }
-
     }
 
     override fun releaseCamera() {
@@ -87,12 +86,14 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
         var image: Image? = null
         try {
             image = reader?.acquireLatestImage()
-            val buffer = image!!.planes[0].buffer
-            val imageBytes = ByteArray(buffer.remaining())
-            buffer.get(imageBytes)
-            //push(imageBytes, ImageFormat.JPEG, null)
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            push(bitmap, ImageFormat.JPEG, null)
+            image?.let {
+                val buffer = it.planes[0].buffer
+                val imageBytes = ByteArray(buffer.remaining())
+                buffer.get(imageBytes)
+                //push(imageBytes, ImageFormat.JPEG, null)
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                push(bitmap, ImageFormat.JPEG, null)
+            }
         } finally {
             image?.close()
         }
