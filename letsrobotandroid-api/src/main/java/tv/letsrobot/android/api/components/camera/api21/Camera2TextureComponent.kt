@@ -86,12 +86,14 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
         var image: Image? = null
         try {
             image = reader?.acquireLatestImage()
-            val buffer = image!!.planes[0].buffer
-            val imageBytes = ByteArray(buffer.remaining())
-            buffer.get(imageBytes)
-            //push(imageBytes, ImageFormat.JPEG, null)
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            push(bitmap, ImageFormat.JPEG, null)
+            image?.let {
+                val buffer = it.planes[0].buffer
+                val imageBytes = ByteArray(buffer.remaining())
+                buffer.get(imageBytes)
+                //push(imageBytes, ImageFormat.JPEG, null)
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                push(bitmap, ImageFormat.JPEG, null)
+            }
         } finally {
             image?.close()
         }
