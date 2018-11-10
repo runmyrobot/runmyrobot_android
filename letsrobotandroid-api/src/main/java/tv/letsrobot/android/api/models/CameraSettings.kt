@@ -11,4 +11,4 @@ data class CameraSettings(val cameraId : String,
                           val height : Int = 480,
                           val bitrate : Int = 512,
                           val orientation: CameraDirection = CameraDirection.DIR_90,
-                          val frameRate : Int = 30)
+                          val frameRate : Int = 25)
