@@ -28,6 +28,7 @@ import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.models.CameraSettings
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -288,11 +289,6 @@ private constructor(val robotId : String, val cameraId : String?) {
         var robotId: String? = null
 
         /**
-         * Id for the camera to use to send video to the website
-         */
-        var cameraId: String? = null
-
-        /**
          * Should chat messages be piped through the android speaker?
          */
         var useTTS = false
@@ -300,6 +296,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         var useMic = false
         var holder: TextureView? = null
         var externalComponents: ArrayList<Component>? = null
+        var cameraSettings: CameraSettings? = null
 
         /**
          * Build a configured instance of Core.
@@ -311,19 +308,19 @@ private constructor(val robotId : String, val cameraId : String?) {
             //TODO define preconditions that will throw errors
 
             //RobotId MUST be defined, cameraId can be ignored
-            if (robotId == null && cameraId == null || robotId == null) {
+            if (robotId == null && cameraSettings?.cameraId == null || robotId == null) {
                 TelemetryManager.Instance?.let { tm ->
                     val robotIdStr = robotId?.let{
                         "Value"
                     }
-                    val cameraIdStr = cameraId?.let{
+                    val cameraIdStr = cameraSettings?.cameraId?.let{
                         "Value"
                     }
                     tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
                 }
                 throw InitializationException()
             }
-            val core = Core(robotId!!, cameraId)
+            val core = Core(robotId!!, cameraSettings?.cameraId)
             //Get list of external components, such as LED code, or more customized motor control
             core.externalComponents = externalComponents
             robotId?.let{
@@ -343,22 +340,22 @@ private constructor(val robotId : String, val cameraId : String?) {
                     core.externalComponents?.add(CommunicationComponent(context, communication))
                 }
             }
-            cameraId?.let{
+            cameraSettings?.let{ config ->
                 if(useMic) {
-                    core.audio = AudioComponent(context, cameraId!!)
+                    core.audio = AudioComponent(context, config.cameraId)
                 }
                 holder?.let {
                     if(false/*TODO StoreUtil or autodetect*/){
                         TelemetryManager.Instance?.invoke("Camera Selection", "ExtCameraInterface")
-                        core.camera = ExtCameraInterface(context, cameraId!!)
+                        core.camera = ExtCameraInterface(context, config)
                     }
                     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         TelemetryManager.Instance?.invoke("Camera Selection", "Camera2TextureComponent")
-                        core.camera = Camera2TextureComponent(context, cameraId!!, holder!!)
+                        core.camera = Camera2TextureComponent(context, config, holder!!)
                     }
                     else{
                         TelemetryManager.Instance?.invoke("Camera Selection", "Camera1TextureComponent")
-                        core.camera = Camera1TextureComponent(context, cameraId!!, holder!!)
+                        core.camera = Camera1TextureComponent(context, config, holder!!)
                     }
                 }
             }

@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
+import tv.letsrobot.android.api.models.CameraSettings
 import java.io.IOException
 
 
@@ -26,7 +27,7 @@ class Camera1TextureComponent
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(context: Context, cameraId: String, textureView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
+constructor(context: Context, settings: CameraSettings, textureView: TextureView) : TextureViewCameraBaseComponent(context, settings, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
 
     private lateinit var r: Rect
     private var camera : android.hardware.Camera? = null
@@ -77,7 +78,7 @@ constructor(context: Context, cameraId: String, textureView: TextureView) : Text
                     // You need to choose the most appropriate previewSize for your app
                     val previewSize = previewSizes.get(0) // .... select one of previewSizes here
                     //p.setPreviewSize(previewSize.width, previewSize.height);
-                    p.setPreviewSize(640, 480)
+                    p.setPreviewSize(width, height)
                     it.parameters = p
                     it.setPreviewTexture(textureView.surfaceTexture)
                     it.setPreviewCallback(this)

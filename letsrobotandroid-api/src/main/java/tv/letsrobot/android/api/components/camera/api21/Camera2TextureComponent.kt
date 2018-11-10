@@ -14,14 +14,15 @@ import android.view.TextureView
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
+import tv.letsrobot.android.api.models.CameraSettings
 
 
 /**
  * Created by Brendon on 10/6/2018.
  */
 @RequiresApi(21)
-class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, cameraId, surfaceView), ImageReader.OnImageAvailableListener {
-    val reader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 1)
+class Camera2TextureComponent(context: Context, settings: CameraSettings, surfaceView: TextureView) : TextureViewCameraBaseComponent(context, settings, surfaceView), ImageReader.OnImageAvailableListener {
+    val reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1)
 
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     /**
@@ -93,9 +94,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
             val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
             push(bitmap, ImageFormat.JPEG, null)
         } finally {
-            if (image != null) {
-                image.close()
-            }
+            image?.close()
         }
     }
 
@@ -131,7 +130,7 @@ class Camera2TextureComponent(context: Context, cameraId: String, surfaceView: T
         try {
             closePreviewSession()
             val texture = textureView.surfaceTexture
-            texture.setDefaultBufferSize(480, 640)
+            texture.setDefaultBufferSize(height, width)
             mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
 
             //val previewSurface = Surface(texture)

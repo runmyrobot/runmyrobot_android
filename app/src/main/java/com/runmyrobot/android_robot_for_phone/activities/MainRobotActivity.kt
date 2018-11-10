@@ -21,6 +21,7 @@ import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
 
@@ -128,8 +129,17 @@ class MainRobotActivity : Activity(), Runnable {
         //Attach the SurfaceView textureView to render the camera to
         builder.holder = cameraSurfaceView
         builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
-        if(StoreUtil.getCameraEnabled(this)){
-            builder.cameraId = StoreUtil.getCameraId(this) //Pass in our Camera ID
+
+        StoreUtil.getCameraId(this)?.takeIf {
+            StoreUtil.getCameraEnabled(this)
+        }?.let{ cameraId ->
+            val settings = CameraSettings(cameraId = cameraId,
+                    pass = StoreUtil.getCameraPass(this),
+                    width = 640, //TODO tie into settings
+                    height = 480, //TODO tie into settings
+                    bitrate = StoreUtil.getBitrate(this).toInt(),
+                    orientation = StoreUtil.getOrientation(this))
+            builder.cameraSettings = settings
         }
         //TODO set camera pass
         builder.useTTS = StoreUtil.getTTSEnabled(this)
