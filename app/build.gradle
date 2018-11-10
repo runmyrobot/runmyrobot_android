@@ -19,8 +19,8 @@ android {
         applicationId "com.runmyrobot.android_robot_for_phone"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 3
-        versionName "0.3"
+        versionCode 4
+        versionName "0.4"
         versionNameSuffix '.'+versionCode+'-'+getGitHash()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
