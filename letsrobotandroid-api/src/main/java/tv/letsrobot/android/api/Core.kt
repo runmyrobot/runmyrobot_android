@@ -349,7 +349,7 @@ private constructor(val robotId : String, val cameraId : String?) {
                         TelemetryManager.Instance?.invoke("Camera Selection", "ExtCameraInterface")
                         core.camera = ExtCameraInterface(context, config)
                     }
-                    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !config.useLegacyApi) {
                         TelemetryManager.Instance?.invoke("Camera Selection", "Camera2TextureComponent")
                         core.camera = Camera2TextureComponent(context, config, holder!!)
                     }

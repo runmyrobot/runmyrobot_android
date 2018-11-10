@@ -54,7 +54,7 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                     }?.let {
                         if(streaming.get() && limiter.tryAcquire()) {
                             if (!ffmpegRunning.getAndSet(true)) {
-                                bootFFMPEG()
+                                bootFFMPEG(it.r)
                             }
                             process?.let { _process ->
                                 (it.b as? ByteArray)?.let { _ ->
@@ -65,7 +65,9 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                                         ImageFormat.NV21 -> {
                                             val im = YuvImage(it.b, it.format, width, height, null)
                                             try {
-                                                im.compressToJpeg(it.r, 100, _process.outputStream)
+                                                it.r?.let { rect ->
+                                                    im.compressToJpeg(rect, 100, _process.outputStream)
+                                                }
                                             } catch (e: Exception) {
                                                 e.printStackTrace()
                                             }
@@ -158,7 +160,10 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
 
     }
 
-    fun bootFFMPEG(){
+    /**
+     * Boot ffmpeg using config. If given a Rect, use that for resolution instead.
+     */
+    fun bootFFMPEG(r : Rect? = null){
         if(!streaming.get()){
             ffmpegRunning.set(false)
             status = ComponentStatus.DISABLED
@@ -168,8 +173,12 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         status = ComponentStatus.CONNECTING
         try {
             // to execute "ffmpeg -version" command you just need to pass "-version"
-            val xres = width
-            val yres = height
+            var xres = width
+            var yres = height
+            r?.let {
+                xres = r.width()
+                yres = r.height()
+            }
 
             val rotationOption = config.orientation.ordinal //leave blank
             val builder = StringBuilder()

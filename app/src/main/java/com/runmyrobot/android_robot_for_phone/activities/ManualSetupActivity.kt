@@ -1,6 +1,7 @@
 package com.runmyrobot.android_robot_for_phone.activities
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,8 @@ class ManualSetupActivity : AppCompatActivity() {
         screenOverlaySettingsButton.isChecked = StoreUtil.getScreenSleepOverlayEnabled(this)
         bitrateEditText.setText(StoreUtil.getBitrate(this))
         resolutionEditText.setText(StoreUtil.getResolution(this))
+        legacyCameraEnableToggle.isEnabled = Build.VERSION.SDK_INT >= 21
+        legacyCameraEnableToggle.isChecked = StoreUtil.getUseLegacyCamera(this)
         bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
@@ -98,6 +101,10 @@ class ManualSetupActivity : AppCompatActivity() {
         }
         resolutionEditText.text.takeIf { !it.isBlank() }?.let {
             //TODO Add pref for this
+        }
+
+        if(legacyCameraEnableToggle.isEnabled){
+            StoreUtil.setUseLegacyCamera(this, legacyCameraEnableToggle.isChecked)
         }
         StoreUtil.setCameraEnabled(this, cameraEnableToggle.isChecked)
         StoreUtil.setMicEnabled(this, micEnableButton.isChecked)
