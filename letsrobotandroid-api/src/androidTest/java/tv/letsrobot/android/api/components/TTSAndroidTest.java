@@ -1,7 +1,5 @@
 package tv.letsrobot.android.api.components;
 
-import com.runmyrobot.android_robot_for_phone.BuildConfig;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+import tv.letsrobot.android.api.enums.ComponentStatus;
 
 /**
  * Test TTS on its own, and make sure it can connect to the API
@@ -19,9 +18,10 @@ import androidx.test.runner.AndroidJUnit4;
 public class TTSAndroidTest {
     @Test
     public void Init(){
-        TextToSpeechComponent textToSpeechComponent = new TextToSpeechComponent(InstrumentationRegistry.getTargetContext(), BuildConfig.ROBOT_ID);
+        TextToSpeechComponent textToSpeechComponent
+                = new TextToSpeechComponent(InstrumentationRegistry.getTargetContext(), ""); //TODO ROBOTID
         textToSpeechComponent.enable();
-        Assert.assertTrue(textToSpeechComponent.getRunning().get());
+        Assert.assertEquals(ComponentStatus.DISABLED, textToSpeechComponent.getStatus());
         CountDownLatch latch = new CountDownLatch(1);
         try {
             latch.await(2, TimeUnit.MINUTES); //Wait for 2 Minutes

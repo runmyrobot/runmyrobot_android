@@ -21,7 +21,7 @@ public class CoreAndroidTest {
     public void Init() throws Core.InitializationException {
         Core.Builder builder = new Core.Builder(InstrumentationRegistry.getTargetContext());
         builder.setRobotId(""); //TODO ROBOT ID
-        builder.setCameraId(""); //TODO CAMERA ID
+        builder.setCameraSettings(null); //TODO CAMERA Settinga
         builder.setUseTTS(true);
         core = builder.build();
         Assert.assertTrue(core.enable());
