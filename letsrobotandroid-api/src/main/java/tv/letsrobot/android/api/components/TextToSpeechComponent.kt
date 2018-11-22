@@ -5,8 +5,6 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.Core
@@ -14,9 +12,9 @@ import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.utils.JsonUrlFetch
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
-import java.io.IOException
 import java.net.URISyntaxException
 import java.util.*
 
@@ -72,7 +70,6 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 try {
                     val messageRaw = `object`.getString("message")
                     getMessageFromRaw(messageRaw)?.let {
-                        //TODO use non-deprecated call? Does not support 4.4 though
                         if(isSpeakableText(it) && !ttobj.isSpeaking) {
                             val pitch = 1f
                             ttobj.setPitch(pitch)
