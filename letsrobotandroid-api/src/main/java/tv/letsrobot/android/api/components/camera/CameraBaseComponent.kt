@@ -17,7 +17,6 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -88,7 +87,6 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                 }
                 else -> {}
             }
-            tryPushToHandler() //pull new frame
             return@Handler true
         }
     }
@@ -135,25 +133,11 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
 
     private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?, val packetId : Long)
 
-    private val queue= ArrayDeque<CameraPackage>()
-
     fun push(b : Any?, format : Int, r : Rect?){
-        val data = CameraPackage(b, format, r, cameraPacketNumber.incrementAndGet())
-
-        if(!handler.hasMessages(CAMERA_PUSH)){
-            handler.obtainMessage(CAMERA_PUSH, data).sendToTarget()
+        if(!handler.hasMessages(CAMERA_PUSH)) {
+            handler.obtainMessage(CAMERA_PUSH,
+                    CameraPackage(b, format, r, cameraPacketNumber.incrementAndGet())).sendToTarget()
         }
-        else{
-            queue.add(data)
-        }
-    }
-
-    private fun tryPushToHandler(){
-        while (queue.size > 6){ //try to keep this number sane
-            queue.pop()
-        }
-        if(!queue.isEmpty())
-            handler.obtainMessage(CAMERA_PUSH, queue.poll()).sendToTarget()
     }
 
     /**
