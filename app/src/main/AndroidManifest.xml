@@ -42,7 +42,7 @@
             android:name="tv.letsrobot.controller.android.activities.UsbInterceptor"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:label="runmyrobot"
+            android:label="LetsRobot USB"
             android:noHistory="true"
             android:process=":UsbEventReceiverActivityProcess"
             android:taskAffinity="com.example.taskAffinityUsbEventReceiver">
@@ -60,9 +60,10 @@
             android:screenOrientation="portrait"
             android:keepScreenOn="true" />
         <activity android:name="tv.letsrobot.android.api.activities.ChooseBluetoothActivity" />
-        <activity android:name="tv.letsrobot.controller.android.activities.ManualSetupActivity" />
+        <activity android:name="tv.letsrobot.controller.android.activities.ManualSetupActivity"
+            android:label="LetsRobot Controller Setup"/>
         <activity android:name="tv.letsrobot.controller.android.activities.SplashActivity"
-            android:label="runmyrobot">
+            android:label="LetsRobot Controller">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
