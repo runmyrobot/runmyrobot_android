@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.app.Activity
 import android.content.Intent
@@ -10,9 +10,7 @@ import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.RobotApplication
-import com.runmyrobot.android_robot_for_phone.robot.CustomComponentExample
+import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.AudioComponent
@@ -24,6 +22,8 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.controller.android.RobotApplication
+import tv.letsrobot.controller.android.robot.CustomComponentExample
 
 /**
  * Main activity for the robot. It has a simple camera UI and a button to connect and disconnect.

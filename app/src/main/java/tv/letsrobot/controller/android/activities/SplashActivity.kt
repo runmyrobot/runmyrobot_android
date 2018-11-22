@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.Manifest
 import android.app.Activity
@@ -8,7 +8,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.runmyrobot.android_robot_for_phone.R
+import com.letsrobot.controller.android.R
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 import tv.letsrobot.android.api.utils.StoreUtil

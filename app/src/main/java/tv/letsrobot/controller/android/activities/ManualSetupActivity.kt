@@ -1,11 +1,11 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
-import com.runmyrobot.android_robot_for_phone.R
+import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType

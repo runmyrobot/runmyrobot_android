@@ -6,7 +6,7 @@
     android:background="@color/ic_launcher_background"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activities.SplashActivity">
+    tools:context="tv.letsrobot.controller.android.activities.SplashActivity">
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
