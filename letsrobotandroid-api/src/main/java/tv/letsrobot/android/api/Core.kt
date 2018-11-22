@@ -26,7 +26,7 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.utils.JsonUrlFetch
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -143,7 +143,7 @@ private constructor(val robotId : String, val cameraId : String?) {
         if(running.getAndSet(true)) return //already enabled
         EventManager.invoke(javaClass.simpleName, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)
         )?.let {
             owner = it.getString("owner")

@@ -5,11 +5,14 @@ import okhttp3.Request
 import org.json.JSONObject
 
 /**
- * Simple util to get a JSONObject from a url
- * This is called synchronously
+ * Simple utility functions for JsonObject
  */
-object JsonUrlFetch{
-    fun getJsonObject(url : String) : JSONObject?{
+object JsonObjectUtils{
+
+    /**
+     * Gets json from url synchronously
+     */
+    fun getJsonObjectFromUrl(url : String) : JSONObject?{
         val client = OkHttpClient()
         val call = client.newCall(Request.Builder().url(url).build())
         try {

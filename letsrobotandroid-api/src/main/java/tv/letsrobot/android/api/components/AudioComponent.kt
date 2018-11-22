@@ -6,7 +6,7 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.utils.JsonUrlFetch
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RecordingThread
 import tv.letsrobot.android.api.utils.StoreUtil
 import java.nio.ByteBuffer
@@ -31,13 +31,13 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
     private val recordingThread = RecordingThread(this)
 
     override fun enableInternal(){
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
             String.format("https://letsrobot.tv/get_audio_port/%s", cameraId)
         )?.let {
             Log.d(TAG, "get_audio_port $it")
             port = it.getString("audio_stream_port")
         }
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
             String.format("https://letsrobot.tv/get_websocket_relay_host/%s", cameraId)
         )?.let {
             Log.d(TAG, "get_websocket_relay_host $it")

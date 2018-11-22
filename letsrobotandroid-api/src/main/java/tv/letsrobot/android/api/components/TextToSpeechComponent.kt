@@ -12,7 +12,7 @@ import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.utils.JsonUrlFetch
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
 import java.net.URISyntaxException
@@ -33,7 +33,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         ttobj.language = Locale.US
         var host: String? = null
         var port: String? = null
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)
         )?.let {
             Log.d("CHAT", it.toString())

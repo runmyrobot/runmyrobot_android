@@ -16,7 +16,7 @@ import tv.letsrobot.android.api.EventManager.Companion.ROBOT_DISCONNECTED
 import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.utils.JsonUrlFetch
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -54,7 +54,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
     override fun enableInternal(){
         var host: String? = null
         var port: String? = null
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)
         )?.let {
             host = it.getString("host")
@@ -62,35 +62,33 @@ class RobotControllerComponent internal constructor(context : Context, private v
         }
 
         try {
-            val url = String.format("http://%s:%s", host, port)
-            mSocket = IO.socket(url)
+            mSocket = IO.socket(
+                String.format("http://%s:%s", host, port)
+            )
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }
         EventManager.subscribe(EventManager.CHAT){
-            print(it as String)
-            if(it as? String == ".table on"){
-                table = true
-            }
-            else if(it as? String == ".table off"){
-                table = false
-            }
-            if(it as? String == ".motors off"){
-                allowControl = false
-            }
-            if(it as? String == ".motors on"){
-                allowControl = true
+            (it as? String)?.let {message ->
+                print(message)
+                when(message){
+                    TABLE_ON_COMMAND -> table = true
+                    TABLE_OFF_COMMAND -> table = false
+                    MOTORS_OFF_COMMAND -> allowControl = false
+                    MOTORS_ON_COMMAND -> allowControl = true
+                }
             }
         }
+        setupSocketEvents()
+        mSocket?.connect()
+    }
+
+    private fun setupSocketEvents() {
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
-                mSocket?.emit("robot_id", robotId)
-                EventManager.invoke(ROBOT_CONNECTED, null)
-                status = ComponentStatus.STABLE
+                onRobotConnected()
             }.on(Socket.EVENT_RECONNECT) {
-                mSocket?.emit("robot_id", robotId)
-                EventManager.invoke(ROBOT_CONNECTED, null)
-                status = ComponentStatus.STABLE
+                onRobotConnected()
             }.on(Socket.EVENT_CONNECT_ERROR) {
                 Log.d("Robot", "Err")
                 status = ComponentStatus.ERROR
@@ -109,7 +107,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
                     try {
                         //broadcast what message was sent ex. F, stop, etc
                         val command = `object`.getString("command")
-                        if(!allowControl){
+                        if(!allowControl){ //TODO Allow non-movement commands pass
                             print("Trashing movement. Controls disabled")
                             return@on
                         }
@@ -133,8 +131,13 @@ class RobotControllerComponent internal constructor(context : Context, private v
                     }
                 }
             }
-            socket.connect()
         }
+    }
+
+    private fun onRobotConnected() {
+        mSocket?.emit("robot_id", robotId)
+        EventManager.invoke(ROBOT_CONNECTED, null)
+        status = ComponentStatus.STABLE
     }
 
     /**
@@ -148,5 +151,12 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     override fun disableInternal(){
         mSocket?.disconnect()
+    }
+
+    companion object {
+        const val TABLE_ON_COMMAND = ".table on"
+        const val TABLE_OFF_COMMAND = ".table off"
+        const val MOTORS_ON_COMMAND = ".motors on"
+        const val MOTORS_OFF_COMMAND = ".motors off"
     }
 }

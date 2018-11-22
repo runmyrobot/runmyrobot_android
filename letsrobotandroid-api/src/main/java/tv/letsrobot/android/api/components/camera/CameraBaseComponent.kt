@@ -12,7 +12,7 @@ import com.google.common.util.concurrent.RateLimiter
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.utils.JsonUrlFetch
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -92,13 +92,13 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     }
 
     override fun enableInternal() {
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId)
         )?.let{
             Log.d("ROBOT", it.toString())
             port = it.getString("mpeg_stream_port")
         }
-        JsonUrlFetch.getJsonObject(
+        JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId)
         )?.let {
             Log.d("ROBOT", it.toString())
