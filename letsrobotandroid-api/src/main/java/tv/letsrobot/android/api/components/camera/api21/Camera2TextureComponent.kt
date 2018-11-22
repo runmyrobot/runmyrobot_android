@@ -93,7 +93,6 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
                 //push(imageBytes, ImageFormat.JPEG, null)
                 val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                 push(bitmap, ImageFormat.JPEG, null)
-                bitmap.recycle()
             }
         } finally {
             image?.close()
