@@ -57,7 +57,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
         var host: String? = null
         var port: String? = null
         val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_control_host_port/%s", robotId)).build())
+        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)).build())
         try {
             val response = call.execute()
             if (response.body() != null) {
@@ -95,11 +95,11 @@ class RobotControllerComponent internal constructor(context : Context, private v
         }
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
-                mSocket?.emit("identify_robot_id", robotId)
+                mSocket?.emit("robot_id", robotId)
                 EventManager.invoke(ROBOT_CONNECTED, null)
                 status = ComponentStatus.STABLE
             }.on(Socket.EVENT_RECONNECT) {
-                mSocket?.emit("identify_robot_id", robotId)
+                mSocket?.emit("robot_id", robotId)
                 EventManager.invoke(ROBOT_CONNECTED, null)
                 status = ComponentStatus.STABLE
             }.on(Socket.EVENT_CONNECT_ERROR) {
