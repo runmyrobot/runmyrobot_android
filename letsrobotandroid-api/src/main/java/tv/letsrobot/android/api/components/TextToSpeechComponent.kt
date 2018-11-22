@@ -33,20 +33,12 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         ttobj.language = Locale.US
         var host: String? = null
         var port: String? = null
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("CHAT", `object`.toString())
-                host = `object`.getString("host")
-                port = `object`.getString("port")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonUrlFetch.getJsonObject(
+                String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)
+        )?.let {
+            Log.d("CHAT", it.toString())
+            host = it.getString("host")
+            port = it.getString("port")
         }
 
         try {
