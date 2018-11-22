@@ -125,16 +125,16 @@ class SplashActivity : Activity() {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
         ))
-
+        val permissionsToAccept = ArrayList<String>()
         for (perm in list){
-            if(ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED){
-                list.remove(perm)
+            if(ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED){
+                permissionsToAccept.add(perm)
             }
         }
 
-        return if(!list.isEmpty()){
+        return if(!permissionsToAccept.isEmpty()){
             ActivityCompat.requestPermissions(this,
-                    list.toArray(Array(0) {""}),
+                    permissionsToAccept.toArray(Array(0) {""}),
                     requestCode)
             false
         }
