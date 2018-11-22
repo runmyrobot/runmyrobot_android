@@ -78,12 +78,13 @@ See MainRobotController.kt for an example of CustomComponentExample being added
 
 ## Error reporting
 
-Errors will be reported to Bugsnag (In the future it may automatically create issues on github)
-This is completely optional and will be disabled unless enabled through settings
+Errors do not get reported at the moment
 
 # Some known issues
 
-- Camera streaming will only work if the app has not been backgrounded (turning screen off is fine if no lock screen?)
+- Camera streaming will only work if the app has not been backgrounded (4.4, 5.0 and above works if not using legacy camera) (turning screen off is fine if no lock screen?)
+
+- Battery optimization has to be disabled if OS version is 6.0 or above if you want to turn the screen off on the phone.
 
 - Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
 
@@ -98,9 +99,11 @@ Feel free to add your device to this list if you have tested it via a pull reque
 
 ## Verified functional devices:
 
-- ZTE Speed (4.4 Kitkat), some weird bluetooth issues possible (https://github.com/btelman96/runmyrobot_android/issues/45)
+- ZTE Speed (4.4 Kitkat), might not be fast enough on high bitrates, some weird bluetooth issues possible (https://github.com/btelman96/runmyrobot_android/issues/45)
 
 - Motorola Moto Z (8.0.0 Oreo)
+
+- Galaxy S4 (5.0.1)
 
 - Pixel 2 XL (9 Pie)
 
