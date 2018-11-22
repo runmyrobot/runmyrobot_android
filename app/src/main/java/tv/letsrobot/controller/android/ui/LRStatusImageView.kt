@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.ui
+package tv.letsrobot.controller.android.ui
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -7,7 +7,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import com.runmyrobot.android_robot_for_phone.R
+import com.letsrobot.controller.android.R
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
 

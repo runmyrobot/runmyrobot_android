@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.robot
+package tv.letsrobot.controller.android.robot
 
 import android.content.Context
 import tv.letsrobot.android.api.interfaces.Component

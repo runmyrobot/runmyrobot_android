@@ -16,7 +16,7 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/cloudStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
@@ -25,7 +25,7 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_cloud_white_24dp" />
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/cameraStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
@@ -34,7 +34,7 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_camera_alt_white_24dp" />
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/micStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
@@ -43,7 +43,7 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_mic_white_24dp" />
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/ttsStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
@@ -52,7 +52,7 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_record_voice_over_white_24dp" />
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/robotStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
@@ -61,7 +61,7 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_developer_board_white_24dp" />
 
-            <com.runmyrobot.android_robot_for_phone.ui.LRStatusImageView
+            <tv.letsrobot.controller.android.ui.LRStatusImageView
                 android:id="@+id/robotMotorStatusIcon"
                 android:layout_width="38dp"
                 android:layout_height="38dp"

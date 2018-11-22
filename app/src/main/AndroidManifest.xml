@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.runmyrobot.android_robot_for_phone">
+    package="com.letsrobot.controller.android">
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -19,7 +19,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
-        android:name=".RobotApplication"
+        android:name="tv.letsrobot.controller.android.RobotApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -39,10 +39,10 @@
         <service android:name="com.ford.openxc.webcam.webcam.WebcamService"/>
 
         <activity
-            android:name=".activities.UsbInterceptor"
+            android:name="tv.letsrobot.controller.android.activities.UsbInterceptor"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:label="runmyrobot"
+            android:label="LetsRobot USB"
             android:noHistory="true"
             android:process=":UsbEventReceiverActivityProcess"
             android:taskAffinity="com.example.taskAffinityUsbEventReceiver">
@@ -55,14 +55,15 @@
                 android:resource="@xml/usb_device_filter" />
         </activity>
         <activity
-            android:name=".activities.MainRobotActivity"
+            android:name="tv.letsrobot.controller.android.activities.MainRobotActivity"
             android:theme="@style/Theme.AppCompat"
             android:screenOrientation="portrait"
             android:keepScreenOn="true" />
         <activity android:name="tv.letsrobot.android.api.activities.ChooseBluetoothActivity" />
-        <activity android:name=".activities.ManualSetupActivity" />
-        <activity android:name=".activities.SplashActivity"
-            android:label="runmyrobot">
+        <activity android:name="tv.letsrobot.controller.android.activities.ManualSetupActivity"
+            android:label="LetsRobot Controller Setup"/>
+        <activity android:name="tv.letsrobot.controller.android.activities.SplashActivity"
+            android:label="LetsRobot Controller">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.content.Intent
 import android.hardware.usb.UsbManager

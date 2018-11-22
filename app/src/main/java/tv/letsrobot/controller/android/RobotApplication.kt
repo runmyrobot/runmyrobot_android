@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone
+package tv.letsrobot.controller.android
 
 import android.app.Application
 import android.widget.Toast
