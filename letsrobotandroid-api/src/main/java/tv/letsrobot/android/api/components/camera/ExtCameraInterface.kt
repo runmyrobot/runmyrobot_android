@@ -20,7 +20,7 @@ class ExtCameraInterface(context: Context, settings: CameraSettings) : CameraBas
 
     override fun enableInternal() {
         super.enableInternal()
-        startPreview(WebcamService.VIDEO) //TODO make user controllable
+        startPreview(WebcamService.DEV_VIDEO1) //TODO make user controllable
     }
 
     override fun disableInternal() {
