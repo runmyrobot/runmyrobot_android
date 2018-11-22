@@ -143,10 +143,6 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         return bmOverlay
     }
 
-    fun byteArrayPush(b : ByteArray, format : Int, r : Rect){
-
-    }
-
     /**
      * Boot ffmpeg using config. If given a Rect, use that for resolution instead.
      */
