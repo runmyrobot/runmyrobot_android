@@ -20,8 +20,8 @@ class ArduinoSendBytesProtocol(context: Context) :
 
     override fun disableInternal(){
         Log.d(TAG, "disable")
-        EventManager.subscribe(EventManager.COMMAND, onCommand)
-        EventManager.subscribe(EventManager.STOP_EVENT, onStop)
+        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
+        EventManager.unsubscribe(EventManager.STOP_EVENT, onStop)
     }
 
     override fun timeout() {

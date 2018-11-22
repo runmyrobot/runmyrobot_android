@@ -96,7 +96,7 @@ public class WebcamPreview extends SurfaceView implements
     public void surfaceCreated(SurfaceHolder holder) {
         Log.w(TAG, "Surface created");
 
-        startPreview(WebcamService.VIDEO);
+        startPreview(WebcamService.DEV_VIDEO1);
     }
 
     @Override

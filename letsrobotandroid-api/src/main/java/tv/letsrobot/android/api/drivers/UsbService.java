@@ -168,7 +168,7 @@ public class UsbService extends Service{
     public void onCreate() {
         this.context = this;
         serialPortConnected = false;
-        UsbService.SERVICE_CONNECTED = true;
+        SERVICE_CONNECTED = true;
         setFilter();
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         findSerialPortDevice();
@@ -192,7 +192,7 @@ public class UsbService extends Service{
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(usbReceiver);
-        UsbService.SERVICE_CONNECTED = false;
+        SERVICE_CONNECTED = false;
     }
 
 

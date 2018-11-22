@@ -159,7 +159,7 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
     class CaptureCallback : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
             super.onCaptureCompleted(session, request, result)
-            Log.d(LOGTAG, "onCaptureCompleted")
+            Log.d(TAG, "onCaptureCompleted")
         }
     }*/
 

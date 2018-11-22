@@ -148,7 +148,7 @@ public class BluetoothClassic{
 	        // Get a BluetoothSocket to connect with the given BluetoothDevice
 	        try {
 	            // MY_UUID is the app's UUID string, also used by the server code
-	            tmp = mmDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+	            tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
 	        } catch (IOException e) {
 	        	Log.i(tag, "get socket failed");
 
@@ -199,7 +199,7 @@ public class BluetoothClassic{
 	        // Get a BluetoothSocket to connect with the given BluetoothDevice
 	        try {
 	            // MY_UUID is the app's UUID string, also used by the server code
-	            tmp = mmDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+	            tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
 	        } catch (IOException e) {
 	        	Log.i(tag, "get socket failed");
 

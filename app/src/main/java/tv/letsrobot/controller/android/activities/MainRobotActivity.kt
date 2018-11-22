@@ -142,7 +142,6 @@ class MainRobotActivity : Activity(), Runnable {
                     orientation = StoreUtil.getOrientation(this))
             builder.cameraSettings = settings
         }
-        //TODO set camera pass
         builder.useTTS = StoreUtil.getTTSEnabled(this)
         builder.useMic = StoreUtil.getMicEnabled(this)
         builder.protocol = StoreUtil.getProtocolType(this)
