@@ -49,9 +49,7 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         handler = Handler(handlerThread.looper){ message ->
             when(message.what){
                 CAMERA_PUSH -> {
-                    (message.obj as? CameraPackage)?.takeIf {
-                        it.packetId == cameraPacketNumber.get()
-                    }?.let {
+                    (message.obj as? CameraPackage)?.let {
                         if(streaming.get() && limiter.tryAcquire()) {
                             if (!ffmpegRunning.getAndSet(true)) {
                                 bootFFMPEG(it.r)
@@ -131,12 +129,12 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         streaming.set(false)
     }
 
-    private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?, val packetId : Long)
+    private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?)
 
     fun push(b : Any?, format : Int, r : Rect?){
         if(!handler.hasMessages(CAMERA_PUSH)) {
             handler.obtainMessage(CAMERA_PUSH,
-                    CameraPackage(b, format, r, cameraPacketNumber.incrementAndGet())).sendToTarget()
+                    CameraPackage(b, format, r)).sendToTarget()
         }
     }
 
