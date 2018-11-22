@@ -11,9 +11,6 @@ import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
 import tv.letsrobot.android.api.components.AudioComponent
@@ -29,7 +26,7 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import java.io.IOException
+import tv.letsrobot.android.api.utils.JsonUrlFetch
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -125,7 +122,7 @@ private constructor(val robotId : String, val cameraId : String?) {
                 appServerSocket?.emit("send_video_status", obj)
             }
             val ipInfo = JSONObject()
-            ipInfo.put("ip", "169.254.25.110")
+            ipInfo.put("ip", "169.254.25.110") //TODO actually use a different ip...
             ipInfo.put("robot_id", robotId)
             appServerSocket?.emit("ip_information", ipInfo)
         }
@@ -146,19 +143,12 @@ private constructor(val robotId : String, val cameraId : String?) {
         if(running.getAndSet(true)) return //already enabled
         EventManager.invoke(javaClass.simpleName, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                owner = `object`.getString("owner")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonUrlFetch.getJsonObject(
+                String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)
+        )?.let {
+            owner = it.getString("owner")
         }
+
         camera?.enable()
         audio?.enable()
         robotController?.enable()

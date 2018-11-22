@@ -9,14 +9,10 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONException
-import org.json.JSONObject
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import java.io.IOException
+import tv.letsrobot.android.api.utils.JsonUrlFetch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -96,28 +92,19 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     }
 
     override fun enableInternal() {
-        try {
-            val client = OkHttpClient.Builder()
-                    .build()
-            var call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId)).build())
-            var response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("ROBOT", `object`.toString())
-                port = `object`.getString("mpeg_stream_port")
-            }
-            call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId)).build())
-            response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("ROBOT", `object`.toString())
-                host = `object`.getString("host")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonUrlFetch.getJsonObject(
+                String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId)
+        )?.let{
+            Log.d("ROBOT", it.toString())
+            port = it.getString("mpeg_stream_port")
         }
+        JsonUrlFetch.getJsonObject(
+                String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId)
+        )?.let {
+            Log.d("ROBOT", it.toString())
+            host = it.getString("host")
+        }
+
         if(host == null || port == null){
             status = ComponentStatus.ERROR
         }

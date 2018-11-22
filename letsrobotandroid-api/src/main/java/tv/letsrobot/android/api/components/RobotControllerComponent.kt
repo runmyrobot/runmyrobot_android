@@ -6,8 +6,6 @@ import android.os.Looper
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.Core
@@ -18,7 +16,7 @@ import tv.letsrobot.android.api.EventManager.Companion.ROBOT_DISCONNECTED
 import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import java.io.IOException
+import tv.letsrobot.android.api.utils.JsonUrlFetch
 import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -56,20 +54,11 @@ class RobotControllerComponent internal constructor(context : Context, private v
     override fun enableInternal(){
         var host: String? = null
         var port: String? = null
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("ROBOT", `object`.toString())
-                host = `object`.getString("host")
-                port = `object`.getString("port")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonUrlFetch.getJsonObject(
+                String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)
+        )?.let {
+            host = it.getString("host")
+            port = it.getString("port")
         }
 
         try {
