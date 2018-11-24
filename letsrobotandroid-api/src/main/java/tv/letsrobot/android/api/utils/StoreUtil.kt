@@ -11,8 +11,15 @@ import tv.letsrobot.android.api.enums.ProtocolType
  * Created by Brendon on 9/5/2018.
  */
 object StoreUtil {
+    private fun saveBoolean(context: Context, key : String, value : Boolean){
+        getSharedPrefs(context).edit().putBoolean(key, value).apply()
+    }
 
-    private fun getSharedPrefs(context: Context) : SharedPreferences{
+    private fun getBoolean(context: Context, key : String, default : Boolean = false) : Boolean{
+        return getSharedPrefs(context).getBoolean(key, default)
+    }
+
+    fun getSharedPrefs(context: Context) : SharedPreferences{
         return context.getSharedPreferences("robotConfig", 0)
     }
 
