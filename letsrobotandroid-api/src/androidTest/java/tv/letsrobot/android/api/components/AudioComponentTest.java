@@ -16,7 +16,7 @@ import androidx.test.runner.AndroidJUnit4;
 public class AudioComponentTest {
     @Test
     public void Init(){
-        AudioComponent audioComponent = new AudioComponent(InstrumentationRegistry.getTargetContext(), ""); //TODO CAMERA ID
+        AudioComponent audioComponent = new AudioComponent(InstrumentationRegistry.getTargetContext(), "", ""); //TODO CAMERA ID
         audioComponent.enable();
         //Assert.assertTrue(audioComponent.getRunning().get());
         CountDownLatch latch = new CountDownLatch(1);

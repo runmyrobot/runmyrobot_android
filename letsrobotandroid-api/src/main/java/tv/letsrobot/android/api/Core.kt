@@ -332,7 +332,7 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             cameraSettings?.let{ config ->
                 if(useMic) {
-                    core.audio = AudioComponent(context, config.cameraId)
+                    core.audio = AudioComponent(context, config.cameraId, config.pass)
                 }
                 holder?.let {
                     if(false/*TODO StoreUtil or autodetect*/){

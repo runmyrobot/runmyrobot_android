@@ -6,7 +6,8 @@ import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
 
-internal enum class Settings(private val variable: VariableType) {
+enum class RobotConfig(private val variable: VariableType) {
+    Configured(VariableType.BooleanClass),
     RobotId(VariableType.StringClass),
     CameraId(VariableType.StringClass),
     CameraPass(VariableType.StringClass),
@@ -38,27 +39,37 @@ internal enum class Settings(private val variable: VariableType) {
     }
 
     @Throws(IllegalArgumentException::class)
-    fun getValue(context: Context, default : Any) : Any?{
-        if(VariableType.forValue(default) != variable)
+    fun getValue(context: Context, default : Any? = null) : Any?{
+        var defaultVar = default
+        if(default != null && VariableType.forValue(default) != variable)
             throw IllegalArgumentException("Expected type of $variable")
         val sharedPrefs = getSharedPrefs(context)
+        defaultVar ?: kotlin.run {
+            defaultVar = when(variable){
+                VariableType.BooleanClass -> false
+                VariableType.StringClass -> null
+                VariableType.ProtocolTypeEnum -> ProtocolType.values()[0]
+                VariableType.CommunicationTypeEnum -> CommunicationType.values()[0]
+                VariableType.CameraDirectionEnum -> CameraDirection.values()[0]
+            }
+        }
         return when(variable){
-            VariableType.BooleanClass -> sharedPrefs.getBoolean(name, default as Boolean)
-            VariableType.StringClass -> sharedPrefs.getString(name, default as String)
+            VariableType.BooleanClass -> sharedPrefs.getBoolean(name, defaultVar as Boolean)
+            VariableType.StringClass -> sharedPrefs.getString(name, defaultVar as String?)
             VariableType.ProtocolTypeEnum -> {
                 sharedPrefs.getString(name, null)?.let {
                     ProtocolType.valueOf(it)
-                } ?: default
+                } ?: defaultVar
             }
             VariableType.CommunicationTypeEnum -> {
                 sharedPrefs.getString(name, null)?.let {
                     CommunicationType.valueOf(it)
-                } ?: default
+                } ?: defaultVar
             }
             VariableType.CameraDirectionEnum -> {
                 sharedPrefs.getString(name, null)?.let {
                     CameraDirection.valueOf(it)
-                } ?: default
+                } ?: defaultVar
             }
         }
     }

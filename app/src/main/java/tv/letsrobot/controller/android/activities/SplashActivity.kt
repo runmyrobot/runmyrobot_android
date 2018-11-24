@@ -10,8 +10,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.letsrobot.controller.android.R
 import tv.letsrobot.android.api.Core
+import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
-import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.android.api.utils.RobotConfig
 
 class SplashActivity : Activity() {
 
@@ -20,7 +21,7 @@ class SplashActivity : Activity() {
         setContentView(R.layout.activity_splash)
         // Setup App before initializing anything, then go back to do permissions flow
         // and to do device setup
-        if(!StoreUtil.getConfigured(this)){
+        if(!(RobotConfig.Configured.getValue(this, false) as Boolean)){
             finish()
             startActivity(Intent(this, ManualSetupActivity::class.java))
             return
@@ -62,7 +63,7 @@ class SplashActivity : Activity() {
         Toast.makeText(this
                 , "Something happened while trying to setup. Please try again"
                 , Toast.LENGTH_LONG).show()
-        StoreUtil.setConfigured(this, false)
+        RobotConfig.Configured.saveValue(this, false)
         finish()
         startActivity(Intent(this, ManualSetupActivity::class.java))
     }
@@ -72,7 +73,7 @@ class SplashActivity : Activity() {
     private var pendingResultCode: Int = -1
 
     private fun setupDevice(): Boolean? {
-        val commType = StoreUtil.getCommunicationType(this) // :CommunicationType?
+        val commType = RobotConfig.Communication.getValue(this) as CommunicationType?
         commType?.let {
             val clazz = it.getInstantiatedClass
             clazz?.let {

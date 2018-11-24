@@ -18,10 +18,13 @@ import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
+import tv.letsrobot.android.api.enums.CameraDirection
+import tv.letsrobot.android.api.enums.CommunicationType
+import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
-import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.RobotApplication
 import tv.letsrobot.controller.android.robot.CustomComponentExample
 
@@ -66,7 +69,7 @@ class MainRobotActivity : Activity(), Runnable {
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
-                if(StoreUtil.getScreenSleepOverlayEnabled(this)){
+                if(RobotConfig.SleepMode.getValue(this, true) as Boolean){
                     handler.postDelayed(this, 10000)
                 }
                 core?.enable() //enable core if we hit the button to enable recording
@@ -83,7 +86,7 @@ class MainRobotActivity : Activity(), Runnable {
 
         //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
-            if(StoreUtil.getScreenSleepOverlayEnabled(this)) {
+            if(RobotConfig.SleepMode.getValue(this, true) as Boolean) {
                 fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
                 handler.removeCallbacks(this)
                 handler.postDelayed(this, 10000) //10 second delay
@@ -128,24 +131,25 @@ class MainRobotActivity : Activity(), Runnable {
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
         builder.holder = cameraSurfaceView
-        builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
+        builder.robotId = RobotConfig.RobotId.getValue(this) as String? //Pass in our Robot ID
 
-        StoreUtil.getCameraId(this)?.takeIf {
-            StoreUtil.getCameraEnabled(this)
+        (RobotConfig.CameraId.getValue(this) as String?)?.takeIf {
+            RobotConfig.CameraEnabled.getValue(this, false) as Boolean
         }?.let{ cameraId ->
             val settings = CameraSettings(cameraId = cameraId,
-                    pass = StoreUtil.getCameraPass(this),
+                    pass = RobotConfig.CameraPass.getValue(this) as String,
                     width = 640, //TODO tie into settings
                     height = 480, //TODO tie into settings
-                    bitrate = StoreUtil.getBitrate(this).toInt(),
-                    useLegacyApi = StoreUtil.getUseLegacyCamera(this),
-                    orientation = StoreUtil.getOrientation(this))
+                    bitrate = (RobotConfig.VideoBitrate.getValue(this, "512") as String).toInt(),
+                    useLegacyApi = RobotConfig.UseLegacyCamera.getValue(this, false) as Boolean,
+                    orientation = RobotConfig.Orientation.getValue(this) as CameraDirection
+            )
             builder.cameraSettings = settings
         }
-        builder.useTTS = StoreUtil.getTTSEnabled(this)
-        builder.useMic = StoreUtil.getMicEnabled(this)
-        builder.protocol = StoreUtil.getProtocolType(this)
-        builder.communication = StoreUtil.getCommunicationType(this)
+        builder.useTTS = RobotConfig.TTSEnabled.getValue(this, false) as Boolean
+        builder.useMic = RobotConfig.MicEnabled.getValue(this, false) as Boolean
+        builder.protocol = RobotConfig.Protocol.getValue(this) as ProtocolType
+        builder.communication = RobotConfig.Communication.getValue(this) as CommunicationType
         builder.externalComponents = components //pass in arrayList of custom components
         try {
             core = builder.build() //Retrieve the built Core instance

@@ -10,29 +10,29 @@ import kotlinx.android.synthetic.main.activity_manual_setup.*
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
-import tv.letsrobot.android.api.utils.StoreUtil
-
+import tv.letsrobot.android.api.utils.RobotConfig
 
 class ManualSetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
-        StoreUtil.getRobotId(this)?.let { robotIDEditText.setText(it) }
-        StoreUtil.getCameraId(this)?.let { cameraIDEditText.setText(it) }
-        cameraPassEditText.setText(StoreUtil.getCameraPass(this))
-        cameraEnableToggle.isChecked = StoreUtil.getCameraEnabled(this)
-        micEnableButton.isChecked = StoreUtil.getMicEnabled(this)
-        ttsEnableButton.isChecked = StoreUtil.getTTSEnabled(this)
-        errorReportButton.isChecked = StoreUtil.getErrorReportingEnabled(this)
+        RobotConfig.RobotId.getValue(this)?.let { robotIDEditText.setText(it as String) }
+        RobotConfig.CameraId.getValue(this)?.let { cameraIDEditText.setText(it as String) }
+        cameraPassEditText.setText(RobotConfig.CameraPass.getValue(this, "hello") as String)
+        cameraEnableToggle.isChecked = RobotConfig.CameraEnabled.getValue(this) as Boolean
+        micEnableButton.isChecked = RobotConfig.MicEnabled.getValue(this) as Boolean
+        ttsEnableButton.isChecked = RobotConfig.TTSEnabled.getValue(this) as Boolean
+        errorReportButton.isChecked = RobotConfig.ErrorReporting.getValue(this) as Boolean
         cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
             checkState(isChecked)
         }
-        screenOverlaySettingsButton.isChecked = StoreUtil.getScreenSleepOverlayEnabled(this)
-        bitrateEditText.setText(StoreUtil.getBitrate(this))
-        resolutionEditText.setText(StoreUtil.getResolution(this))
+        screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
+        bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
+        resolutionEditText.setText(RobotConfig.VideoBitrate.getValue(this, "640x480") as String)
         legacyCameraEnableToggle.isEnabled = Build.VERSION.SDK_INT >= 21
-        legacyCameraEnableToggle.isChecked = StoreUtil.getUseLegacyCamera(this)
+        legacyCameraEnableToggle.isChecked =
+                RobotConfig.UseLegacyCamera.getValue(this, Build.VERSION.SDK_INT < 21) as Boolean
         bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
@@ -46,7 +46,7 @@ class ManualSetupActivity : AppCompatActivity() {
         val protocolAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, protocols)
         protocolChooser.adapter = protocolAdapter
 
-        StoreUtil.getProtocolType(this)?.let {
+        (RobotConfig.Protocol.getValue(this, ProtocolType.values()[0]) as ProtocolType).let {
             protocolChooser.setSelection(it.ordinal)
         }
 
@@ -58,7 +58,8 @@ class ManualSetupActivity : AppCompatActivity() {
         // Creating adapter for spinner
         val commAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, communications)
         communicationChooser.adapter = commAdapter
-        StoreUtil.getCommunicationType(this)?.let {
+
+        (RobotConfig.Communication.getValue(this, CommunicationType.values()[0]) as CommunicationType).let {
             communicationChooser.setSelection(it.ordinal)
         }
 
@@ -70,7 +71,8 @@ class ManualSetupActivity : AppCompatActivity() {
         // Creating adapter for spinner
         val orientationChooserAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, orientationChooserList)
         orientationChooser.adapter = orientationChooserAdapter
-        StoreUtil.getOrientation(this).also {
+
+        (RobotConfig.Orientation.getValue(this, CameraDirection.values()[0]) as CameraDirection).let {
             orientationChooser.setSelection(it.ordinal)
         }
 
@@ -83,37 +85,37 @@ class ManualSetupActivity : AppCompatActivity() {
     private fun launchActivity() {
         finish()
         startActivity(Intent(this, SplashActivity::class.java))
-        StoreUtil.setConfigured(this, true)
+        RobotConfig.Configured.saveValue(this, true)
     }
 
     private fun saveButtonStates() {
         robotIDEditText.text.takeIf { !it.isBlank() }?.let {
-            StoreUtil.setRobotId(this, it.toString())
+            RobotConfig.RobotId.saveValue(this, it.toString())
         }
         cameraIDEditText.text.takeIf { !it.isBlank() }?.let {
-            StoreUtil.setCameraId(this, it.toString())
+            RobotConfig.CameraId.saveValue(this, it.toString())
         }
         cameraPassEditText.text.takeIf { !it.isBlank() }?.let {
-            StoreUtil.setCameraPass(this, it.toString())
+            RobotConfig.CameraPass.saveValue(this, it.toString())
         }
         bitrateEditText.text.takeIf { !it.isBlank() }?.let {
-            StoreUtil.setBitrate(this, it.toString())
+            RobotConfig.VideoBitrate.saveValue(this, it.toString())
         }
         resolutionEditText.text.takeIf { !it.isBlank() }?.let {
             //TODO Add pref for this
         }
 
         if(legacyCameraEnableToggle.isEnabled){
-            StoreUtil.setUseLegacyCamera(this, legacyCameraEnableToggle.isChecked)
+            RobotConfig.UseLegacyCamera.saveValue(this, legacyCameraEnableToggle.isChecked)
         }
-        StoreUtil.setCameraEnabled(this, cameraEnableToggle.isChecked)
-        StoreUtil.setMicEnabled(this, micEnableButton.isChecked)
-        StoreUtil.setTTSEnabled(this, ttsEnableButton.isChecked)
-        StoreUtil.setErrorReportingEnabled(this, errorReportButton.isChecked)
-        StoreUtil.setCommunicationType(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
-        StoreUtil.setProtocolType(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
-        StoreUtil.setOrientation(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
-        StoreUtil.setScreenSleepOverlayEnabled(this, screenOverlaySettingsButton.isChecked)
+        RobotConfig.CameraEnabled.saveValue(this, cameraEnableToggle.isChecked)
+        RobotConfig.MicEnabled.saveValue(this, micEnableButton.isChecked)
+        RobotConfig.TTSEnabled.saveValue(this, ttsEnableButton.isChecked)
+        RobotConfig.ErrorReporting.saveValue(this, errorReportButton.isChecked)
+        RobotConfig.Communication.saveValue(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
+        RobotConfig.Protocol.saveValue(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
+        RobotConfig.Orientation.saveValue(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
+        RobotConfig.SleepMode.saveValue(this, screenOverlaySettingsButton.isChecked)
     }
 
     fun checkState(cameraChecked : Boolean){
