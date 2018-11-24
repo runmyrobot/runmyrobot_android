@@ -104,33 +104,39 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
-                    try {
-                        //broadcast what message was sent ex. F, stop, etc
-                        val command = `object`.getString("command")
-                        if(!allowControl){ //TODO Allow non-movement commands pass
-                            print("Trashing movement. Controls disabled")
-                            return@on
-                        }
-                        if(table){ //check for table top mode
-                            when(command.toLowerCase()){
-                                "f" -> {
-                                    print("f, Trashing movement. On Table")
-                                    return@on
-                                }
-                                "b" -> {
-                                    print("b, Trashing movement. On Table")
-                                    return@on
-                                }
-                                else -> {}
-                            }
-                        }
+                    parseCommand(`object`)?.let{
                         resetTimer() //resets a timer to prevent a timeout message
-                        EventManager.invoke(COMMAND, command)
-                    } catch (e: JSONException) {
-                        e.printStackTrace() //Message format must be wrong, ignore it
+                        EventManager.invoke(COMMAND, it)
                     }
                 }
             }
+        }
+    }
+
+    private fun parseCommand(jsonObject: JSONObject): String? {
+        return try {
+            //broadcast what message was sent ex. F, stop, etc
+            val command = jsonObject.getString("command")
+            if(!allowControl){ //TODO Allow non-movement commands pass
+                print("Trashing movement. Controls disabled")
+                return null
+            }
+            if(table){ //check for table top mode
+                when(command.toLowerCase()){
+                    "f" -> {
+                        print("f, Trashing movement. On Table")
+                        return null
+                    }
+                    "b" -> {
+                        print("b, Trashing movement. On Table")
+                        return null
+                    }
+                }
+            }
+            command
+        } catch (e: JSONException) {
+            e.printStackTrace() //Message format must be wrong, ignore it
+            null
         }
     }
 
