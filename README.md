@@ -1,3 +1,5 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/b6b7eb90dfe3d77bb5f0/maintainability)](https://codeclimate.com/github/btelman96/runmyrobot_android/maintainability)
+
 # runmyrobot_android
 android code to run on robots via LetsRobot api
 
