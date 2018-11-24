@@ -60,40 +60,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
             if (it[0] is JSONObject) {
                 val `object` = it[0] as JSONObject
                 try {
-                    val messageRaw = `object`.getString("message")
-                    getMessageFromRaw(messageRaw)?.let {
-                        if(isSpeakableText(it) && !ttobj.isSpeaking) {
-                            val pitch = 1f
-                            ttobj.setPitch(pitch)
-                            EventManager.invoke(CHAT, it)
-                            ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
-                        }
-                        else{
-                            if(`object`["name"] == Core.owner){
-                                val pitch = .5f
-                                ttobj.setPitch(pitch)
-                                when(it){
-                                    ".table on" -> {
-                                        ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".table off" -> {
-                                        ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".motors off" -> {
-                                        ttobj.speak("Motors turned off", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".motors on" -> {
-                                        ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".battery level" ->{
-                                        ttobj.speak("Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                }
-                                EventManager.invoke(CHAT, it)
-                            }
-                            1
-                        }
-                    }
+                    processMessage(`object`.getString("message"), `object`.getString("name"))
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
@@ -106,6 +73,48 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 status = ComponentStatus.INTERMITTENT
         }
         mSocket?.connect()
+    }
+
+    private fun processMessage(messageRaw: String?, user : String?) {
+        getMessageFromRaw(messageRaw)?.let {
+            var pitch = 1f
+            val speakingText : String? = if(isSpeakableText(it) && !ttobj.isSpeaking) {
+                it
+            }
+            else{
+                pitch = .5f
+                processCommand(it, user)
+            }
+            ttobj.setPitch(pitch)
+            EventManager.invoke(CHAT, it)
+            speakingText?.let{t ->
+                ttobj.speak(t, TextToSpeech.QUEUE_FLUSH, null)
+            }
+        }
+    }
+
+    private fun processCommand(it: String, user : String?): String? {
+        if(user == Core.owner) {
+            return when (it) {
+                ".table on" -> {
+                    "Table top mode on"
+                }
+                ".table off" -> {
+                    "Table top mode off"
+                }
+                ".motors off" -> {
+                    "Motors turned off"
+                }
+                ".motors on" -> {
+                    "Motors turned on"
+                }
+                ".battery level" -> {
+                    "Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent"
+                }
+                else -> null
+            }
+        }
+        return null
     }
 
     private fun getPitchFromUser(name : String): Float {
