@@ -8,7 +8,6 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RecordingThread
-import tv.letsrobot.android.api.utils.StoreUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -16,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Created by Brendon on 9/1/2018.
  */
-class AudioComponent(contextA: Context, val cameraId : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
+class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
 
     internal var ffmpegRunning = AtomicBoolean(false)
 
@@ -86,7 +85,7 @@ class AudioComponent(contextA: Context, val cameraId : String) : Component(conte
                 val mic_channels = 1
                 val audioHost = host
                 val audioPort = port
-                val streamKey = StoreUtil.getCameraPass(context)
+                val streamKey = cameraPass
                 val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, streamKey)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }
