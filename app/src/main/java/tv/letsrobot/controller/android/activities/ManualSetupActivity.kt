@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
@@ -37,44 +38,9 @@ class ManualSetupActivity : AppCompatActivity() {
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
-        //Configure protocol spinner
-        val protocols = ArrayList<String>()
-        ProtocolType.values().forEach {
-            protocols.add(it.name)
-        }
-        // Creating adapter for spinner
-        val protocolAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, protocols)
-        protocolChooser.adapter = protocolAdapter
-
-        (RobotConfig.Protocol.getValue(this, ProtocolType.values()[0]) as ProtocolType).let {
-            protocolChooser.setSelection(it.ordinal)
-        }
-
-        //Configure communication spinner
-        val communications = ArrayList<String>()
-        CommunicationType.values().forEach {
-            communications.add(it.name) //TODO maybe check for device support here before showing it?
-        }
-        // Creating adapter for spinner
-        val commAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, communications)
-        communicationChooser.adapter = commAdapter
-
-        (RobotConfig.Communication.getValue(this, CommunicationType.values()[0]) as CommunicationType).let {
-            communicationChooser.setSelection(it.ordinal)
-        }
-
-        //Configure communication spinner
-        val orientationChooserList = ArrayList<String>()
-        CameraDirection.values().forEach {
-            orientationChooserList.add(it.toString())
-        }
-        // Creating adapter for spinner
-        val orientationChooserAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, orientationChooserList)
-        orientationChooser.adapter = orientationChooserAdapter
-
-        (RobotConfig.Orientation.getValue(this, CameraDirection.values()[0]) as CameraDirection).let {
-            orientationChooser.setSelection(it.ordinal)
-        }
+        setupSpinnerWithSetting(protocolChooser, RobotConfig.Protocol, ProtocolType::class.java)
+        setupSpinnerWithSetting(communicationChooser, RobotConfig.Communication, CommunicationType::class.java)
+        setupSpinnerWithSetting(orientationChooser, RobotConfig.Orientation, CameraDirection::class.java)
 
         applyButton.setOnClickListener {
             saveButtonStates()
@@ -116,6 +82,24 @@ class ManualSetupActivity : AppCompatActivity() {
         RobotConfig.Protocol.saveValue(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
         RobotConfig.Orientation.saveValue(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
         RobotConfig.SleepMode.saveValue(this, screenOverlaySettingsButton.isChecked)
+    }
+
+    /**
+     * Sets up a spinner using enum values from RobotConfig
+     */
+    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : RobotConfig, enumClass : Class<T>){
+        spinner.adapter = createEnumArrayAdapter(enumClass.enumConstants)
+        val enum = RobotConfig.fetchEnum(this, value, enumClass.enumConstants[0])
+        spinner.setSelection(enum.ordinal)
+    }
+
+    private fun <T : Enum<T>> createEnumArrayAdapter(list : Array<T>) : ArrayAdapter<Any>{
+        val arrList = ArrayList<String>()
+        list.forEach {
+            arrList.add(it.name)
+        }
+        // Creating adapter for spinner
+        return ArrayAdapter(this, android.R.layout.simple_spinner_item, list)
     }
 
     fun checkState(cameraChecked : Boolean){
