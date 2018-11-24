@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.letsrobot.controller.android.R
@@ -18,8 +19,8 @@ class ManualSetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
-        RobotConfig.RobotId.getValue(this)?.let { robotIDEditText.setText(it as String) }
-        RobotConfig.CameraId.getValue(this)?.let { cameraIDEditText.setText(it as String) }
+        robotIDEditText.setText(RobotConfig.RobotId.getValue(this, "") as String)
+        cameraIDEditText.setText(RobotConfig.CameraId.getValue(this, "") as String)
         cameraPassEditText.setText(RobotConfig.CameraPass.getValue(this, "hello") as String)
         cameraEnableToggle.isChecked = RobotConfig.CameraEnabled.getValue(this) as Boolean
         micEnableButton.isChecked = RobotConfig.MicEnabled.getValue(this) as Boolean
@@ -31,9 +32,9 @@ class ManualSetupActivity : AppCompatActivity() {
         screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
         bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
         resolutionEditText.setText(RobotConfig.VideoBitrate.getValue(this, "640x480") as String)
-        legacyCameraEnableToggle.isEnabled = Build.VERSION.SDK_INT >= 21
-        legacyCameraEnableToggle.isChecked =
-                RobotConfig.UseLegacyCamera.getValue(this, Build.VERSION.SDK_INT < 21) as Boolean
+        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
+        legacyCameraEnableToggle.isEnabled = !legacyOnly
+        legacyCameraEnableToggle.isChecked = RobotConfig.UseLegacyCamera.getValue(this, legacyOnly) as Boolean
         bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
@@ -55,22 +56,11 @@ class ManualSetupActivity : AppCompatActivity() {
     }
 
     private fun saveButtonStates() {
-        robotIDEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.RobotId.saveValue(this, it.toString())
-        }
-        cameraIDEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.CameraId.saveValue(this, it.toString())
-        }
-        cameraPassEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.CameraPass.saveValue(this, it.toString())
-        }
-        bitrateEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.VideoBitrate.saveValue(this, it.toString())
-        }
-        resolutionEditText.text.takeIf { !it.isBlank() }?.let {
-            //TODO Add pref for this
-        }
-
+        saveTextViewToRobotConfig(robotIDEditText, RobotConfig.RobotId)
+        saveTextViewToRobotConfig(cameraIDEditText, RobotConfig.CameraId)
+        saveTextViewToRobotConfig(cameraPassEditText, RobotConfig.CameraPass)
+        saveTextViewToRobotConfig(bitrateEditText, RobotConfig.VideoBitrate)
+        saveTextViewToRobotConfig(resolutionEditText, RobotConfig.VideoResolution)
         if(legacyCameraEnableToggle.isEnabled){
             RobotConfig.UseLegacyCamera.saveValue(this, legacyCameraEnableToggle.isChecked)
         }
@@ -82,6 +72,12 @@ class ManualSetupActivity : AppCompatActivity() {
         RobotConfig.Protocol.saveValue(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
         RobotConfig.Orientation.saveValue(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
         RobotConfig.SleepMode.saveValue(this, screenOverlaySettingsButton.isChecked)
+    }
+
+    private fun saveTextViewToRobotConfig(view : EditText, setting : RobotConfig){
+        view.text.takeIf { !it.isBlank() }?.let {
+            setting.saveValue(this, it.toString())
+        } ?: setting.reset(this)
     }
 
     /**
