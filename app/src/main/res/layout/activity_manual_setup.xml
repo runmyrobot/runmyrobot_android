@@ -45,9 +45,14 @@
         android:layout_height="wrap_content"
         android:text="Output"/>
     <Spinner
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/communicationChooser"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reset Robot Configuration"
+        android:id="@+id/resetRobotComponentsCheckbox"/>
 
     <Switch
         android:id="@+id/cameraEnableToggle"

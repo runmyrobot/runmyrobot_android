@@ -36,6 +36,10 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         EventManager.unsubscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
+    override fun clearSetup(activity: Activity) {
+        //not used for USB
+    }
+
     override fun needsSetup(activity: Activity): Boolean {
         return false
     }

@@ -31,7 +31,7 @@ class ManualSetupActivity : AppCompatActivity() {
         }
         screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
         bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
-        resolutionEditText.setText(RobotConfig.VideoBitrate.getValue(this, "640x480") as String)
+        resolutionEditText.setText(RobotConfig.VideoResolution.getValue(this, "640x480") as String)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
         legacyCameraEnableToggle.isChecked = RobotConfig.UseLegacyCamera.getValue(this, legacyOnly) as Boolean
