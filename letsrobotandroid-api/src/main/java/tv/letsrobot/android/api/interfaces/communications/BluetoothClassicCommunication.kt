@@ -22,8 +22,8 @@ class BluetoothClassicCommunication : CommunicationInterface {
     var addr : String? = null
     var name : String? = null
 
-    override fun clearSetup(activity: Activity) {
-        activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).edit().clear().apply()
+    override fun clearSetup(context: Context) {
+        context.getSharedPreferences(CONFIG_PREFS, 0).edit().clear().apply()
     }
 
     override fun needsSetup(activity: Activity): Boolean {

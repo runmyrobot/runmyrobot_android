@@ -25,7 +25,7 @@ interface CommunicationInterface{
     /**
      * Reset setup for class
      */
-    fun clearSetup(activity: Activity)
+    fun clearSetup(context: Context)
 
     /**
      * Query this component to see if it needs custom setup

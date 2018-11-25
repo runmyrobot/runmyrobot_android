@@ -9,6 +9,7 @@ import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
+import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
@@ -50,6 +51,9 @@ class ManualSetupActivity : AppCompatActivity() {
     }
 
     private fun launchActivity() {
+        if(resetRobotComponentsCheckbox.isChecked){
+            Core.resetCommunicationConfig(this)
+        }
         finish()
         startActivity(Intent(this, SplashActivity::class.java))
         RobotConfig.Configured.saveValue(this, true)
