@@ -74,9 +74,17 @@ enum class RobotConfig(private val variable: VariableType) {
         }
     }
 
+    fun reset(context: Context) {
+        getSharedPrefs(context).edit().remove(name).apply()
+    }
+
     companion object {
         fun getSharedPrefs(context: Context) : SharedPreferences {
             return context.getSharedPreferences("robotConfig", 0)
+        }
+
+        fun <T : Enum<T>> fetchEnum(context: Context, type : RobotConfig, default : Enum<T>) : Enum<*>{
+            return type.getValue(context, default) as Enum<*>
         }
     }
 }

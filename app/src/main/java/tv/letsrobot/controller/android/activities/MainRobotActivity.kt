@@ -137,7 +137,7 @@ class MainRobotActivity : Activity(), Runnable {
             RobotConfig.CameraEnabled.getValue(this, false) as Boolean
         }?.let{ cameraId ->
             val settings = CameraSettings(cameraId = cameraId,
-                    pass = RobotConfig.CameraPass.getValue(this) as String,
+                    pass = RobotConfig.CameraPass.getValue(this, "hello") as String,
                     width = 640, //TODO tie into settings
                     height = 480, //TODO tie into settings
                     bitrate = (RobotConfig.VideoBitrate.getValue(this, "512") as String).toInt(),

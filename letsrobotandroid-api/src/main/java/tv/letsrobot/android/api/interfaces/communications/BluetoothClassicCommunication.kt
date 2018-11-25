@@ -13,15 +13,19 @@ import tv.letsrobot.android.api.drivers.BluetoothClassic
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 
-
 /**
- * Created by Brendon on 9/11/2018.
+ * Communication class that works with bluetooth classic
+ * and takes control data via EventManager.ROBOT_BYTE_ARRAY event
  */
 class BluetoothClassicCommunication : CommunicationInterface {
-
     var bluetoothClassic : BluetoothClassic? = null
     var addr : String? = null
     var name : String? = null
+
+    override fun clearSetup(context: Context) {
+        context.getSharedPreferences(CONFIG_PREFS, 0).edit().clear().apply()
+    }
+
     override fun needsSetup(activity: Activity): Boolean {
         val pairingRequired = !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
         val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()

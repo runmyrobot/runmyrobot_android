@@ -396,6 +396,15 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
         }
 
+        /**
+         * Clear all stored config data for our Communication components, which would trigger setup again
+         */
+        fun resetCommunicationConfig(context: Context) {
+            CommunicationType.values().forEach {
+                it.getInstantiatedClass?.clearSetup(context)
+            }
+        }
+
         private const val START = 1
         private const val STOP = 2
         private const val QUEUE_UPDATE_TO_SERVER = 3

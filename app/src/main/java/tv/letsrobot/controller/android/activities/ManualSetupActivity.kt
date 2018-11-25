@@ -4,9 +4,12 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
+import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
@@ -17,8 +20,8 @@ class ManualSetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
-        RobotConfig.RobotId.getValue(this)?.let { robotIDEditText.setText(it as String) }
-        RobotConfig.CameraId.getValue(this)?.let { cameraIDEditText.setText(it as String) }
+        robotIDEditText.setText(RobotConfig.RobotId.getValue(this, "") as String)
+        cameraIDEditText.setText(RobotConfig.CameraId.getValue(this, "") as String)
         cameraPassEditText.setText(RobotConfig.CameraPass.getValue(this, "hello") as String)
         cameraEnableToggle.isChecked = RobotConfig.CameraEnabled.getValue(this) as Boolean
         micEnableButton.isChecked = RobotConfig.MicEnabled.getValue(this) as Boolean
@@ -29,52 +32,17 @@ class ManualSetupActivity : AppCompatActivity() {
         }
         screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
         bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
-        resolutionEditText.setText(RobotConfig.VideoBitrate.getValue(this, "640x480") as String)
-        legacyCameraEnableToggle.isEnabled = Build.VERSION.SDK_INT >= 21
-        legacyCameraEnableToggle.isChecked =
-                RobotConfig.UseLegacyCamera.getValue(this, Build.VERSION.SDK_INT < 21) as Boolean
+        resolutionEditText.setText(RobotConfig.VideoResolution.getValue(this, "640x480") as String)
+        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
+        legacyCameraEnableToggle.isEnabled = !legacyOnly
+        legacyCameraEnableToggle.isChecked = RobotConfig.UseLegacyCamera.getValue(this, legacyOnly) as Boolean
         bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
-        //Configure protocol spinner
-        val protocols = ArrayList<String>()
-        ProtocolType.values().forEach {
-            protocols.add(it.name)
-        }
-        // Creating adapter for spinner
-        val protocolAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, protocols)
-        protocolChooser.adapter = protocolAdapter
-
-        (RobotConfig.Protocol.getValue(this, ProtocolType.values()[0]) as ProtocolType).let {
-            protocolChooser.setSelection(it.ordinal)
-        }
-
-        //Configure communication spinner
-        val communications = ArrayList<String>()
-        CommunicationType.values().forEach {
-            communications.add(it.name) //TODO maybe check for device support here before showing it?
-        }
-        // Creating adapter for spinner
-        val commAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, communications)
-        communicationChooser.adapter = commAdapter
-
-        (RobotConfig.Communication.getValue(this, CommunicationType.values()[0]) as CommunicationType).let {
-            communicationChooser.setSelection(it.ordinal)
-        }
-
-        //Configure communication spinner
-        val orientationChooserList = ArrayList<String>()
-        CameraDirection.values().forEach {
-            orientationChooserList.add(it.toString())
-        }
-        // Creating adapter for spinner
-        val orientationChooserAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, orientationChooserList)
-        orientationChooser.adapter = orientationChooserAdapter
-
-        (RobotConfig.Orientation.getValue(this, CameraDirection.values()[0]) as CameraDirection).let {
-            orientationChooser.setSelection(it.ordinal)
-        }
+        setupSpinnerWithSetting(protocolChooser, RobotConfig.Protocol, ProtocolType::class.java)
+        setupSpinnerWithSetting(communicationChooser, RobotConfig.Communication, CommunicationType::class.java)
+        setupSpinnerWithSetting(orientationChooser, RobotConfig.Orientation, CameraDirection::class.java)
 
         applyButton.setOnClickListener {
             saveButtonStates()
@@ -83,28 +51,20 @@ class ManualSetupActivity : AppCompatActivity() {
     }
 
     private fun launchActivity() {
+        if(resetRobotComponentsCheckbox.isChecked){
+            Core.resetCommunicationConfig(this)
+        }
         finish()
         startActivity(Intent(this, SplashActivity::class.java))
         RobotConfig.Configured.saveValue(this, true)
     }
 
     private fun saveButtonStates() {
-        robotIDEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.RobotId.saveValue(this, it.toString())
-        }
-        cameraIDEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.CameraId.saveValue(this, it.toString())
-        }
-        cameraPassEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.CameraPass.saveValue(this, it.toString())
-        }
-        bitrateEditText.text.takeIf { !it.isBlank() }?.let {
-            RobotConfig.VideoBitrate.saveValue(this, it.toString())
-        }
-        resolutionEditText.text.takeIf { !it.isBlank() }?.let {
-            //TODO Add pref for this
-        }
-
+        saveTextViewToRobotConfig(robotIDEditText, RobotConfig.RobotId)
+        saveTextViewToRobotConfig(cameraIDEditText, RobotConfig.CameraId)
+        saveTextViewToRobotConfig(cameraPassEditText, RobotConfig.CameraPass)
+        saveTextViewToRobotConfig(bitrateEditText, RobotConfig.VideoBitrate)
+        saveTextViewToRobotConfig(resolutionEditText, RobotConfig.VideoResolution)
         if(legacyCameraEnableToggle.isEnabled){
             RobotConfig.UseLegacyCamera.saveValue(this, legacyCameraEnableToggle.isChecked)
         }
@@ -116,6 +76,30 @@ class ManualSetupActivity : AppCompatActivity() {
         RobotConfig.Protocol.saveValue(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
         RobotConfig.Orientation.saveValue(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
         RobotConfig.SleepMode.saveValue(this, screenOverlaySettingsButton.isChecked)
+    }
+
+    private fun saveTextViewToRobotConfig(view : EditText, setting : RobotConfig){
+        view.text.takeIf { !it.isBlank() }?.let {
+            setting.saveValue(this, it.toString())
+        } ?: setting.reset(this)
+    }
+
+    /**
+     * Sets up a spinner using enum values from RobotConfig
+     */
+    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : RobotConfig, enumClass : Class<T>){
+        spinner.adapter = createEnumArrayAdapter(enumClass.enumConstants)
+        val enum = RobotConfig.fetchEnum(this, value, enumClass.enumConstants[0])
+        spinner.setSelection(enum.ordinal)
+    }
+
+    private fun <T : Enum<T>> createEnumArrayAdapter(list : Array<T>) : ArrayAdapter<Any>{
+        val arrList = ArrayList<String>()
+        list.forEach {
+            arrList.add(it.name)
+        }
+        // Creating adapter for spinner
+        return ArrayAdapter(this, android.R.layout.simple_spinner_item, list)
     }
 
     fun checkState(cameraChecked : Boolean){
