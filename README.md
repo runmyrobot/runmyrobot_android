@@ -11,9 +11,7 @@ android code to run on robots via LetsRobot api
 
 ## Device Limitations
 
-- Setup to be capable of running on Android 4.4 (API 19) or higher
-
-- App will build to a device with 4.1.2 if minSDKVersion is lowered to 16, but functionality has not been fully tested.
+- Setup to be capable of running on Android 4.1 (API 16) or higher. Some devices may run into issues, so feel free to report them
 
 - Android Things not tested
 
@@ -99,11 +97,13 @@ Feel free to add your device to this list if you have tested it via a pull reque
 
 ## Verified functional devices:
 
+- Casio G'zOne CA-201L (4.1.2 JellyBean). Tested with 512kbps bitrate and bluetooth. Might not support USB OTG
+
 - ZTE Speed (4.4 Kitkat), might not be fast enough on high bitrates, some weird bluetooth issues possible (https://github.com/btelman96/runmyrobot_android/issues/45)
 
 - Motorola Moto Z (8.0.0 Oreo)
 
-- Galaxy S4 (5.0.1)
+- Galaxy S4 (5.0.1 Lollipop)
 
 - Pixel 2 XL (9 Pie)
 
