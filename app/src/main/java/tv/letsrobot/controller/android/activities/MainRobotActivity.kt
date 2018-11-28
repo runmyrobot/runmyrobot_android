@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.AudioComponent
@@ -25,6 +24,7 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.RobotApplication
 import tv.letsrobot.controller.android.robot.CustomComponentExample
 

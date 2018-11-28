@@ -8,11 +8,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.letsrobot.controller.android.R
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.controller.android.R
 
 class SplashActivity : Activity() {
 

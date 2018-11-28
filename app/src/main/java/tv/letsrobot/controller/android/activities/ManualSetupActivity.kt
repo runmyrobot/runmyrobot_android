@@ -7,13 +7,13 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import com.letsrobot.controller.android.R
 import kotlinx.android.synthetic.main.activity_manual_setup.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.controller.android.R
 
 class ManualSetupActivity : AppCompatActivity() {
 
