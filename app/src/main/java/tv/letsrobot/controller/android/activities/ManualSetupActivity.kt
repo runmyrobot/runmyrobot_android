@@ -96,7 +96,7 @@ class ManualSetupActivity : AppCompatActivity() {
                 legacyCameraEnableToggle.isChecked,
                 micEnableButton.isChecked,
                 ttsEnableButton.isChecked,
-                errorReportButton.isChecked)
+                screenOverlaySettingsButton.isChecked)
     }
 
     /**
