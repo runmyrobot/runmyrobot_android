@@ -77,6 +77,11 @@
             android:label="@string/title_activity_qr"
             android:parentActivityName=".activities.ManualSetupActivity"
             android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="tv.letsrobot.controller.android.activities.ManualSetupActivity" />

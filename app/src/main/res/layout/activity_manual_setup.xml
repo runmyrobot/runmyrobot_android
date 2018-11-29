@@ -170,16 +170,30 @@
         android:layout_height="wrap_content"
         android:text="Enable fake screen timeout"/>
     <Switch
+        android:enabled="false"
+        android:checked="false"
         android:id="@+id/errorReportButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable error reporting"/>
+        android:text="Enable error reporting (Disabled)"/>
 
-    <Button
-        android:id="@+id/applyButton"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
+    <GridLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Apply"/>
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/exportQRButton"
+            android:layout_gravity="start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Export to QR Code"/>
+        <Button
+            android:id="@+id/applyButton"
+            android:layout_gravity="end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apply"/>
+    </GridLayout>
 </LinearLayout>
 </ScrollView>

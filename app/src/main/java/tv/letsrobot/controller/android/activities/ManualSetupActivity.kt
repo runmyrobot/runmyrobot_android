@@ -14,6 +14,7 @@ import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
+import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
 class ManualSetupActivity : AppCompatActivity() {
 
@@ -45,9 +46,18 @@ class ManualSetupActivity : AppCompatActivity() {
         setupSpinnerWithSetting(orientationChooser, RobotConfig.Orientation, CameraDirection::class.java)
 
         applyButton.setOnClickListener {
-            saveButtonStates()
+            saveSettings()
             launchActivity()
         }
+
+        exportQRButton.setOnClickListener {
+            exportSettings()
+        }
+    }
+
+    private fun exportSettings() {
+        val settings = getSettingsFromUI()
+        startActivity(QRActivity.getLaunchIntent(this, settings))
     }
 
     private fun launchActivity() {
@@ -59,29 +69,34 @@ class ManualSetupActivity : AppCompatActivity() {
         RobotConfig.Configured.saveValue(this, true)
     }
 
-    private fun saveButtonStates() {
-        saveTextViewToRobotConfig(robotIDEditText, RobotConfig.RobotId)
-        saveTextViewToRobotConfig(cameraIDEditText, RobotConfig.CameraId)
-        saveTextViewToRobotConfig(cameraPassEditText, RobotConfig.CameraPass)
-        saveTextViewToRobotConfig(bitrateEditText, RobotConfig.VideoBitrate)
-        saveTextViewToRobotConfig(resolutionEditText, RobotConfig.VideoResolution)
-        if(legacyCameraEnableToggle.isEnabled){
-            RobotConfig.UseLegacyCamera.saveValue(this, legacyCameraEnableToggle.isChecked)
-        }
-        RobotConfig.CameraEnabled.saveValue(this, cameraEnableToggle.isChecked)
-        RobotConfig.MicEnabled.saveValue(this, micEnableButton.isChecked)
-        RobotConfig.TTSEnabled.saveValue(this, ttsEnableButton.isChecked)
-        RobotConfig.ErrorReporting.saveValue(this, errorReportButton.isChecked)
-        RobotConfig.Communication.saveValue(this, CommunicationType.valueOf(communicationChooser.selectedItem.toString()))
-        RobotConfig.Protocol.saveValue(this, ProtocolType.valueOf(protocolChooser.selectedItem.toString()))
-        RobotConfig.Orientation.saveValue(this, CameraDirection.values()[orientationChooser.selectedItemPosition])
-        RobotConfig.SleepMode.saveValue(this, screenOverlaySettingsButton.isChecked)
+    private fun saveSettings() {
+        val settings = getSettingsFromUI()
+        RobotSettingsObject.save(this, settings)
     }
 
-    private fun saveTextViewToRobotConfig(view : EditText, setting : RobotConfig){
-        view.text.takeIf { !it.isBlank() }?.let {
-            setting.saveValue(this, it.toString())
-        } ?: setting.reset(this)
+    fun EditText.string() : String{
+        return text.toString()
+    }
+
+    fun EditText.toIntOrZero() : Int{
+        return string().toIntOrNull()?.let { it } ?: 0
+    }
+
+    private fun getSettingsFromUI(): RobotSettingsObject {
+        return RobotSettingsObject(
+                robotIDEditText.string(),
+                ProtocolType.valueOf(protocolChooser.selectedItem.toString()),
+                CommunicationType.valueOf(communicationChooser.selectedItem.toString()),
+                cameraIDEditText.string(),
+                cameraPassEditText.string(),
+                CameraDirection.values()[orientationChooser.selectedItemPosition],
+                bitrateEditText.toIntOrZero(),
+                resolutionEditText.string(),
+                cameraEnableToggle.isChecked,
+                legacyCameraEnableToggle.isChecked,
+                micEnableButton.isChecked,
+                ttsEnableButton.isChecked,
+                errorReportButton.isChecked)
     }
 
     /**

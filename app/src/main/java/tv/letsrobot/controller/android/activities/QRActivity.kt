@@ -1,10 +1,10 @@
 package tv.letsrobot.controller.android.activities
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.BarcodeFormat
@@ -12,36 +12,42 @@ import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.android.synthetic.main.activity_qr.*
 import kotlinx.android.synthetic.main.content_qr.*
+import kotlinx.coroutines.*
 import tv.letsrobot.controller.android.R
-import java.util.*
+import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
+class QRActivity : AppCompatActivity(){
 
-class QRActivity : AppCompatActivity(), Runnable{
-    var handler : Handler? = null
-    var handlerThread : HandlerThread? = null
+    private val qrCodeJob = Job()
+
+    private val uiScope = CoroutineScope(Dispatchers.Main + qrCodeJob)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qr)
         setSupportActionBar(toolbar)
-        handlerThread = HandlerThread("QRCode").also {
-            it.start()
-            handler = Handler(it.looper)
-        }
         setupFromQRFab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }
+
+        intent.extras?.getString(KEY_DATA)?.let {
+            uiScope.launch {
+                val bitmap = getQRCode(it)
+                qrImageView.setImageBitmap(bitmap.await())
+            }
+        }
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        handler?.post(this)
     }
 
     /**
-     * Runnable on worker thread for QR code dynamic generation
+     * Get QR Code asynchronously. Returns a bitmap
      */
-    override fun run() {
+    private fun getQRCode(data : String) = GlobalScope.async {
         val writer = QRCodeWriter()
         try {
-            val bitMatrix = writer.encode(UUID.randomUUID().toString(), BarcodeFormat.QR_CODE, 512, 512)
+            val bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512)
             val width = bitMatrix.width
             val height = bitMatrix.height
             val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
@@ -50,13 +56,20 @@ class QRActivity : AppCompatActivity(), Runnable{
                     bmp.setPixel(x, y, if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE)
                 }
             }
-            runOnUiThread{
-                qrImageView.setImageBitmap(bmp)
-                handler?.post(this)
-            }
+            bmp
         } catch (e: WriterException) {
             e.printStackTrace()
+            null
         }
+    }
 
+    companion object {
+        const val KEY_DATA = "robotData"
+
+        fun getLaunchIntent(context: Context, settingsObject: RobotSettingsObject) : Intent{
+            val intent = Intent(context, QRActivity::class.java)
+            intent.putExtra(KEY_DATA, settingsObject.toString())
+            return intent
+        }
     }
 }

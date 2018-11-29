@@ -7,11 +7,18 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".activities.QRActivity"
     tools:showIn="@layout/activity_qr">
+
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/qrImageView"
-        app:layout_constraintTop_toBottomOf="parent"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:contentDescription="@string/qr_code"
         app:layout_constraintBottom_toTopOf="parent"
-        android:contentDescription="@string/qr_code" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
