@@ -23,29 +23,31 @@ class ManualSetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
-        robotIDEditText.setText(RobotConfig.RobotId.getValue(this, "") as String)
-        cameraIDEditText.setText(RobotConfig.CameraId.getValue(this, "") as String)
-        cameraPassEditText.setText(RobotConfig.CameraPass.getValue(this, "hello") as String)
-        cameraEnableToggle.isChecked = RobotConfig.CameraEnabled.getValue(this) as Boolean
-        micEnableButton.isChecked = RobotConfig.MicEnabled.getValue(this) as Boolean
-        ttsEnableButton.isChecked = RobotConfig.TTSEnabled.getValue(this) as Boolean
-        errorReportButton.isChecked = RobotConfig.ErrorReporting.getValue(this) as Boolean
+        val settings = RobotSettingsObject.load(this)
+        robotIDEditText.setText(settings.robotId)
+        cameraIDEditText.setText(settings.cameraId)
+        cameraPassEditText.setText(settings.cameraPassword)
+        cameraEnableToggle.isChecked = settings.cameraEnabled
+        micEnableButton.isChecked = settings.enableMic
+        ttsEnableButton.isChecked = settings.enableTTS
+        errorReportButton.isEnabled = false //Not using right now.
+        errorReportButton.isChecked = false //Not using right now.
         cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
             checkState(isChecked)
         }
-        screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
-        bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
-        resolutionEditText.setText(RobotConfig.VideoResolution.getValue(this, "640x480") as String)
+        screenOverlaySettingsButton.isChecked = settings.screenTimeout
+        bitrateEditText.setText(settings.cameraBitrate)
+        resolutionEditText.setText(settings.cameraResolution)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
-        legacyCameraEnableToggle.isChecked = RobotConfig.UseLegacyCamera.getValue(this, legacyOnly) as Boolean
+        legacyCameraEnableToggle.isChecked = settings.cameraLegacy
         bitrateEditText.isEnabled = true
         resolutionEditText.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
-        setupSpinnerWithSetting(protocolChooser, RobotConfig.Protocol, ProtocolType::class.java)
-        setupSpinnerWithSetting(communicationChooser, RobotConfig.Communication, CommunicationType::class.java)
-        setupSpinnerWithSetting(orientationChooser, RobotConfig.Orientation, CameraDirection::class.java)
+        setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
+        setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
+        setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
 
         applyButton.setOnClickListener {
             saveSettings()
@@ -111,10 +113,9 @@ class ManualSetupActivity : AppCompatActivity() {
     /**
      * Sets up a spinner using enum values from RobotConfig
      */
-    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : RobotConfig, enumClass : Class<T>){
-        spinner.adapter = createEnumArrayAdapter(enumClass.enumConstants)
-        val enum = RobotConfig.fetchEnum(this, value, enumClass.enumConstants[0])
-        spinner.setSelection(enum.ordinal)
+    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : T){
+        spinner.adapter = createEnumArrayAdapter(value.declaringClass.enumConstants)
+        spinner.setSelection(value.ordinal)
     }
 
     private fun <T : Enum<T>> createEnumArrayAdapter(list : Array<T>) : ArrayAdapter<Any>{

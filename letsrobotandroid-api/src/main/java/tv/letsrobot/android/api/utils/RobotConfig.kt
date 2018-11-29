@@ -2,76 +2,57 @@ package tv.letsrobot.android.api.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import tv.letsrobot.android.api.enums.CameraDirection
 import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ProtocolType
 
-enum class RobotConfig(private val variable: VariableType) {
-    Configured(VariableType.BooleanClass),
-    RobotId(VariableType.StringClass),
-    CameraId(VariableType.StringClass),
-    CameraPass(VariableType.StringClass),
-    CameraEnabled(VariableType.BooleanClass),
-    SleepMode(VariableType.BooleanClass),
-    MicEnabled(VariableType.BooleanClass),
-    TTSEnabled(VariableType.BooleanClass),
-    ErrorReporting(VariableType.BooleanClass),
-    VideoBitrate(VariableType.StringClass),
-    VideoResolution(VariableType.StringClass),
-    Communication(VariableType.CommunicationTypeEnum),
-    Protocol(VariableType.ProtocolTypeEnum),
-    Orientation(VariableType.CameraDirectionEnum),
-    UseLegacyCamera(VariableType.BooleanClass);
+enum class RobotConfig(val default: Any) {
+    Configured(false),
+    RobotId(""),
+    CameraId(""),
+    CameraPass("hello"),
+    CameraEnabled(false),
+    SleepMode(true),
+    MicEnabled(false),
+    TTSEnabled(false),
+    ErrorReporting(false),
+    VideoBitrate("512"),
+    VideoResolution("640x480"),
+    Communication(CommunicationType.values()[0]),
+    Protocol(ProtocolType.values()[0]),
+    Orientation(CameraDirection.values()[1]), //default to 90 degrees
+    UseLegacyCamera(Build.VERSION.SDK_INT < 21);
 
     @Throws(IllegalArgumentException::class)
     fun saveValue(context: Context, value: Any){
-        if(VariableType.forValue(value) != variable)
-            throw IllegalArgumentException("Expected type of $variable")
+        if(default::javaClass != value::javaClass)
+            throw IllegalArgumentException("Expected type of ${default::class.java.simpleName}")
         val sharedPrefs = getSharedPrefs(context).edit()
-        when(variable){
-            VariableType.BooleanClass -> sharedPrefs.putBoolean(name, value as Boolean)
-            VariableType.StringClass -> sharedPrefs.putString(name, value as String)
-            VariableType.ProtocolTypeEnum -> sharedPrefs.putString(name, (value as ProtocolType).name)
-            VariableType.CommunicationTypeEnum -> sharedPrefs.putString(name, (value as CommunicationType).name)
-            VariableType.CameraDirectionEnum -> sharedPrefs.putString(name, (value as CameraDirection).name)
+        when(default){
+            is Boolean -> sharedPrefs.putBoolean(name, value as Boolean)
+            is String -> sharedPrefs.putString(name, value as String)
+            is Enum<*> -> sharedPrefs.putInt(name, (value as Enum<*>).ordinal)
         }
         sharedPrefs.apply()
     }
 
+    @Suppress("UNCHECKED_CAST")
     @Throws(IllegalArgumentException::class)
-    fun getValue(context: Context, default : Any? = null) : Any?{
-        var defaultVar = default
-        if(default != null && VariableType.forValue(default) != variable)
-            throw IllegalArgumentException("Expected type of $variable")
+    fun <T : Any> getValue(context: Context) : T{
         val sharedPrefs = getSharedPrefs(context)
-        defaultVar ?: kotlin.run {
-            defaultVar = when(variable){
-                VariableType.BooleanClass -> false
-                VariableType.StringClass -> null
-                VariableType.ProtocolTypeEnum -> ProtocolType.values()[0]
-                VariableType.CommunicationTypeEnum -> CommunicationType.values()[0]
-                VariableType.CameraDirectionEnum -> CameraDirection.values()[0]
+        val value = when(default){
+            is Boolean -> sharedPrefs.getBoolean(name, default)
+            is String -> sharedPrefs.getString(name, default)
+            is Int -> sharedPrefs.getInt(name, default)
+            is Enum<*> -> {
+                sharedPrefs.getInt(name, -1).takeIf { it != -1 }?.let{
+                    default::class.java.enumConstants[it]
+                } ?: default
             }
+            else -> default
         }
-        return when(variable){
-            VariableType.BooleanClass -> sharedPrefs.getBoolean(name, defaultVar as Boolean)
-            VariableType.StringClass -> sharedPrefs.getString(name, defaultVar as String?)
-            VariableType.ProtocolTypeEnum -> {
-                sharedPrefs.getString(name, null)?.let {
-                    ProtocolType.valueOf(it)
-                } ?: defaultVar
-            }
-            VariableType.CommunicationTypeEnum -> {
-                sharedPrefs.getString(name, null)?.let {
-                    CommunicationType.valueOf(it)
-                } ?: defaultVar
-            }
-            VariableType.CameraDirectionEnum -> {
-                sharedPrefs.getString(name, null)?.let {
-                    CameraDirection.valueOf(it)
-                } ?: defaultVar
-            }
-        }
+        return value as T
     }
 
     fun reset(context: Context) {
@@ -83,8 +64,8 @@ enum class RobotConfig(private val variable: VariableType) {
             return context.getSharedPreferences("robotConfig", 0)
         }
 
-        fun <T : Enum<T>> fetchEnum(context: Context, type : RobotConfig, default : Enum<T>) : Enum<*>{
-            return type.getValue(context, default) as Enum<*>
+        fun fetchEnum(context: Context, type : RobotConfig) : Enum<*>{
+            return type.getValue(context) as Enum<*>
         }
     }
 }
