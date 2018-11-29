@@ -3,6 +3,8 @@ package tv.letsrobot.controller.android.activities
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
@@ -52,6 +54,13 @@ class ManualSetupActivity : AppCompatActivity() {
 
         exportQRButton.setOnClickListener {
             exportSettings()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        return super.onCreateOptionsMenu(menu).also {
+            val inflater: MenuInflater = menuInflater
+            inflater.inflate(R.menu.setup_menu, menu)
         }
     }
 
