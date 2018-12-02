@@ -17,9 +17,6 @@ import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
-import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
@@ -133,25 +130,25 @@ class MainRobotActivity : Activity(), Runnable {
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
         builder.holder = cameraSurfaceView
-        builder.robotId = RobotConfig.RobotId.getValue(this) as String? //Pass in our Robot ID
+        builder.robotId = settings.robotId //Pass in our Robot ID
 
-        (RobotConfig.CameraId.getValue(this) as String?)?.takeIf {
-            RobotConfig.CameraEnabled.getValue(this)
+        (settings.cameraId).takeIf {
+            settings.cameraEnabled
         }?.let{ cameraId ->
-            val settings = CameraSettings(cameraId = cameraId,
-                    pass = RobotConfig.CameraPass.getValue(this) as String,
+            val cameraSettings = CameraSettings(cameraId = cameraId,
+                    pass = settings.cameraPassword,
                     width = 640, //TODO tie into settings
                     height = 480, //TODO tie into settings
-                    bitrate = (RobotConfig.VideoBitrate.getValue(this) as String).toInt(),
-                    useLegacyApi = RobotConfig.UseLegacyCamera.getValue(this) as Boolean,
-                    orientation = RobotConfig.Orientation.getValue(this) as CameraDirection
+                    bitrate = settings.cameraBitrate,
+                    useLegacyApi = settings.cameraLegacy,
+                    orientation = settings.cameraOrientation
             )
-            builder.cameraSettings = settings
+            builder.cameraSettings = cameraSettings
         }
-        builder.useTTS = RobotConfig.TTSEnabled.getValue(this) as Boolean
-        builder.useMic = RobotConfig.MicEnabled.getValue(this) as Boolean
-        builder.protocol = RobotConfig.Protocol.getValue(this) as ProtocolType
-        builder.communication = RobotConfig.Communication.getValue(this) as CommunicationType
+        builder.useTTS = settings.enableTTS
+        builder.useMic = settings.enableMic
+        builder.protocol = settings.robotProtocol
+        builder.communication = settings.robotCommunication
         builder.externalComponents = components //pass in arrayList of custom components
         try {
             core = builder.build() //Retrieve the built Core instance

@@ -21,7 +21,7 @@ class SplashActivity : Activity() {
         setContentView(R.layout.activity_splash)
         // Setup App before initializing anything, then go back to do permissions flow
         // and to do device setup
-        if(!(RobotConfig.Configured.getValue(this, false) as Boolean)){
+        if(!(RobotConfig.Configured.getValue(this) as Boolean)){
             finish()
             startActivity(Intent(this, ManualSetupActivity::class.java))
             return
