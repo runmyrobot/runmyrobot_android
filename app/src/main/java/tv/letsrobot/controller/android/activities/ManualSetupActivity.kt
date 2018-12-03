@@ -36,7 +36,7 @@ class ManualSetupActivity : AppCompatActivity() {
             checkState(isChecked)
         }
         screenOverlaySettingsButton.isChecked = settings.screenTimeout
-        bitrateEditText.setText(settings.cameraBitrate)
+        bitrateEditText.setText(settings.cameraBitrate.toString())
         resolutionEditText.setText(settings.cameraResolution)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly

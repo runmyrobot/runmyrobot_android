@@ -34,7 +34,7 @@ data class RobotSettingsObject(val robotId : String,
         variables.add(cameraId)
         variables.add(cameraPassword)
         variables.add(cameraOrientation)
-        variables.add(cameraBitrate)
+        variables.add(cameraBitrate.toString())
         variables.add(cameraResolution)
         variables.add(cameraEnabled)
         variables.add(cameraLegacy)
@@ -84,20 +84,20 @@ data class RobotSettingsObject(val robotId : String,
             return try{
                 //version is index 0, so we offset
                 return RobotSettingsObject(
-                        splitData[1],
-                        ProtocolType.values()[splitData[2].toInt()],
-                        CommunicationType.values()[splitData[3].toInt()],
-                        splitData[4],
-                        splitData[5],
-                        CameraDirection.values()[splitData[6].toInt()],
-                        splitData[7].toInt(),
-                        splitData[8],
-                        splitData[9].fromNumericBoolean()!!,
-                        splitData[10].fromNumericBoolean()!!,
-                        splitData[11].fromNumericBoolean()!!,
-                        splitData[12].fromNumericBoolean()!!,
-                        splitData[13].fromNumericBoolean()!!,
-                        1 /*Add the version here*/)
+                        robotId = splitData[1],
+                        robotProtocol = ProtocolType.values()[splitData[2].toInt()],
+                        robotCommunication = CommunicationType.values()[splitData[3].toInt()],
+                        cameraId =  splitData[4],
+                        cameraPassword = splitData[5],
+                        cameraOrientation = CameraDirection.values()[splitData[6].toInt()],
+                        cameraBitrate = splitData[7].toInt(),
+                        cameraResolution = splitData[8],
+                        cameraEnabled = splitData[9].fromNumericBoolean()!!,
+                        cameraLegacy = splitData[10].fromNumericBoolean()!!,
+                        enableMic = splitData[11].fromNumericBoolean()!!,
+                        enableTTS = splitData[12].fromNumericBoolean()!!,
+                        screenTimeout = splitData[13].fromNumericBoolean()!!,
+                        version = 1 /*Add the version here*/)
             }catch (e : Exception){
                 //fail for any reason. We don't trust the data.
                 null
@@ -153,7 +153,7 @@ data class RobotSettingsObject(val robotId : String,
                     RobotConfig.CameraId.getValue(context),
                     RobotConfig.CameraPass.getValue(context),
                     RobotConfig.Orientation.getValue(context),
-                    RobotConfig.VideoBitrate.getValue(context),
+                    (RobotConfig.VideoBitrate.getValue(context) as String).toInt(),
                     RobotConfig.VideoResolution.getValue(context),
                     RobotConfig.CameraEnabled.getValue(context),
                     RobotConfig.UseLegacyCamera.getValue(context),

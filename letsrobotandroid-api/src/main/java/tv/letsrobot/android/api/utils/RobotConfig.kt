@@ -26,7 +26,7 @@ enum class RobotConfig(val default: Any) {
 
     @Throws(IllegalArgumentException::class)
     fun saveValue(context: Context, value: Any){
-        if(default::javaClass != value::javaClass)
+        if(value::class.java.name != default::class.java.name)
             throw IllegalArgumentException("Expected type of ${default::class.java.simpleName}")
         val sharedPrefs = getSharedPrefs(context).edit()
         when(default){
