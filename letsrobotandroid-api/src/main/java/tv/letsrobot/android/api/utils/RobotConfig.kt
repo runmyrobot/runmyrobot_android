@@ -22,7 +22,7 @@ enum class RobotConfig(val default: Any) {
     Communication(CommunicationType.values()[0]),
     Protocol(ProtocolType.values()[0]),
     Orientation(CameraDirection.values()[1]), //default to 90 degrees
-    UseLegacyCamera(Build.VERSION.SDK_INT < 21);
+    UseLegacyCamera(Build.VERSION.SDK_INT < 21); //true if less than Android 5.0
 
     @Throws(IllegalArgumentException::class)
     fun saveValue(context: Context, value: Any){
@@ -62,10 +62,6 @@ enum class RobotConfig(val default: Any) {
     companion object {
         fun getSharedPrefs(context: Context) : SharedPreferences {
             return context.getSharedPreferences("robotConfig", 0)
-        }
-
-        fun fetchEnum(context: Context, type : RobotConfig) : Enum<*>{
-            return type.getValue(context) as Enum<*>
         }
     }
 }

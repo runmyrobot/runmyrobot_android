@@ -99,7 +99,7 @@ data class RobotSettingsObject(val robotId : String,
                         screenTimeout = splitData[13].fromNumericBoolean()!!,
                         version = 1 /*Add the version here*/)
             }catch (e : Exception){
-                //fail for any reason. We don't trust the data.
+                //fail for any reason.
                 null
             }
         }
