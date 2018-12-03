@@ -8,7 +8,7 @@ import tv.letsrobot.android.api.utils.RobotConfig
 import java.util.*
 
 /**
- * Created by Brendon on 11/28/2018.
+ * Wrapper object for RobotConfig
  */
 data class RobotSettingsObject(val robotId : String,
                                val robotProtocol : ProtocolType,
@@ -120,31 +120,6 @@ data class RobotSettingsObject(val robotId : String,
             RobotConfig.SleepMode.saveValue(context, settings.screenTimeout)
         }
 
-        /**
-         * robotIDEditText.setText(RobotConfig.RobotId.getValue(this, "") as String)
-        cameraIDEditText.setText(RobotConfig.CameraId.getValue(this, "") as String)
-        cameraPassEditText.setText(RobotConfig.CameraPass.getValue(this, "hello") as String)
-        cameraEnableToggle.isChecked = RobotConfig.CameraEnabled.getValue(this) as Boolean
-        micEnableButton.isChecked = RobotConfig.MicEnabled.getValue(this) as Boolean
-        ttsEnableButton.isChecked = RobotConfig.TTSEnabled.getValue(this) as Boolean
-        errorReportButton.isChecked = RobotConfig.ErrorReporting.getValue(this) as Boolean
-        cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
-        checkState(isChecked)
-        }
-        screenOverlaySettingsButton.isChecked = RobotConfig.SleepMode.getValue(this) as Boolean
-        bitrateEditText.setText(RobotConfig.VideoBitrate.getValue(this, "512") as String)
-        resolutionEditText.setText(RobotConfig.VideoResolution.getValue(this, "640x480") as String)
-        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
-        legacyCameraEnableToggle.isEnabled = !legacyOnly
-        legacyCameraEnableToggle.isChecked = RobotConfig.UseLegacyCamera.getValue(this, legacyOnly) as Boolean
-        bitrateEditText.isEnabled = true
-        resolutionEditText.isEnabled = false
-        checkState(cameraEnableToggle.isChecked)
-
-        setupSpinnerWithSetting(protocolChooser, RobotConfig.Protocol, ProtocolType::class.java)
-        setupSpinnerWithSetting(communicationChooser, RobotConfig.Communication, CommunicationType::class.java)
-        setupSpinnerWithSetting(orientationChooser, RobotConfig.Orientation, CameraDirection::class.java)
-         */
         fun load(context: Context) : RobotSettingsObject{
             return RobotSettingsObject(
                     RobotConfig.RobotId.getValue(context),
