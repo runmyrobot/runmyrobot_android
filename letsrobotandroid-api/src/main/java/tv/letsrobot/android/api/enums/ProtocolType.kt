@@ -4,6 +4,7 @@ import android.content.Context
 import tv.letsrobot.android.api.components.ControlComponent
 import tv.letsrobot.android.api.interfaces.protocols.ArduinoSendBytesProtocol
 import tv.letsrobot.android.api.interfaces.protocols.ArduinoSendSingleCharProtocol
+import tv.letsrobot.android.api.interfaces.protocols.NXTJoystickDriverProtocol
 import tv.letsrobot.android.api.interfaces.protocols.SingleByteProtocol
 
 /**
@@ -21,7 +22,11 @@ enum class ProtocolType {
     /**
      * Sends a single char instead of line ended text. This will appear in the form of 'f', 'b', 's' for stop
      */
-    ArduinoSingleChar;
+    ArduinoSingleChar,
+    /**
+     * Sends commands to a Lego Mindstorms NXT using the Tetrix/Matrix Controller driver
+     */
+    NXTJoystickDriver;
 
 
     fun getInstantiatedClass(context: Context) : ControlComponent {
@@ -29,6 +34,7 @@ enum class ProtocolType {
             ArduinoRaw -> ArduinoSendBytesProtocol(context)
             SingleByte -> SingleByteProtocol(context)
             ArduinoSingleChar -> ArduinoSendSingleCharProtocol(context)
+            NXTJoystickDriver -> NXTJoystickDriverProtocol(context)
         }
     }
 }
