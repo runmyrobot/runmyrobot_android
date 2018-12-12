@@ -11,6 +11,20 @@ android code to run on robots via LetsRobot api
 
 - Version 3.2 or higher. May not be buildable on lower versions
 
+## Branches
+
+### master
+ 
+The most stable code in the repo. Can be used for testing and is known to work
+
+### devel
+
+The latest code, mostly stable, but might have issues
+
+Please Note! During the development stages of this project, this branch sometimes may not be buildable!
+I will try to keep it clean, but sometimes might not be able to.
+
+
 ## Device Limitations
 
 - Setup to be capable of running on Android 4.1 (API 16) or higher. Some devices may run into issues, so feel free to report them
