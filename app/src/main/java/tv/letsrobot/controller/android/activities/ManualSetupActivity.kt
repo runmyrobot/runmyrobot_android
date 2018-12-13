@@ -182,10 +182,15 @@ class ManualSetupActivity : AppCompatActivity() {
         val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.CAMERA),
-                    21)
-            queueCameraLaunch = true
+            if(shouldShowPermission) {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.CAMERA),
+                        CAMERA_PERMISSION_REQUEST_CODE)
+                queueCameraLaunch = true
+            }
+            else{
+                queueCameraLaunch = false
+            }
         }
         else{
             //permission successful
@@ -195,7 +200,7 @@ class ManualSetupActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(queueCameraLaunch){
+        if(requestCode == CAMERA_PERMISSION_REQUEST_CODE && queueCameraLaunch){
             //run getImageFromCamera again. Will not ask again if permission denied
             getImageFromCamera(false)
         }
@@ -274,5 +279,6 @@ class ManualSetupActivity : AppCompatActivity() {
     companion object {
         private const val CAMERA_REQUEST_CODE = 1
         private const val PHOTOS_REQUEST_CODE = 2
+        private const val CAMERA_PERMISSION_REQUEST_CODE = 23
     }
 }
