@@ -1,7 +1,6 @@
 package tv.letsrobot.android.api.interfaces.protocols
 
 import android.content.Context
-import android.util.Log
 import tv.letsrobot.android.api.components.ControlComponent
 import tv.letsrobot.android.api.utils.SingleByteUtil
 
@@ -26,12 +25,26 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
     private val motorBackwardTurnSpeed = -30
     override fun onStringCommand(command: String) {
         super.onStringCommand(command)
-        when(command){
-            "F" -> {onForward()}
-            "B" -> {onBack()}
-            "L" -> {onLeft()}
-            "R" -> {onRight()}
+        val data : ByteArray = when(command){
+            "F" -> {
+                createPacket(motorForwardSpeed)
+            }
+            "B" -> {
+                createPacket(motorBackwardSpeed)
+            }
+            "L" -> {
+                createPacket(motorBackwardTurnSpeed, motorForwardTurnSpeed)
+            }
+            "R" -> {
+                createPacket(motorForwardTurnSpeed, motorBackwardTurnSpeed)
+            }
+            else -> {
+                val bytes = ByteArray(1)
+                bytes[0] = 0x00
+                /*return*/ bytes
+            }
         }
+        sendToDevice(data)
     }
 
     override fun onStop(any: Any?) {
@@ -56,26 +69,6 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
         data[0] = SingleByteUtil.getDriveSpeed(motor0Speed.toByte(), 0)
         data[1] = SingleByteUtil.getDriveSpeed(motor1.toByte(), 1)
         return data
-    }
-
-    private fun onForward() {
-        Log.d(TAG, "onForward")
-        sendToDevice(createPacket(motorForwardSpeed))
-    }
-
-    private fun onBack() {
-        Log.d(TAG, "onBack")
-        sendToDevice(createPacket(motorBackwardSpeed))
-    }
-
-    private fun onLeft() {
-        Log.d(TAG, "onLeft")
-        sendToDevice(createPacket(motorBackwardTurnSpeed, motorForwardTurnSpeed))
-    }
-
-    private fun onRight() {
-        Log.d(TAG, "onRight")
-        sendToDevice(createPacket(motorForwardTurnSpeed, motorBackwardTurnSpeed))
     }
 
     companion object {
