@@ -30,18 +30,14 @@ class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : 
     private val recordingThread = RecordingThread(this)
 
     override fun enableInternal(){
-        JsonObjectUtils.getJsonObjectFromUrl(
-            String.format("https://letsrobot.tv/get_audio_port/%s", cameraId)
-        )?.let {
-            Log.d(TAG, "get_audio_port $it")
-            port = it.getString("audio_stream_port")
-        }
-        JsonObjectUtils.getJsonObjectFromUrl(
-            String.format("https://letsrobot.tv/get_websocket_relay_host/%s", cameraId)
-        )?.let {
-            Log.d(TAG, "get_websocket_relay_host $it")
-            host = it.getString("host")
-        }
+        port = JsonObjectUtils.getValueJsonObject(
+            String.format("https://letsrobot.tv/get_audio_port/%s", cameraId),
+                "audio_stream_port"
+        )
+        host = JsonObjectUtils.getValueJsonObject(
+            String.format("https://letsrobot.tv/get_websocket_relay_host/%s", cameraId),
+                "host"
+        )
 
         if(host == null || port == null){
             status = ComponentStatus.ERROR

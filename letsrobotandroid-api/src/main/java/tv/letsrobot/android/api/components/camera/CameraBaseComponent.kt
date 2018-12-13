@@ -92,18 +92,14 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     }
 
     override fun enableInternal() {
-        JsonObjectUtils.getJsonObjectFromUrl(
-                String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId)
-        )?.let{
-            Log.d("ROBOT", it.toString())
-            port = it.getString("mpeg_stream_port")
-        }
-        JsonObjectUtils.getJsonObjectFromUrl(
-                String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId)
-        )?.let {
-            Log.d("ROBOT", it.toString())
-            host = it.getString("host")
-        }
+        host = JsonObjectUtils.getValueJsonObject(
+                String.format("https://letsrobot.tv/get_websocket_relay_host/%s", config.cameraId),
+                "host"
+        )
+        port = JsonObjectUtils.getValueJsonObject(
+            String.format("https://letsrobot.tv/get_video_port/%s", config.cameraId),
+                "mpeg_stream_port"
+        )
 
         if(host == null || port == null){
             status = ComponentStatus.ERROR
