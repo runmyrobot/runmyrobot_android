@@ -45,6 +45,7 @@ class NXTJoystickDriverProtocol(context: Context) : ControlComponent(context) {
                 "L" -> {
                     joy1.topHat = 6.toByte() //right
                 }
+                //add more commands here for your use case
                 else -> {
                     joy1.topHat = (-1).toByte() //inactive
                 }
