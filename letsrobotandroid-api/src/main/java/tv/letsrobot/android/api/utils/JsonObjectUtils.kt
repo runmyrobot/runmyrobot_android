@@ -25,4 +25,17 @@ object JsonObjectUtils{
         }
         return null
     }
+
+    /**
+     * Get a single string value from the json
+     */
+    fun getValueJsonObject(url : String, key : String) : String?{
+        return JsonObjectUtils.getJsonObjectFromUrl(url)?.let{
+            try {
+                it.getString(key)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
 }
