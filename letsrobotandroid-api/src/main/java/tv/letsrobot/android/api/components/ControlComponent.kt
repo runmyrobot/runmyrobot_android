@@ -27,19 +27,31 @@ abstract class ControlComponent(context: Context) : Component(context){
 
     override fun enableInternal(){
         Log.d(TAG, "enable")
-        EventManager.subscribe(EventManager.COMMAND, onCommandInternal)
-        EventManager.subscribe(EventManager.STOP_EVENT, onStopInternal)
+        handleSubscriptions(true)
     }
 
     override fun disableInternal(){
         Log.d(TAG, "disable")
-        EventManager.unsubscribe(EventManager.COMMAND, onCommandInternal)
-        EventManager.unsubscribe(EventManager.STOP_EVENT, onStopInternal)
+        handleSubscriptions(false)
     }
 
     override fun timeout() {
         super.timeout()
         onStopInternal(null)
+    }
+
+    /**
+     * Enable or disable subscriptions to EventManager
+     */
+    private fun handleSubscriptions(enable : Boolean){
+        if(enable){
+            EventManager.subscribe(EventManager.COMMAND, onCommandInternal)
+            EventManager.subscribe(EventManager.STOP_EVENT, onStopInternal)
+        }
+        else{
+            EventManager.unsubscribe(EventManager.COMMAND, onCommandInternal)
+            EventManager.unsubscribe(EventManager.STOP_EVENT, onStopInternal)
+        }
     }
 
     private val onCommandInternal: (Any?) -> Unit = { command ->
