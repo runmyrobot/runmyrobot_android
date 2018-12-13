@@ -2,8 +2,6 @@ package tv.letsrobot.android.api.interfaces.protocols
 
 import android.content.Context
 import android.util.Log
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.components.ControlComponent
 import tv.letsrobot.android.api.utils.SingleByteUtil
 
@@ -21,32 +19,26 @@ import tv.letsrobot.android.api.utils.SingleByteUtil
  */
 
 class SingleByteProtocol(context: Context) : ControlComponent(context) {
-    val TAG = "SingleByteProtocol"
     private val motorForwardSpeed = 90.toByte()
     private val motorBackwardSpeed = (-90).toByte()
 
     private val motorForwardTurnSpeed = 30.toByte()
     private val motorBackwardTurnSpeed = (-30).toByte()
-
-    override fun enableInternal(){
-        EventManager.subscribe(EventManager.COMMAND, onCommand)
-        EventManager.subscribe(STOP_EVENT, onStop)
-    }
-
-    override fun disableInternal(){
-        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
-        EventManager.unsubscribe(STOP_EVENT, onStop)
-    }
-
-    private val onCommand: (Any?) -> Unit = {
-        it?.takeIf { it is String }?.let{
-            when(it as String){
-                "F" -> {onForward()}
-                "B" -> {onBack()}
-                "L" -> {onLeft()}
-                "R" -> {onRight()}
-            }
+    override fun onStringCommand(command: String) {
+        super.onStringCommand(command)
+        when(command){
+            "F" -> {onForward()}
+            "B" -> {onBack()}
+            "L" -> {onLeft()}
+            "R" -> {onRight()}
         }
+    }
+
+    override fun onStop(any: Any?) {
+        super.onStop(any)
+        val data = ByteArray(1)
+        data[0] = 0x00
+        sendToDevice(data)
     }
 
     private fun onForward() {
@@ -80,19 +72,7 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
         data[1] = SingleByteUtil.getDriveSpeed(motorBackwardTurnSpeed, 1)
         sendToDevice(data)
     }
-
-    private val onStop : (Any?) -> Unit  = {
-        Log.d(TAG, "onStop")
-        val data = ByteArray(1)
-        data[0] = 0x00
-        sendToDevice(data)
-    }
-
-    /**
-     * Timeout function. Will be called if we have not received anything recently,
-     * in case a movement command gets stuck
-     */
-    override fun timeout() {
-        onStop(null)
+    companion object {
+        const val TAG = "SingleByteProtocol"
     }
 }
