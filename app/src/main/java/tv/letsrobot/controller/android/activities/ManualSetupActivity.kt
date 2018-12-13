@@ -3,6 +3,7 @@ package tv.letsrobot.controller.android.activities
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -13,12 +14,11 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
-import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
-import com.google.zxing.common.GlobalHistogramBinarizer
-import com.google.zxing.qrcode.QRCodeReader
+import com.google.zxing.common.HybridBinarizer
 import kotlinx.android.synthetic.main.activity_manual_setup.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -30,6 +30,7 @@ import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
+import java.io.FileNotFoundException
 import java.util.*
 
 
@@ -38,32 +39,6 @@ class ManualSetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
-        val settings = RobotSettingsObject.load(this)
-        robotIDEditText.setText(settings.robotId)
-        cameraIDEditText.setText(settings.cameraId)
-        cameraPassEditText.setText(settings.cameraPassword)
-        cameraEnableToggle.isChecked = settings.cameraEnabled
-        micEnableButton.isChecked = settings.enableMic
-        ttsEnableButton.isChecked = settings.enableTTS
-        errorReportButton.isEnabled = false //Not using right now.
-        errorReportButton.isChecked = false //Not using right now.
-        cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
-            checkState(isChecked)
-        }
-        screenOverlaySettingsButton.isChecked = settings.screenTimeout
-        bitrateEditText.setText(settings.cameraBitrate.toString())
-        resolutionEditText.setText(settings.cameraResolution)
-        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
-        legacyCameraEnableToggle.isEnabled = !legacyOnly
-        legacyCameraEnableToggle.isChecked = settings.cameraLegacy
-        bitrateEditText.isEnabled = true
-        resolutionEditText.isEnabled = false
-        checkState(cameraEnableToggle.isChecked)
-
-        setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
-        setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
-        setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
-
         applyButton.setOnClickListener {
             saveSettings()
             launchActivity()
@@ -72,6 +47,11 @@ class ManualSetupActivity : AppCompatActivity() {
         exportQRButton.setOnClickListener {
             exportSettings()
         }
+
+        cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
+            checkState(isChecked)
+        }
+        refreshSettings()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -99,7 +79,25 @@ class ManualSetupActivity : AppCompatActivity() {
         if(resultCode == Activity.RESULT_OK){
            when(requestCode){
                PHOTOS_REQUEST_CODE -> {
-
+                   val targetUri = data?.data
+                   val bitmap : Bitmap? = targetUri?.let {
+                       try {
+                           /*return*/BitmapFactory.decodeStream(contentResolver.openInputStream(targetUri))
+                       } catch (e: FileNotFoundException) {
+                           // TODO Auto-generated catch block
+                           e.printStackTrace()
+                           /*return*/null
+                       }
+                   }
+                   bitmap?.let {
+                       GlobalScope.launch {
+                           val resultCoroutine = getQRResultFromBitmap(bitmap)
+                           val result = resultCoroutine.await()
+                           runOnUiThread {
+                               refreshSettings(result?.text)
+                           }
+                       }
+                   }
                }
                CAMERA_REQUEST_CODE -> {
                    val photo = (data?.extras?.get("data") as? Bitmap)!!
@@ -107,7 +105,9 @@ class ManualSetupActivity : AppCompatActivity() {
                    GlobalScope.launch {
                        val resultCoroutine = getQRResultFromBitmap(photo)
                        val result = resultCoroutine.await()
-                       Log.d("QR", result.text)
+                       runOnUiThread {
+                           refreshSettings(result?.text)
+                       }
                    }
 
                }
@@ -115,24 +115,55 @@ class ManualSetupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getQRResultFromBitmap(photo : Bitmap) = GlobalScope.async{
-        val photoArr = IntArray(photo.width*photo.height)
-        val tmpHintsMap = EnumMap<DecodeHintType, Any>(
-                DecodeHintType::class.java)
-        tmpHintsMap.put(DecodeHintType.TRY_HARDER, java.lang.Boolean.TRUE)
-        tmpHintsMap.put(DecodeHintType.POSSIBLE_FORMATS,
-                EnumSet.allOf(BarcodeFormat::class.java))
-        tmpHintsMap.put(DecodeHintType.PURE_BARCODE, java.lang.Boolean.FALSE)
-        photo.getPixels(photoArr, 0, photo.width, 0,0, photo.width, photo.height)
-        val source = RGBLuminanceSource(photo.width, photo.height, photoArr)
-        val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
-        QRCodeReader().decode(binaryBitmap, tmpHintsMap)
+    private fun refreshSettings(settingsTxt : String? = null){
+        val settings : RobotSettingsObject = settingsTxt?.let{
+            RobotSettingsObject.fromString(settingsTxt) //attempt to load string
+        } ?: RobotSettingsObject.load(this) //load saved settings
+        robotIDEditText.setText(settings.robotId)
+        cameraIDEditText.setText(settings.cameraId)
+        cameraPassEditText.setText(settings.cameraPassword)
+        cameraEnableToggle.isChecked = settings.cameraEnabled
+        micEnableButton.isChecked = settings.enableMic
+        ttsEnableButton.isChecked = settings.enableTTS
+        errorReportButton.isEnabled = false //Not using right now.
+        errorReportButton.isChecked = false //Not using right now.
+        screenOverlaySettingsButton.isChecked = settings.screenTimeout
+        bitrateEditText.setText(settings.cameraBitrate.toString())
+        resolutionEditText.setText(settings.cameraResolution)
+        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
+        legacyCameraEnableToggle.isEnabled = !legacyOnly
+        legacyCameraEnableToggle.isChecked = settings.cameraLegacy
+        bitrateEditText.isEnabled = true
+        resolutionEditText.isEnabled = false
+        checkState(cameraEnableToggle.isChecked)
+
+        setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
+        setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
+        setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
+    }
+
+    private fun getQRResultFromBitmap(bitmap : Bitmap) = GlobalScope.async{
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        bitmap.recycle()
+        val source = RGBLuminanceSource(width, height, pixels)
+        val bBitmap = BinaryBitmap(HybridBinarizer(source))
+        val reader = MultiFormatReader()
+        try {
+            reader.decode(bBitmap)
+        } catch (e: NotFoundException) {
+            Log.e("QRCode", "decode exception", e)
+            null
+        }
     }
 
 
     private fun getImageFromPhotos() {
-        val cameraIntent = Intent(android.provider.MediaStore.INTENT_ACTION_MEDIA_SEARCH)
-        startActivityForResult(cameraIntent, PHOTOS_REQUEST_CODE)
+        val intent = Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PHOTOS_REQUEST_CODE)
     }
 
     private fun getImageFromCamera() {
