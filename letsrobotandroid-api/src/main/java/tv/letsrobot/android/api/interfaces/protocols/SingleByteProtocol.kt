@@ -19,11 +19,11 @@ import tv.letsrobot.android.api.utils.SingleByteUtil
  */
 
 class SingleByteProtocol(context: Context) : ControlComponent(context) {
-    private val motorForwardSpeed = 90.toByte()
-    private val motorBackwardSpeed = (-90).toByte()
+    private val motorForwardSpeed = 90
+    private val motorBackwardSpeed = -90
 
-    private val motorForwardTurnSpeed = 30.toByte()
-    private val motorBackwardTurnSpeed = (-30).toByte()
+    private val motorForwardTurnSpeed = 30
+    private val motorBackwardTurnSpeed = -30
     override fun onStringCommand(command: String) {
         super.onStringCommand(command)
         when(command){
@@ -41,37 +41,43 @@ class SingleByteProtocol(context: Context) : ControlComponent(context) {
         sendToDevice(data)
     }
 
+    /**
+     * Create a single byte packet of duplicate motors. Passing in one argument will make
+     * both motors move at the same speed
+     *
+     * Values must be in the byte range, or it may not work correctly
+     */
+    private fun createPacket(motor0Speed : Int, motor1Speed : Int = Int.MAX_VALUE) : ByteArray{
+        //allow for passing in a single variable if both are the same
+        var motor1 = motor1Speed
+        if(motor1 == Int.MAX_VALUE)
+            motor1 = motor0Speed
+        val data = ByteArray(2)
+        data[0] = SingleByteUtil.getDriveSpeed(motor0Speed.toByte(), 0)
+        data[1] = SingleByteUtil.getDriveSpeed(motor1.toByte(), 1)
+        return data
+    }
+
     private fun onForward() {
         Log.d(TAG, "onForward")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorForwardSpeed, 1)
-        sendToDevice(data)
+        sendToDevice(createPacket(motorForwardSpeed))
     }
 
     private fun onBack() {
         Log.d(TAG, "onBack")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        sendToDevice(data)
+        sendToDevice(createPacket(motorBackwardSpeed))
     }
 
     private fun onLeft() {
         Log.d(TAG, "onLeft")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorBackwardTurnSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorForwardTurnSpeed, 1)
-        sendToDevice(data)
+        sendToDevice(createPacket(motorBackwardTurnSpeed, motorForwardTurnSpeed))
     }
 
     private fun onRight() {
         Log.d(TAG, "onRight")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorForwardTurnSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorBackwardTurnSpeed, 1)
-        sendToDevice(data)
+        sendToDevice(createPacket(motorForwardTurnSpeed, motorBackwardTurnSpeed))
     }
+
     companion object {
         const val TAG = "SingleByteProtocol"
     }
