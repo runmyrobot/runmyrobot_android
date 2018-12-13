@@ -1,9 +1,7 @@
 package tv.letsrobot.android.api.interfaces.protocols
 
 import android.content.Context
-import android.util.Log
 import com.google.common.primitives.Bytes.concat
-import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.components.ControlComponent
 
 /**
@@ -12,50 +10,33 @@ import tv.letsrobot.android.api.components.ControlComponent
  * This protocol was used in earlier FIRST Tech Challenge seasons
  */
 class NXTJoystickDriverProtocol(context: Context) : ControlComponent(context) {
-    override fun enableInternal(){
-        Log.d(TAG, "enable")
-        EventManager.subscribe(EventManager.COMMAND, onCommand)
-        EventManager.subscribe(EventManager.STOP_EVENT, onStop)
-    }
 
-    override fun disableInternal(){
-        Log.d(TAG, "disable")
-        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
-        EventManager.unsubscribe(EventManager.STOP_EVENT, onStop)
-    }
-
-    override fun timeout() {
-        super.timeout()
-        onStop(null)
-    }
-
-    private val onCommand: (Any?) -> Unit = {
-        it?.takeIf { it is String}?.let{ command ->
-            val joy1 = Joystick()
-            when(command){
-                "F" -> {
-                    joy1.topHat = 0.toByte() //up
-                }
-                "B" -> {
-                    joy1.topHat = 4.toByte() //down
-                }
-                "R" -> {
-                    joy1.topHat = 2.toByte() //left
-                }
-                "L" -> {
-                    joy1.topHat = 6.toByte() //right
-                }
-                //add more commands here for your use case
-                else -> {
-                    joy1.topHat = (-1).toByte() //inactive
-                }
+    override fun onStringCommand(command: String) {
+        super.onStringCommand(command)
+        val joy1 = Joystick()
+        when(command){
+            "F" -> {
+                joy1.topHat = 0.toByte() //up
             }
-            sendToDevice(getPacket(joy1))
+            "B" -> {
+                joy1.topHat = 4.toByte() //down
+            }
+            "R" -> {
+                joy1.topHat = 2.toByte() //left
+            }
+            "L" -> {
+                joy1.topHat = 6.toByte() //right
+            }
+            //add more commands here for your use case
+            else -> {
+                joy1.topHat = (-1).toByte() //inactive
+            }
         }
+        sendToDevice(getPacket(joy1))
     }
 
-    private val onStop : (Any?) -> Unit  = {
-        Log.d(TAG, "onStop")
+    override fun onStop(any: Any?) {
+        super.onStop(any)
         sendToDevice(getPacket()) //sends the default packet
     }
 
