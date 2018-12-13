@@ -1,7 +1,9 @@
 package tv.letsrobot.controller.android.activities
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -14,6 +16,9 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
@@ -65,7 +70,7 @@ class ManualSetupActivity : AppCompatActivity() {
         var consumed = true
         item?.let {
             when(it.itemId){
-                R.id.cameraMenuItem -> getImageFromCamera()
+                R.id.cameraMenuItem -> getImageFromCamera(true)
                 R.id.photosMenuItem -> getImageFromPhotos()
                 else -> consumed = false
             }
@@ -82,43 +87,48 @@ class ManualSetupActivity : AppCompatActivity() {
                    val targetUri = data?.data
                    val bitmap : Bitmap? = targetUri?.let {
                        try {
-                           /*return*/BitmapFactory.decodeStream(contentResolver.openInputStream(targetUri))
+                           /*^let*/BitmapFactory.decodeStream(contentResolver.openInputStream(targetUri))
                        } catch (e: FileNotFoundException) {
-                           // TODO Auto-generated catch block
                            e.printStackTrace()
-                           /*return*/null
+                           /*^let*/null
                        }
                    }
                    bitmap?.let {
-                       GlobalScope.launch {
-                           val resultCoroutine = getQRResultFromBitmap(bitmap)
-                           val result = resultCoroutine.await()
-                           runOnUiThread {
-                               refreshSettings(result?.text)
-                           }
-                       }
+                       parseQRCodeAndUpdate(bitmap)
                    }
                }
                CAMERA_REQUEST_CODE -> {
                    val photo = (data?.extras?.get("data") as? Bitmap)!!
-                   print(photo.byteCount)
-                   GlobalScope.launch {
-                       val resultCoroutine = getQRResultFromBitmap(photo)
-                       val result = resultCoroutine.await()
-                       runOnUiThread {
-                           refreshSettings(result?.text)
-                       }
-                   }
-
+                   parseQRCodeAndUpdate(photo)
                }
            }
         }
     }
 
-    private fun refreshSettings(settingsTxt : String? = null){
+    fun parseQRCodeAndUpdate(bitmap: Bitmap){
+        GlobalScope.launch {
+            val resultCoroutine = getQRResultFromBitmap(bitmap)
+            val result = resultCoroutine.await()
+            result?.let {
+                RobotSettingsObject.fromString(it.text)?.let {settings ->
+                    runOnUiThread {
+                        refreshSettings(settings)
+                    }
+                }
+            } ?: throwQRError()
+        }
+    }
+
+    private fun throwQRError(){
+        Snackbar.make(applyButton,
+                "Error occurred while reading QR Code. Try Again",
+                Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun refreshSettings(settingsTxt : RobotSettingsObject? = null){
         val settings : RobotSettingsObject = settingsTxt?.let{
-            RobotSettingsObject.fromString(settingsTxt) //attempt to load string
-        } ?: RobotSettingsObject.load(this) //load saved settings
+            it
+        } ?: RobotSettingsObject.load(this) //load saved settings if settingsTxt is null
         robotIDEditText.setText(settings.robotId)
         cameraIDEditText.setText(settings.cameraId)
         cameraPassEditText.setText(settings.cameraPassword)
@@ -166,9 +176,29 @@ class ManualSetupActivity : AppCompatActivity() {
         startActivityForResult(intent, PHOTOS_REQUEST_CODE)
     }
 
-    private fun getImageFromCamera() {
+    private var queueCameraLaunch = false
+
+    private fun getImageFromCamera(shouldShowPermission: Boolean) {
         val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE)
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.CAMERA),
+                    21)
+            queueCameraLaunch = true
+        }
+        else{
+            //permission successful
+            startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(queueCameraLaunch){
+            //run getImageFromCamera again. Will not ask again if permission denied
+            getImageFromCamera(false)
+        }
     }
 
     private fun exportSettings() {
