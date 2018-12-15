@@ -62,7 +62,6 @@ class BluetoothClassicCommunication : CommunicationInterface {
 
     override fun isConnected(): Boolean {
         return bluetoothClassic?.status == Connection.STATE_CONNECTED
-        //return BTStatus == BluetoothClassic.CONNECTION_STABLE;
     }
 
     override fun send(byteArray: ByteArray): Boolean {

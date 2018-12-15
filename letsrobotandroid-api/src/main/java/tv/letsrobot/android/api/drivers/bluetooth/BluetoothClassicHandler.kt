@@ -17,7 +17,7 @@ import java.util.*
 import kotlin.random.Random
 
 /**
- * Created by Brendon on 12/15/2018.
+ * Handler class for Bluetooth Classic. BluetoothClassic.kt is a public wrapper for this class
  */
 internal class BluetoothClassicHandler {
     private var btAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -49,6 +49,7 @@ internal class BluetoothClassicHandler {
 
     private fun tryPublishState(@Connection.Status state : Int) {
         if(status == state) return
+        status = state
         stateListener?.invoke(status)
     }
 
@@ -147,16 +148,11 @@ internal class BluetoothClassicHandler {
         stateListener = function
     }
 
-
-
     companion object {
         private val MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-
         internal const val SEND_MESSAGE = 0
         internal const val REQUEST_CONNECT = 1
         internal const val REQUEST_DISCONNECT = 2
         internal const val HANDLE_LOOP = 3
-
-
     }
 }
