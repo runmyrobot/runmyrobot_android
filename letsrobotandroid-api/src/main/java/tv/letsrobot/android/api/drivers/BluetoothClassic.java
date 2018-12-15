@@ -224,7 +224,7 @@ public class BluetoothClassic{
 	                // Send the obtained bytes to the UI activity
 	                //serviceHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 	                     //   .sendToTarget();
-					byte[] readBuffer = buffer;
+//					byte[] readBuffer = buffer;
 	                errCount = 0;
 	                BTStatus = CONNECTION_STABLE; //TODO
 	            } catch (Exception e) {

@@ -92,20 +92,24 @@ public class ChooseBluetoothActivity extends Activity {
         ListView pairedListView = findViewById(R.id.paired_devices);
         pairedListView.setAdapter(mPairedDevicesArrayAdapter);
         pairedListView.setOnItemClickListener(mDeviceClickListener);
-        boolean empty = true;
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                if ((device.getBluetoothClass() != null) && (device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.TOY_ROBOT)) {
-                    Log.i(tag, "Found Paired Device " + device.getName() + " with address of " + device.getAddress());
-                    mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                    empty = false;
-                }
-            }
-        }
-        if (!empty) {
+        addPairedDevices(mPairedDevicesArrayAdapter, mBtAdapter.getBondedDevices());
+        if (!mPairedDevicesArrayAdapter.isEmpty()) {
             findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
             findViewById(R.id.no_devices).setVisibility(View.GONE);
+        }
+    }
+
+    public void addPairedDevices(ArrayAdapter<String> adapter, Set<BluetoothDevice> devices){
+        if (devices.size() > 0) {
+            for (BluetoothDevice device : devices) {
+                if ((device.getBluetoothClass() != null) &&
+                        (device.getBluetoothClass().getDeviceClass()
+                                == BluetoothClass.Device.TOY_ROBOT)) {
+                    Log.i(tag, "Found Paired Device " + device.getName()
+                            + " with address of " + device.getAddress());
+                    adapter.add(device.getName() + "\n" + device.getAddress());
+                }
+            }
         }
     }
 
