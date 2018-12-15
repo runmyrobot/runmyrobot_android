@@ -60,73 +60,63 @@ public class ChooseBluetoothActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(tag, "On Create");
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        Log.i(tag, "Setting View to R.layout.device_list");
         setContentView(R.layout.device_list);
-        Log.i(tag, "Set View Done");
         setResult(Activity.RESULT_CANCELED);
-        Log.i(tag, "Initializing Scan Button");
-        Button scanButton = (Button) findViewById(R.id.button_scan);
+        Button scanButton = findViewById(R.id.button_scan);
         scanButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 doDiscovery();
                 v.setVisibility(View.GONE);
             }
         });
-        
-        mPairedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
+        setupAndRegisterSearch();
+        populatePairedDevices();
+        Log.i(tag, "Done with onCreate");
+    }
+
+    private void setupAndRegisterSearch() {
         mNewDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
-        
-        Log.i(tag, "Setting up paired_devices ListView code");
-        ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
-        pairedListView.setAdapter(mPairedDevicesArrayAdapter);
-        pairedListView.setOnItemClickListener(mDeviceClickListener);
-        
-        Log.i(tag, "Setting up new_devices ListView code");
-        ListView newDevicesListView = (ListView) findViewById(R.id.new_devices);
+        ListView newDevicesListView = findViewById(R.id.new_devices);
         newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
-        
-        Log.i(tag, "Setting up IntentFilter ACTION_FOUND code");
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
-        Log.i(tag, "Setting up IntentFilter ACTION_DISCOVERY_FINISHED code");
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(mReceiver, filter);
-        
-        Log.i(tag, "Setting up BluetoothAdapter");
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
-        
-        Log.i(tag, "Getting Paired Devices");
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
-        
-        boolean empty = true;
-        
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                if ((device.getBluetoothClass() != null) && (device.getBluetoothClass().getDeviceClass() == BluetoothClass.Device.TOY_ROBOT)) {
-                	Log.i(tag, "Found Paired Device " + device.getName() + " with address of " + device.getAddress());
-                	mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                    empty = false;
-                }
-            }
-        }
-        if (!empty) {
+    }
+
+    private void populatePairedDevices() {
+        mPairedDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
+        ListView pairedListView = findViewById(R.id.paired_devices);
+        pairedListView.setAdapter(mPairedDevicesArrayAdapter);
+        pairedListView.setOnItemClickListener(mDeviceClickListener);
+        addPairedDevices(mPairedDevicesArrayAdapter, mBtAdapter.getBondedDevices());
+        if (!mPairedDevicesArrayAdapter.isEmpty()) {
             findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
             findViewById(R.id.no_devices).setVisibility(View.GONE);
         }
-        Log.i(tag, "Done with onCreate");
+    }
+
+    public void addPairedDevices(ArrayAdapter<String> adapter, Set<BluetoothDevice> devices){
+        for (BluetoothDevice device : devices) {
+            BluetoothClass bluetoothClass = device.getBluetoothClass();
+            if(bluetoothClass == null) continue;
+            if (bluetoothClass.getDeviceClass() == BluetoothClass.Device.TOY_ROBOT) {
+                adapter.add(device.getName() + "\n" + device.getAddress());
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        
+
         if (mBtAdapter != null) {
             mBtAdapter.cancelDiscovery();
         }
-        
+
         this.unregisterReceiver(mReceiver);
         Log.i(tag, "On Destroy");
     }
@@ -136,13 +126,13 @@ public class ChooseBluetoothActivity extends Activity {
         setTitle("Scanning...");
         Log.i(tag, "Discovery");
         //findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
-        
+
         if (mBtAdapter.isDiscovering()) {
             mBtAdapter.cancelDiscovery();
         }
-        
+
         mBtAdapter.startDiscovery();
-        
+
         mNewDevicesArrayAdapter.clear();
         findViewById(R.id.title_new_devices).setVisibility(View.GONE);
         if (mPairedDevicesArrayAdapter.getCount() == 0) {
@@ -167,7 +157,7 @@ public class ChooseBluetoothActivity extends Activity {
             finish();
         }
     };
-    
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

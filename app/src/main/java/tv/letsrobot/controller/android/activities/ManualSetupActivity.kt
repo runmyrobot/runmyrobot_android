@@ -12,9 +12,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,8 +32,11 @@ import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
+import tv.letsrobot.controller.android.utils.setPositionGivenText
+import tv.letsrobot.controller.android.utils.setupSpinnerWithSetting
+import tv.letsrobot.controller.android.utils.string
+import tv.letsrobot.controller.android.utils.toIntOrZero
 import java.io.FileNotFoundException
-import java.util.*
 
 
 class ManualSetupActivity : AppCompatActivity() {
@@ -105,7 +105,7 @@ class ManualSetupActivity : AppCompatActivity() {
         }
     }
 
-    fun parseQRCodeAndUpdate(bitmap: Bitmap){
+    private fun parseQRCodeAndUpdate(bitmap: Bitmap){
         GlobalScope.launch {
             val resultCoroutine = getQRResultFromBitmap(bitmap)
             val result = resultCoroutine.await()
@@ -139,17 +139,22 @@ class ManualSetupActivity : AppCompatActivity() {
         errorReportButton.isChecked = false //Not using right now.
         screenOverlaySettingsButton.isChecked = settings.screenTimeout
         bitrateEditText.setText(settings.cameraBitrate.toString())
-        resolutionEditText.setText(settings.cameraResolution)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
+        resolutionSpinner.isEnabled = !legacyOnly
         legacyCameraEnableToggle.isChecked = settings.cameraLegacy
         bitrateEditText.isEnabled = true
-        resolutionEditText.isEnabled = false
+        resolutionSpinner.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
-        setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
-        setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
-        setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
+        updateSpinners(settings)
+    }
+
+    private fun updateSpinners(settings: RobotSettingsObject) {
+        resolutionSpinner.setPositionGivenText(settings.cameraResolution)
+        protocolChooser.setupSpinnerWithSetting(settings.robotProtocol)
+        communicationChooser.setupSpinnerWithSetting(settings.robotCommunication)
+        orientationChooser.setupSpinnerWithSetting(settings.cameraOrientation)
     }
 
     private fun getQRResultFromBitmap(bitmap : Bitmap) = GlobalScope.async{
@@ -182,14 +187,13 @@ class ManualSetupActivity : AppCompatActivity() {
         val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED){
-            if(shouldShowPermission) {
+            queueCameraLaunch = if(shouldShowPermission) {
                 ActivityCompat.requestPermissions(this,
                         arrayOf(Manifest.permission.CAMERA),
                         CAMERA_PERMISSION_REQUEST_CODE)
-                queueCameraLaunch = true
-            }
-            else{
-                queueCameraLaunch = false
+                true
+            } else{
+                false
             }
         }
         else{
@@ -234,7 +238,7 @@ class ManualSetupActivity : AppCompatActivity() {
                 cameraPassEditText.string(),
                 CameraDirection.values()[orientationChooser.selectedItemPosition],
                 bitrateEditText.toIntOrZero(),
-                resolutionEditText.string(),
+                resolutionSpinner.selectedItem.toString(),
                 cameraEnableToggle.isChecked,
                 legacyCameraEnableToggle.isChecked,
                 micEnableButton.isChecked,
@@ -242,38 +246,11 @@ class ManualSetupActivity : AppCompatActivity() {
                 screenOverlaySettingsButton.isChecked)
     }
 
-    fun checkState(cameraChecked : Boolean){
+    private fun checkState(cameraChecked : Boolean){
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
         bitrateEditText.isEnabled = cameraChecked
-        //resolutionEditText.isEnabled = cameraChecked
-    }
-
-    //some utility functions
-
-    fun EditText.string() : String{
-        return text.toString()
-    }
-
-    fun EditText.toIntOrZero() : Int{
-        return string().toIntOrNull()?.let { it } ?: 0
-    }
-
-    /**
-     * Sets up a spinner using enum values from RobotConfig
-     */
-    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : T){
-        spinner.adapter = createEnumArrayAdapter(value.declaringClass.enumConstants)
-        spinner.setSelection(value.ordinal)
-    }
-
-    private fun <T : Enum<T>> createEnumArrayAdapter(list : Array<T>) : ArrayAdapter<Any>{
-        val arrList = ArrayList<String>()
-        list.forEach {
-            arrList.add(it.name)
-        }
-        // Creating adapter for spinner
-        return ArrayAdapter(this, android.R.layout.simple_spinner_item, list)
+        resolutionSpinner.isEnabled = cameraChecked
     }
 
     companion object {

@@ -4,9 +4,6 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
-import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -22,7 +19,7 @@ import java.util.UUID;
  */
 public class BluetoothClassic{
 	private String tag = "BluetoothClassic";
-	public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	protected static final int SUCCESS_CONNECT = 0;
 	protected static final int MESSAGE_READ = 1;
 	public static final int BLUETOOTH_ADAPTER_MESSAGE = 5;
@@ -33,18 +30,14 @@ public class BluetoothClassic{
 	public static final int CONNECTION_STABLE = 0,CONNECTION_LOST = 1,CONNECTION_NOT_POSSIBLE = 2,CONNECTION_NON_EXISTENT = 3, CONNECTING = 4;
 	public int BTStatus = CONNECTION_NON_EXISTENT;
 	public BluetoothAdapter btAdapter;
-	private IntentFilter filter;
 
 	public Handler serviceHandler;
 	private BluetoothDevice selectedDevice;
 	private ConnectThread connect;
 	private ConnectedThread connectedThread;
-	private Context gContext;
-	byte[] readBuffer = {0x00};
-	public BluetoothClassic(Context context){
-		gContext = context;
+
+	public BluetoothClassic(){
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		BluetoothInit();
 	}
 	public int getStatus(){
@@ -135,56 +128,6 @@ public class BluetoothClassic{
 		}
 	}
 
-	public class BluetoothConnect extends AsyncTask<BluetoothDevice, Void, Void> {
-    	public String tag;
-		private BluetoothSocket mmSocket;
-	    private BluetoothDevice mmDevice;
-
-		@Override
-		protected Void doInBackground(BluetoothDevice... arg0) {
-			BluetoothSocket tmp = null;
-	        mmDevice = arg0[0];
-	        Log.i(tag, "construct");
-	        // Get a BluetoothSocket to connect with the given BluetoothDevice
-	        try {
-	            // MY_UUID is the app's UUID string, also used by the server code
-	            tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
-	        } catch (IOException e) {
-	        	Log.i(tag, "get socket failed");
-
-	        }
-	        mmSocket = tmp;
-
-
-	        // Do work to manage the connection (in a separate thread)
-
-
-				///--Rest of Connection
-				btAdapter.cancelDiscovery();
-				Log.i(tag, "connect - run");
-				try {
-					// Connect the device through the socket. This will block
-					// until it succeeds or throws an exception
-					mmSocket.connect();
-					BTStatus = CONNECTION_STABLE;
-					Log.i(tag, "connect - succeeded");
-				} catch (IOException connectException) {
-					Log.i(tag, "connect failed");
-					// Unable to connect; close the socket and get out
-					BTStatus = CONNECTION_NOT_POSSIBLE;
-					try {
-						mmSocket.close();
-					} catch (IOException closeException) {
-					}
-					this.cancel(true);
-				}
-				serviceHandler.obtainMessage(SUCCESS_CONNECT, mmSocket)
-						.sendToTarget();
-				//serviceHandler.obtainMessage(SUCCESS_CONNECT, mmSocket).sendToTarget();
-			return null;
-		}
-
-	}
 	private class ConnectThread extends Thread {
 	   	public String tag;
 		private final BluetoothSocket mmSocket;
@@ -276,12 +219,11 @@ public class BluetoothClassic{
 	            try {
 	                // Read from the InputStream
 	            	buffer = new byte[66];
-	            	if(mmSocket != null && !this.isInterrupted())
-	                bytes = mmInStream.read(buffer);
+					bytes = mmInStream.read(buffer);
 	                // Send the obtained bytes to the UI activity
 	                //serviceHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 	                     //   .sendToTarget();
-	                readBuffer = buffer;
+//					byte[] readBuffer = buffer;
 	                errCount = 0;
 	                BTStatus = CONNECTION_STABLE; //TODO
 	            } catch (Exception e) {

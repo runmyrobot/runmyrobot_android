@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="streaming_resolutions">
+        <item>640x480</item>
+        <item>768x432</item>
+        <item>1280x720</item>
+    </string-array>
+</resources>
