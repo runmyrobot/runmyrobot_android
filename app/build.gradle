@@ -2,33 +2,38 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-def buildNumber = Integer.parseInt(System.getenv("BITRISE_BUILD_NUMBER") ?: "1")
-def getGitHash = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
-}
+
 
 android {
     compileSdkVersion 28
     buildToolsVersion = globalBuildToolsVersion
     defaultConfig {
-        buildConfigField "String", "GitHash", "\"${getGitHash()}\""
+        buildConfigField "String", "GitHash", "\"${gitHash}\""
         applicationId "tv.letsrobot.controller.android"
         minSdkVersion 16
         targetSdkVersion 28
         versionCode buildNumber
-        versionName "0.4.2"
-        versionNameSuffix '(' + versionCode + ')-' + getGitHash()
+        versionName versionSemantic
+        versionNameSuffix '(' + versionCode + ')-' + gitHash
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildTypeName = variant.buildType.name
+            if(buildTypeName == "debug"){
+                //we want newer debug builds to overwrite old ones. We also don't care about version code
+                outputFileName = output.outputFile.name.replace(".apk", "-${versionSemantic}.apk").replace("app", "LetsRobotController")
+            }
+            else{
+                outputFileName = output.outputFile.name.replace(".apk", "-${variant.versionName}.apk").replace("app", "LetsRobotController")
+            }
         }
     }
 }
