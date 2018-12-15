@@ -147,9 +147,6 @@ class ManualSetupActivity : AppCompatActivity() {
         errorReportButton.isChecked = false //Not using right now.
         screenOverlaySettingsButton.isChecked = settings.screenTimeout
         bitrateEditText.setText(settings.cameraBitrate.toString())
-        resolutionSpinner.findPositionWithText(settings.cameraResolution)?.let {
-            resolutionSpinner.setSelection(it)
-        } ?: resolutionSpinner.setSelection(0)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
         resolutionSpinner.isEnabled = !legacyOnly
@@ -158,6 +155,9 @@ class ManualSetupActivity : AppCompatActivity() {
         resolutionSpinner.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
+        resolutionSpinner.findPositionWithText(settings.cameraResolution)?.let {
+            resolutionSpinner.setSelection(it)
+        } ?: resolutionSpinner.setSelection(0)
         setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
         setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
         setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
