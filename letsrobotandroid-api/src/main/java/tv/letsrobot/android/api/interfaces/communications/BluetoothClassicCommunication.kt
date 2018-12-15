@@ -75,7 +75,7 @@ class BluetoothClassicCommunication : CommunicationInterface {
 
     override fun initConnection(context: Context) {
         Log.d("Bluetooth","initConnection")
-        bluetoothClassic = BluetoothClassic(context)
+        bluetoothClassic = BluetoothClassic()
         addr = context.getSharedPreferences(CONFIG_PREFS, 0).getString(BLUETOOTH_ADDR, null)
     }
 
