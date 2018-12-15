@@ -12,7 +12,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,6 +34,8 @@ import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
 import tv.letsrobot.controller.android.utils.setPositionGivenText
 import tv.letsrobot.controller.android.utils.setupSpinnerWithSetting
+import tv.letsrobot.controller.android.utils.string
+import tv.letsrobot.controller.android.utils.toIntOrZero
 import java.io.FileNotFoundException
 
 
@@ -104,7 +105,7 @@ class ManualSetupActivity : AppCompatActivity() {
         }
     }
 
-    fun parseQRCodeAndUpdate(bitmap: Bitmap){
+    private fun parseQRCodeAndUpdate(bitmap: Bitmap){
         GlobalScope.launch {
             val resultCoroutine = getQRResultFromBitmap(bitmap)
             val result = resultCoroutine.await()
@@ -146,6 +147,10 @@ class ManualSetupActivity : AppCompatActivity() {
         resolutionSpinner.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
+        updateSpinners(settings)
+    }
+
+    private fun updateSpinners(settings: RobotSettingsObject) {
         resolutionSpinner.setPositionGivenText(settings.cameraResolution)
         protocolChooser.setupSpinnerWithSetting(settings.robotProtocol)
         communicationChooser.setupSpinnerWithSetting(settings.robotCommunication)
@@ -182,14 +187,13 @@ class ManualSetupActivity : AppCompatActivity() {
         val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED){
-            if(shouldShowPermission) {
+            queueCameraLaunch = if(shouldShowPermission) {
                 ActivityCompat.requestPermissions(this,
                         arrayOf(Manifest.permission.CAMERA),
                         CAMERA_PERMISSION_REQUEST_CODE)
-                queueCameraLaunch = true
-            }
-            else{
-                queueCameraLaunch = false
+                true
+            } else{
+                false
             }
         }
         else{
@@ -242,21 +246,11 @@ class ManualSetupActivity : AppCompatActivity() {
                 screenOverlaySettingsButton.isChecked)
     }
 
-    fun checkState(cameraChecked : Boolean){
+    private fun checkState(cameraChecked : Boolean){
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
         bitrateEditText.isEnabled = cameraChecked
         resolutionSpinner.isEnabled = cameraChecked
-    }
-
-    //some utility functions
-
-    fun EditText.string() : String{
-        return text.toString()
-    }
-
-    fun EditText.toIntOrZero() : Int{
-        return string().toIntOrNull()?.let { it } ?: 0
     }
 
     companion object {
