@@ -79,9 +79,25 @@ class BluetoothClassicCommunication : CommunicationInterface {
     }
 
     override fun enable() {
-        Log.d("Bluetooth","enable")
-        bluetoothClassic?.connect()
-        EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+        setActive(true)
+    }
+
+    override fun disable() {
+        setActive(false)
+    }
+
+    fun setActive(value : Boolean){
+        val message : String = if(value){
+            bluetoothClassic?.connect()
+            EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+            "enable"
+        }
+        else{
+            bluetoothClassic?.disconnect()
+            EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+            "disable"
+        }
+        Log.d("Bluetooth", message)
     }
 
     private val onControlEvent: (Any?) -> Unit = {
@@ -90,12 +106,6 @@ class BluetoothClassicCommunication : CommunicationInterface {
             send(data)
             Log.d("Bluetooth","onControlEvent sent")
         }
-    }
-
-    override fun disable() {
-        Log.d("Bluetooth","disable")
-        bluetoothClassic?.disconnect()
-        EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
     }
 
     override fun getStatus(): ComponentStatus {
