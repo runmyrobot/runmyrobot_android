@@ -12,9 +12,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,8 +33,9 @@ import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
+import tv.letsrobot.controller.android.utils.setPositionGivenText
+import tv.letsrobot.controller.android.utils.setupSpinnerWithSetting
 import java.io.FileNotFoundException
-import java.util.*
 
 
 class ManualSetupActivity : AppCompatActivity() {
@@ -125,14 +124,6 @@ class ManualSetupActivity : AppCompatActivity() {
                 Snackbar.LENGTH_LONG).show()
     }
 
-    private fun Spinner.findPositionWithText(value : String) : Int?{
-        for(i in 0..adapter.count){
-            if(adapter.getItem(i) == value)
-                return i
-        }
-        return null
-    }
-
     private fun refreshSettings(settingsTxt : RobotSettingsObject? = null){
         val settings : RobotSettingsObject = settingsTxt?.let{
             it
@@ -155,12 +146,10 @@ class ManualSetupActivity : AppCompatActivity() {
         resolutionSpinner.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
-        resolutionSpinner.findPositionWithText(settings.cameraResolution)?.let {
-            resolutionSpinner.setSelection(it)
-        } ?: resolutionSpinner.setSelection(0)
-        setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
-        setupSpinnerWithSetting(communicationChooser, settings.robotCommunication)
-        setupSpinnerWithSetting(orientationChooser, settings.cameraOrientation)
+        resolutionSpinner.setPositionGivenText(settings.cameraResolution)
+        protocolChooser.setupSpinnerWithSetting(settings.robotProtocol)
+        communicationChooser.setupSpinnerWithSetting(settings.robotCommunication)
+        orientationChooser.setupSpinnerWithSetting(settings.cameraOrientation)
     }
 
     private fun getQRResultFromBitmap(bitmap : Bitmap) = GlobalScope.async{
@@ -268,23 +257,6 @@ class ManualSetupActivity : AppCompatActivity() {
 
     fun EditText.toIntOrZero() : Int{
         return string().toIntOrNull()?.let { it } ?: 0
-    }
-
-    /**
-     * Sets up a spinner using enum values from RobotConfig
-     */
-    private fun <T : Enum<T>> setupSpinnerWithSetting(spinner : Spinner, value : T){
-        spinner.adapter = createEnumArrayAdapter(value.declaringClass.enumConstants)
-        spinner.setSelection(value.ordinal)
-    }
-
-    private fun <T : Enum<T>> createEnumArrayAdapter(list : Array<T>) : ArrayAdapter<Any>{
-        val arrList = ArrayList<String>()
-        list.forEach {
-            arrList.add(it.name)
-        }
-        // Creating adapter for spinner
-        return ArrayAdapter(this, android.R.layout.simple_spinner_item, list)
     }
 
     companion object {
