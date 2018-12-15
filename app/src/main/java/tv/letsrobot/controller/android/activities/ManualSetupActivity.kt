@@ -125,6 +125,14 @@ class ManualSetupActivity : AppCompatActivity() {
                 Snackbar.LENGTH_LONG).show()
     }
 
+    private fun Spinner.findPositionWithText(value : String) : Int?{
+        for(i in 0..adapter.count){
+            if(adapter.getItem(i) == value)
+                return i
+        }
+        return null
+    }
+
     private fun refreshSettings(settingsTxt : RobotSettingsObject? = null){
         val settings : RobotSettingsObject = settingsTxt?.let{
             it
@@ -139,12 +147,15 @@ class ManualSetupActivity : AppCompatActivity() {
         errorReportButton.isChecked = false //Not using right now.
         screenOverlaySettingsButton.isChecked = settings.screenTimeout
         bitrateEditText.setText(settings.cameraBitrate.toString())
-        resolutionEditText.setText(settings.cameraResolution)
+        resolutionSpinner.findPositionWithText(settings.cameraResolution)?.let {
+            resolutionSpinner.setSelection(it)
+        } ?: resolutionSpinner.setSelection(0)
         val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
+        resolutionSpinner.isEnabled = !legacyOnly
         legacyCameraEnableToggle.isChecked = settings.cameraLegacy
         bitrateEditText.isEnabled = true
-        resolutionEditText.isEnabled = false
+        resolutionSpinner.isEnabled = false
         checkState(cameraEnableToggle.isChecked)
 
         setupSpinnerWithSetting(protocolChooser, settings.robotProtocol)
@@ -234,7 +245,7 @@ class ManualSetupActivity : AppCompatActivity() {
                 cameraPassEditText.string(),
                 CameraDirection.values()[orientationChooser.selectedItemPosition],
                 bitrateEditText.toIntOrZero(),
-                resolutionEditText.string(),
+                resolutionSpinner.selectedItem.toString(),
                 cameraEnableToggle.isChecked,
                 legacyCameraEnableToggle.isChecked,
                 micEnableButton.isChecked,
@@ -246,7 +257,7 @@ class ManualSetupActivity : AppCompatActivity() {
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
         bitrateEditText.isEnabled = cameraChecked
-        //resolutionEditText.isEnabled = cameraChecked
+        resolutionSpinner.isEnabled = cameraChecked
     }
 
     //some utility functions

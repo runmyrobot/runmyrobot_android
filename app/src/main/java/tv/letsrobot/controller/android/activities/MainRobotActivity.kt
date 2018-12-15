@@ -135,10 +135,11 @@ class MainRobotActivity : Activity(), Runnable {
         (settings.cameraId).takeIf {
             settings.cameraEnabled
         }?.let{ cameraId ->
+            val arrRes = settings.cameraResolution.split('x')
             val cameraSettings = CameraSettings(cameraId = cameraId,
                     pass = settings.cameraPassword,
-                    width = 640, //TODO tie into settings
-                    height = 480, //TODO tie into settings
+                    width = arrRes[0].toInt(),
+                    height = arrRes[1].toInt(),
                     bitrate = settings.cameraBitrate,
                     useLegacyApi = settings.cameraLegacy,
                     orientation = settings.cameraOrientation

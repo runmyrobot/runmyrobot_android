@@ -140,12 +140,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Resolution"/>
-            <EditText
+            <Spinner
                 android:layout_gravity="end|center_vertical"
-                android:id="@+id/resolutionEditText"
+                android:id="@+id/resolutionSpinner"
+                android:entries="@array/streaming_resolutions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ems="10"
                 android:inputType="text" />
         </GridLayout>
     </LinearLayout>
