@@ -100,15 +100,11 @@ public class ChooseBluetoothActivity extends Activity {
     }
 
     public void addPairedDevices(ArrayAdapter<String> adapter, Set<BluetoothDevice> devices){
-        if (devices.size() > 0) {
-            for (BluetoothDevice device : devices) {
-                if ((device.getBluetoothClass() != null) &&
-                        (device.getBluetoothClass().getDeviceClass()
-                                == BluetoothClass.Device.TOY_ROBOT)) {
-                    Log.i(tag, "Found Paired Device " + device.getName()
-                            + " with address of " + device.getAddress());
-                    adapter.add(device.getName() + "\n" + device.getAddress());
-                }
+        for (BluetoothDevice device : devices) {
+            BluetoothClass bluetoothClass = device.getBluetoothClass();
+            if(bluetoothClass == null) continue;
+            if (bluetoothClass.getDeviceClass() == BluetoothClass.Device.TOY_ROBOT) {
+                adapter.add(device.getName() + "\n" + device.getAddress());
             }
         }
     }
