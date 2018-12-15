@@ -13,7 +13,7 @@ import java.util.*
  */
 fun Spinner.setPositionGivenText(value : String){
     var pos : Int? = null
-    for(i in 0..adapter.count){
+    for(i in 0 until adapter.count){
         if(adapter.getItem(i) == value)
             pos = i
     }
