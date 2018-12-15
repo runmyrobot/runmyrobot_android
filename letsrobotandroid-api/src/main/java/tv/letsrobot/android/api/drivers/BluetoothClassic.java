@@ -219,8 +219,7 @@ public class BluetoothClassic{
 	            try {
 	                // Read from the InputStream
 	            	buffer = new byte[66];
-	            	if(mmSocket != null && !this.isInterrupted())
-	                bytes = mmInStream.read(buffer);
+					bytes = mmInStream.read(buffer);
 	                // Send the obtained bytes to the UI activity
 	                //serviceHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 	                     //   .sendToTarget();
