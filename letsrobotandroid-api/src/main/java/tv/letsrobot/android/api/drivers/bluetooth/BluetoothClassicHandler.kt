@@ -37,11 +37,13 @@ internal class BluetoothClassicHandler {
     private val handlerThread = HandlerThread("Bluetooth ${Random.nextInt()}").also {
         it.start()
     }
-    internal val serviceHandler = Handler(handlerThread.looper){
-        when(it.what){
-            SEND_MESSAGE -> tryWriteBytes(it.obj as ByteArray)
-            REQUEST_CONNECT -> tryConnect(it.obj as String)
-            REQUEST_DISCONNECT -> tryDisconnect()
+    internal val serviceHandler = Handler(handlerThread.looper){ message ->
+        when(message.what){
+            SEND_MESSAGE -> tryWriteBytes(message.obj as ByteArray)
+            REQUEST_CONNECT -> tryConnect(message.obj as String)
+            REQUEST_DISCONNECT -> (message.obj as? Boolean)?.let {
+                tryDisconnect(it)
+            } ?: tryDisconnect()
             HANDLE_LOOP -> handleLoop()
         }
         true
@@ -68,7 +70,7 @@ internal class BluetoothClassicHandler {
         } catch (e: Exception) {
             errCount += 1
             if (errCount > 50) {
-                enqueueDisconnect()
+                enqueueDisconnectFromError()
             }
         }
         serviceHandler.sendEmptyMessage(HANDLE_LOOP)
@@ -114,14 +116,17 @@ internal class BluetoothClassicHandler {
         serviceHandler.obtainMessage(HANDLE_LOOP).sendToTarget()
     }
 
-    private fun tryDisconnect(){
+    private fun tryDisconnect(errorOccurred : Boolean = false){
         selectedDevice = null
         try {
             socket?.close()
         } catch (e: Exception) {
             //assume disconnect went fine
         }
-        tryPublishState(STATE_DISCONNECTED)
+        if(errorOccurred)
+            tryPublishState(STATE_DISCONNECTED)
+        else
+            tryPublishState(STATE_IDLE) //connection is now idle. Do not attempt to restart
     }
 
     /**
@@ -132,12 +137,12 @@ internal class BluetoothClassicHandler {
         try {
             mmOutStream?.write(value)
         } catch (e: Exception) {
-            enqueueDisconnect()
+            enqueueDisconnectFromError()
         }
     }
 
-    fun enqueueDisconnect(){
-        serviceHandler.sendMessageAtFrontOfQueue(serviceHandler.obtainMessage(REQUEST_DISCONNECT))
+    fun enqueueDisconnectFromError(){
+        serviceHandler.sendMessageAtFrontOfQueue(serviceHandler.obtainMessage(REQUEST_DISCONNECT, true))
     }
 
     fun onMessage(function : (bytes:ByteArray)->Unit){
