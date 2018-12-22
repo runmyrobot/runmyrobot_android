@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Read the input stream
  */
-class MessageReader(val inputStream: InputStream?){
-    val data = ArrayDeque<ByteArray>()
+class ThreadInputStream(val inputStream: InputStream?) {
+    private val data = ArrayDeque<ByteArray>()
 
     private val _error = AtomicBoolean(false)
     val error : Boolean
@@ -17,23 +17,30 @@ class MessageReader(val inputStream: InputStream?){
             return _error.get()
         }
 
-    val thread = Thread{
-        while (!Thread.currentThread().isInterrupted){
-            tryBlockingRead()
-        }
+    private val thread = Thread{
+        while (tryBlockingRead() != -1);
     }
 
-    fun startMonitor(){
+    init {
+        openMonitor()
+    }
+
+    private fun openMonitor(){
         thread.start()
     }
 
-    fun stopMonitor(){
-        thread.interrupt()
+    fun close(){
+        inputStream?.close()
     }
 
     @Synchronized
     fun next() : ByteArray{
         return data.poll()
+    }
+
+    @Synchronized
+    fun hasNext() : Boolean{
+        return data.peek() != null
     }
 
     @Synchronized
@@ -48,7 +55,7 @@ class MessageReader(val inputStream: InputStream?){
             bytesRead = inputStream?.read(array) ?: -1
             put(array)
         } catch (e: IOException) {
-            //stream closed
+            _error.set(true)
         }
         return bytesRead
     }
