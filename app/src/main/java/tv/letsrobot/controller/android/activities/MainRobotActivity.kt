@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.app.Activity
 import android.content.Intent
@@ -10,9 +10,6 @@ import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import com.runmyrobot.android_robot_for_phone.R
-import com.runmyrobot.android_robot_for_phone.RobotApplication
-import com.runmyrobot.android_robot_for_phone.robot.CustomComponentExample
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.AudioComponent
@@ -23,7 +20,10 @@ import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
-import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.controller.android.R
+import tv.letsrobot.controller.android.RobotApplication
+import tv.letsrobot.controller.android.robot.CustomComponentExample
+import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
 /**
  * Main activity for the robot. It has a simple camera UI and a button to connect and disconnect.
@@ -43,11 +43,13 @@ class MainRobotActivity : Activity(), Runnable {
     private var recording = false
     var core: Core? = null
     lateinit var handler : Handler
+    lateinit var settings : RobotSettingsObject
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PhoneBatteryMeter.getReceiver(applicationContext) //Setup phone battery monitor TODO integrate with component
         handler = Handler(Looper.getMainLooper())
-
+        settings = RobotSettingsObject.load(this)
         //Full screen with no title
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -66,7 +68,7 @@ class MainRobotActivity : Activity(), Runnable {
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
-                if(StoreUtil.getScreenSleepOverlayEnabled(this)){
+                if(settings.screenTimeout){
                     handler.postDelayed(this, 10000)
                 }
                 core?.enable() //enable core if we hit the button to enable recording
@@ -83,7 +85,7 @@ class MainRobotActivity : Activity(), Runnable {
 
         //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
-            if(StoreUtil.getScreenSleepOverlayEnabled(this)) {
+            if(settings.screenTimeout) {
                 fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
                 handler.removeCallbacks(this)
                 handler.postDelayed(this, 10000) //10 second delay
@@ -128,25 +130,26 @@ class MainRobotActivity : Activity(), Runnable {
         val builder = Core.Builder(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
         builder.holder = cameraSurfaceView
-        builder.robotId = StoreUtil.getRobotId(this) //Pass in our Robot ID
+        builder.robotId = settings.robotId //Pass in our Robot ID
 
-        StoreUtil.getCameraId(this)?.takeIf {
-            StoreUtil.getCameraEnabled(this)
+        (settings.cameraId).takeIf {
+            settings.cameraEnabled
         }?.let{ cameraId ->
-            val settings = CameraSettings(cameraId = cameraId,
-                    pass = StoreUtil.getCameraPass(this),
-                    width = 640, //TODO tie into settings
-                    height = 480, //TODO tie into settings
-                    bitrate = StoreUtil.getBitrate(this).toInt(),
-                    useLegacyApi = StoreUtil.getUseLegacyCamera(this),
-                    orientation = StoreUtil.getOrientation(this))
-            builder.cameraSettings = settings
+            val arrRes = settings.cameraResolution.split('x')
+            val cameraSettings = CameraSettings(cameraId = cameraId,
+                    pass = settings.cameraPassword,
+                    width = arrRes[0].toInt(),
+                    height = arrRes[1].toInt(),
+                    bitrate = settings.cameraBitrate,
+                    useLegacyApi = settings.cameraLegacy,
+                    orientation = settings.cameraOrientation
+            )
+            builder.cameraSettings = cameraSettings
         }
-        //TODO set camera pass
-        builder.useTTS = StoreUtil.getTTSEnabled(this)
-        builder.useMic = StoreUtil.getMicEnabled(this)
-        builder.protocol = StoreUtil.getProtocolType(this)
-        builder.communication = StoreUtil.getCommunicationType(this)
+        builder.useTTS = settings.enableTTS
+        builder.useMic = settings.enableMic
+        builder.protocol = settings.robotProtocol
+        builder.communication = settings.robotCommunication
         builder.externalComponents = components //pass in arrayList of custom components
         try {
             core = builder.build() //Retrieve the built Core instance

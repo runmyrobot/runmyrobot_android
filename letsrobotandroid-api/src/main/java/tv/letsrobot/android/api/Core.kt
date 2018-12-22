@@ -6,14 +6,12 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.TextureView
+import android.widget.Toast
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
 import tv.letsrobot.android.api.components.AudioComponent
@@ -29,7 +27,7 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import java.io.IOException
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -125,7 +123,7 @@ private constructor(val robotId : String, val cameraId : String?) {
                 appServerSocket?.emit("send_video_status", obj)
             }
             val ipInfo = JSONObject()
-            ipInfo.put("ip", "169.254.25.110")
+            ipInfo.put("ip", "169.254.25.110") //TODO actually use a different ip...
             ipInfo.put("robot_id", robotId)
             appServerSocket?.emit("ip_information", ipInfo)
         }
@@ -146,26 +144,21 @@ private constructor(val robotId : String, val cameraId : String?) {
         if(running.getAndSet(true)) return //already enabled
         EventManager.invoke(javaClass.simpleName, ComponentStatus.CONNECTING)
         log(LogLevel.INFO, "starting core...")
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                owner = `object`.getString("owner")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        //get owner of this bot
+        JsonObjectUtils.getJsonObjectFromUrl(
+                String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)
+        )?.let {
+            owner = it.getString("owner")
         }
-        camera?.enable()
-        audio?.enable()
-        robotController?.enable()
-        textToSpeech?.enable()
-        for (component in externalComponents!!) {
-            component.enable()
-        }
+        enableComponents()
+        setupAppWebSocket()
+        //manage our own timeout in case something happens to network or site
+        EventManager.subscribe(TIMEOUT, onControllerTimeout)
+        handler?.postDelayed(onUpdateServer, 1000)
+        log(LogLevel.INFO, "core is started!")
+    }
+
+    private fun setupAppWebSocket() {
         appServerSocket = IO.socket("http://letsrobot.tv:8022")
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
@@ -180,15 +173,29 @@ private constructor(val robotId : String, val cameraId : String?) {
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
         }
-        //Ugly way of doing timeouts. Should find a better way
-        EventManager.subscribe(TIMEOUT, onControllerTimeout)
-        handler?.postDelayed(onUpdateServer, 1000)
-        log(LogLevel.INFO, "core is started!")
+    }
+
+    private fun enableComponents() {
+        camera?.enable()
+        audio?.enable()
+        robotController?.enable()
+        textToSpeech?.enable()
+        for (component in externalComponents!!) {
+            component.enable()
+        }
     }
 
     private fun disableInternal() {
         if(!running.getAndSet(false)) return //already disabled
         log(LogLevel.INFO, "shutting down core...")
+        disableComponents()
+        appServerSocket?.disconnect()
+        EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
+        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
+        log(LogLevel.INFO, "core is shut down!")
+    }
+
+    private fun disableComponents(){
         if (robotController != null) {
             robotController!!.disable()
         }
@@ -202,10 +209,6 @@ private constructor(val robotId : String, val cameraId : String?) {
         for (component in externalComponents!!) {
             component.disable()
         }
-        appServerSocket?.disconnect()
-        EventManager.unsubscribe(TIMEOUT, onControllerTimeout)
-        EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
-        log(LogLevel.INFO, "core is shut down!")
     }
 
     private val shouldRun = AtomicBoolean(false)
@@ -237,23 +240,29 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun onPause() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
-            if (!shouldRun.get()) {
-                return
-            }
+        if (shouldFollowLifecycle()) {
             handler?.sendEmptyMessage(STOP)
         }
         TelemetryManager.Instance?.invoke("onPause", null)
     }
 
     fun onResume() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
-            if (!shouldRun.get()) {
-                return
-            }
+        if (shouldFollowLifecycle()) {
             handler?.sendEmptyMessage(START)
         }
         TelemetryManager.Instance?.invoke("onResume", null)
+    }
+
+    fun shouldFollowLifecycle() : Boolean{
+        return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP || camera is Camera1TextureComponent){
+            if (!shouldRun.get()) {
+                return false
+            }
+            true
+        }
+        else{
+            false
+        }
     }
 
     /**
@@ -342,21 +351,19 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             cameraSettings?.let{ config ->
                 if(useMic) {
-                    core.audio = AudioComponent(context, config.cameraId)
+                    core.audio = AudioComponent(context, config.cameraId, config.pass)
                 }
                 holder?.let {
-                    if(false/*TODO StoreUtil or autodetect*/){
-                        TelemetryManager.Instance?.invoke("Camera Selection", "ExtCameraInterface")
-                        core.camera = ExtCameraInterface(context, config)
+                    core.camera = if(false/*TODO StoreUtil or autodetect*/){
+                        ExtCameraInterface(context, config)
                     }
                     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !config.useLegacyApi) {
-                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera2TextureComponent")
-                        core.camera = Camera2TextureComponent(context, config, holder!!)
+                        Camera2TextureComponent(context, config, holder!!)
                     }
                     else{
-                        TelemetryManager.Instance?.invoke("Camera Selection", "Camera1TextureComponent")
-                        core.camera = Camera1TextureComponent(context, config, holder!!)
+                        Camera1TextureComponent(context, config, holder!!)
                     }
+                    TelemetryManager.Instance?.invoke("Camera Selection", core.camera!!::class.java.simpleName)
                 }
             }
             if (useTTS) {
@@ -364,8 +371,6 @@ private constructor(val robotId : String, val cameraId : String?) {
             }
             //Set the log level
             core.logLevel = logLevel
-
-
             return core
         }
     }
@@ -374,7 +379,6 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     companion object {
         fun initDependencies(context: Context, done: () -> Unit) {
-            //Load FFMpeg
             TelemetryManager.init(context)
             val ffmpeg = FFmpeg.getInstance(context.applicationContext)
             try {
@@ -384,26 +388,20 @@ private constructor(val robotId : String, val cameraId : String?) {
                         Log.d("FFMPEG", "onFinish")
                         done() //run next action
                     }
-
-                    override fun onSuccess() {
-                        super.onSuccess()
-                        Log.d("FFMPEG", "onSuccess")
-                    }
-
-                    override fun onFailure() {
-                        super.onFailure()
-                        Log.d("FFMPEG", "onFailure")
-                    }
-
-                    override fun onStart() {
-                        super.onStart()
-                        Log.d("FFMPEG", "onStart")
-                    }
-                    //TODO maybe catch some error to display to the user
                 })
             } catch (e: FFmpegNotSupportedException) {
+                Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
                 e.printStackTrace()
                 done() //run next action
+            }
+        }
+
+        /**
+         * Clear all stored config data for our Communication components, which would trigger setup again
+         */
+        fun resetCommunicationConfig(context: Context) {
+            CommunicationType.values().forEach {
+                it.getInstantiatedClass?.clearSetup(context)
             }
         }
 

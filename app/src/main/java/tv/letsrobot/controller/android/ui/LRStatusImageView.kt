@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.ui
+package tv.letsrobot.controller.android.ui
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -7,9 +7,9 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import com.runmyrobot.android_robot_for_phone.R
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.controller.android.R
 
 /**
  * Status view that will communicate directly with a chosen component

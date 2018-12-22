@@ -1,3 +1,5 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/b6b7eb90dfe3d77bb5f0/maintainability)](https://codeclimate.com/github/btelman96/runmyrobot_android/maintainability)
+
 # runmyrobot_android
 android code to run on robots via LetsRobot api
 
@@ -8,6 +10,20 @@ android code to run on robots via LetsRobot api
 ### Android Studio
 
 - Version 3.2 or higher. May not be buildable on lower versions
+
+## Branches
+
+### master
+ 
+The most stable code in the repo. Can be used for testing and is known to work
+
+### devel
+
+The latest code, mostly stable, but might have issues
+
+Please Note! During the development stages of this project, this branch sometimes may not be buildable!
+I will try to keep it clean, but sometimes might not be able to.
+
 
 ## Device Limitations
 
@@ -85,6 +101,8 @@ Errors do not get reported at the moment
 - Battery optimization has to be disabled if OS version is 6.0 or above if you want to turn the screen off on the phone.
 
 - Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
+
+- BluetoothClassic currently not hooked up to handle input. It can output just fine
 
 # Supported or broken devices
 

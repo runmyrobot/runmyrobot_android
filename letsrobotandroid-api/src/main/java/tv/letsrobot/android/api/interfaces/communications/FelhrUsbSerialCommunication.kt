@@ -36,6 +36,10 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         EventManager.unsubscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
+    override fun clearSetup(context: Context) {
+        //not used for USB
+    }
+
     override fun needsSetup(activity: Activity): Boolean {
         return false
     }
@@ -102,37 +106,31 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         context.registerReceiver(mUsbReceiver, filter)
     }
 
-    /*
-         * Notifications from UsbService will be received here.
-         */
+    fun showMessageAndChangeState(context: Context, message: String?, status: ComponentStatus?){
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+        status?.let {
+            componentStatus = it
+        }
+    }
+
+    /**
+    * Notifications from UsbService will be received here.
+    */
     private val mUsbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                UsbService.ACTION_USB_PERMISSION_GRANTED // USB PERMISSION GRANTED
-                -> {
-                    Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show()
-                    componentStatus = ComponentStatus.STABLE
-                }
-                UsbService.ACTION_USB_PERMISSION_NOT_GRANTED // USB PERMISSION NOT GRANTED
-                -> {
-                    Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show()
-                    componentStatus = ComponentStatus.ERROR
-                }
-                UsbService.ACTION_NO_USB // NO USB CONNECTED
-                -> {
-                    Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show()
-                    //componentStatus = ComponentStatus.DISABLED
-                }
-                UsbService.ACTION_USB_DISCONNECTED // USB DISCONNECTED
-                -> {
-                    Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show()
-                    componentStatus = ComponentStatus.ERROR
-                }
-                UsbService.ACTION_USB_NOT_SUPPORTED // USB NOT SUPPORTED
-                -> {
-                    Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show()
-                    componentStatus = ComponentStatus.ERROR
-                }
+                UsbService.ACTION_USB_PERMISSION_GRANTED -> showMessageAndChangeState(
+                        context, "USB Ready", ComponentStatus.STABLE)
+                UsbService.ACTION_USB_PERMISSION_NOT_GRANTED -> showMessageAndChangeState(
+                        context, "USB Permission not granted", ComponentStatus.ERROR)
+                UsbService.ACTION_NO_USB -> showMessageAndChangeState(
+                        context, "No USB connected", null)
+                UsbService.ACTION_USB_DISCONNECTED -> showMessageAndChangeState(
+                        context, "USB disconnected", ComponentStatus.ERROR)
+                UsbService.ACTION_USB_NOT_SUPPORTED -> showMessageAndChangeState(
+                        context, "USB device not supported", ComponentStatus.ERROR)
             }
         }
     }
@@ -156,13 +154,20 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
         private val mActivity: WeakReference<Context> = WeakReference(activity)
 
         override fun handleMessage(msg: Message) {
-            when (msg.what) {
+            val message : String? = when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
                     val data = msg.obj as String
                     Log.d("handleMessage", data)
+                    null
                 }
-                UsbService.CTS_CHANGE -> Toast.makeText(mActivity.get(), "CTS_CHANGE", Toast.LENGTH_LONG).show()
-                UsbService.DSR_CHANGE -> Toast.makeText(mActivity.get(), "DSR_CHANGE", Toast.LENGTH_LONG).show()
+                UsbService.CTS_CHANGE -> "CTS_CHANGE"
+                UsbService.DSR_CHANGE -> "DSR_CHANGE"
+                else ->{
+                    null
+                }
+            }
+            message?.let{
+                Toast.makeText(mActivity.get(), it, Toast.LENGTH_LONG).show()
             }
         }
     }

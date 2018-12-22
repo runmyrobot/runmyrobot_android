@@ -11,9 +11,9 @@ public class WebcamService extends Service {
     private final static String TAG = "WebcamManager";
 
     //usb摄像头设备
-    public final static String VIDEO = "/dev/video1";
+    public final static String DEV_VIDEO1 = "/dev/video1";
 
-    private String video = VIDEO;
+    private String video = DEV_VIDEO1;
 
     private final IBinder mBinder = new WebcamBinder();
     private IWebcam mWebcam;
@@ -43,7 +43,7 @@ public class WebcamService extends Service {
         super.onCreate();
 
         // TODO: 16-3-22 修改video设备号
-        mWebcam = new NativeWebcam(VIDEO);
+        mWebcam = new NativeWebcam(DEV_VIDEO1);
     }
 
     @Override

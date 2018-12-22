@@ -1,4 +1,4 @@
-package com.runmyrobot.android_robot_for_phone.activities
+package tv.letsrobot.controller.android.activities
 
 import android.Manifest
 import android.app.Activity
@@ -8,10 +8,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.runmyrobot.android_robot_for_phone.R
 import tv.letsrobot.android.api.Core
+import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
-import tv.letsrobot.android.api.utils.StoreUtil
+import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.controller.android.R
 
 class SplashActivity : Activity() {
 
@@ -20,9 +21,8 @@ class SplashActivity : Activity() {
         setContentView(R.layout.activity_splash)
         // Setup App before initializing anything, then go back to do permissions flow
         // and to do device setup
-        if(!StoreUtil.getConfigured(this)){
-            finish()
-            startActivity(Intent(this, ManualSetupActivity::class.java))
+        if(!(RobotConfig.Configured.getValue(this) as Boolean)){
+            startSetup()
             return
         }
 
@@ -31,6 +31,11 @@ class SplashActivity : Activity() {
                 next()
             }
         }
+    }
+
+    private fun startSetup() {
+        finish()
+        startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
     //TODO replace with co-routine once that is stable and stops breaking Android Studio
@@ -62,17 +67,17 @@ class SplashActivity : Activity() {
         Toast.makeText(this
                 , "Something happened while trying to setup. Please try again"
                 , Toast.LENGTH_LONG).show()
-        StoreUtil.setConfigured(this, false)
+        RobotConfig.Configured.saveValue(this, false)
         finish()
         startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
     private var pendingDeviceSetup: CommunicationInterface? = null
 
-    private var pendingResultCode: Int = -1
+    private var pendingRequestCode: Int = -1
 
     private fun setupDevice(): Boolean? {
-        val commType = StoreUtil.getCommunicationType(this) // :CommunicationType?
+        val commType = RobotConfig.Communication.getValue(this) as CommunicationType?
         commType?.let {
             val clazz = it.getInstantiatedClass
             clazz?.let {
@@ -83,7 +88,7 @@ class SplashActivity : Activity() {
                         true
                     }
                     else{
-                        pendingResultCode = tmpCode
+                        pendingRequestCode = tmpCode
                         pendingDeviceSetup = it
                         false
                     }
@@ -105,52 +110,41 @@ class SplashActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         //Check if result was due to a pending interface setup
-        pendingDeviceSetup?.takeIf { pendingResultCode == requestCode}?.let {
+        pendingDeviceSetup?.takeIf { pendingRequestCode == requestCode}?.let {
             //relay info to interface
-            it.receivedComponentSetupDetails(this, data)
+            if(resultCode != Activity.RESULT_OK) {
+                startSetup() //not ok, exit to setup
+            }
+            else{
+                it.receivedComponentSetupDetails(this, data)
+                next()
+            }
             pendingDeviceSetup = null
-            pendingResultCode = -1
-            next()
+            pendingRequestCode = -1
         }
     }
 
     private val requestCode = 1002
 
     private fun checkPermissions() : Boolean{
-        val list = ArrayList<String>()
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        val list = ArrayList<String>(arrayListOf( //TODO selectively add based on settings
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ))
+        val permissionsToAccept = ArrayList<String>()
+        for (perm in list){
+            if(ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED){
+                permissionsToAccept.add(perm)
+            }
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.CAMERA)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.RECORD_AUDIO)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            list.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-        return if(!list.isEmpty()){
+
+        return if(!permissionsToAccept.isEmpty()){
             ActivityCompat.requestPermissions(this,
-                    list.toArray(Array<String>(0) {""}),
+                    permissionsToAccept.toArray(Array(0) {""}),
                     requestCode)
             false
         }

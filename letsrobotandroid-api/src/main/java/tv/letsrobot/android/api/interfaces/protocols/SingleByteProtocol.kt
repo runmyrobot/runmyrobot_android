@@ -1,9 +1,6 @@
 package tv.letsrobot.android.api.interfaces.protocols
 
 import android.content.Context
-import android.util.Log
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.components.ControlComponent
 import tv.letsrobot.android.api.utils.SingleByteUtil
 
@@ -21,78 +18,60 @@ import tv.letsrobot.android.api.utils.SingleByteUtil
  */
 
 class SingleByteProtocol(context: Context) : ControlComponent(context) {
-    val TAG = "SingleByteProtocol"
-    private val motorForwardSpeed = 90.toByte()
-    private val motorBackwardSpeed = (-90).toByte()
+    private val motorForwardSpeed = 90
+    private val motorBackwardSpeed = -90
 
-    private val motorForwardTurnSpeed = 30.toByte()
-    private val motorBackwardTurnSpeed = (-30).toByte()
-
-    override fun enableInternal(){
-        EventManager.subscribe(EventManager.COMMAND, onCommand)
-        EventManager.subscribe(STOP_EVENT, onStop)
-    }
-
-    override fun disableInternal(){
-        EventManager.unsubscribe(EventManager.COMMAND, onCommand)
-        EventManager.unsubscribe(STOP_EVENT, onStop)
-    }
-
-    private val onCommand: (Any?) -> Unit = {
-        it?.takeIf { it is String }?.let{
-            when(it as String){
-                "F" -> {onForward()}
-                "B" -> {onBack()}
-                "L" -> {onLeft()}
-                "R" -> {onRight()}
+    private val motorForwardTurnSpeed = 30
+    private val motorBackwardTurnSpeed = -30
+    override fun onStringCommand(command: String) {
+        super.onStringCommand(command)
+        val data : ByteArray = when(command){
+            "F" -> {
+                createPacket(motorForwardSpeed)
+            }
+            "B" -> {
+                createPacket(motorBackwardSpeed)
+            }
+            "L" -> {
+                createPacket(motorBackwardTurnSpeed, motorForwardTurnSpeed)
+            }
+            "R" -> {
+                createPacket(motorForwardTurnSpeed, motorBackwardTurnSpeed)
+            }
+            else -> {
+                val bytes = ByteArray(1)
+                bytes[0] = 0x00
+                /*return*/ bytes
             }
         }
-    }
-
-    private fun onForward() {
-        Log.d(TAG, "onForward")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorForwardSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorForwardSpeed, 1)
         sendToDevice(data)
     }
 
-    private fun onBack() {
-        Log.d(TAG, "onBack")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorBackwardSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorBackwardSpeed, 1)
-        sendToDevice(data)
-    }
-
-    private fun onLeft() {
-        Log.d(TAG, "onLeft")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorBackwardTurnSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorForwardTurnSpeed, 1)
-        sendToDevice(data)
-    }
-
-    private fun onRight() {
-        Log.d(TAG, "onRight")
-        val data = ByteArray(2)
-        data[0] = SingleByteUtil.getDriveSpeed(motorForwardTurnSpeed, 0)
-        data[1] = SingleByteUtil.getDriveSpeed(motorBackwardTurnSpeed, 1)
-        sendToDevice(data)
-    }
-
-    private val onStop : (Any?) -> Unit  = {
-        Log.d(TAG, "onStop")
+    override fun onStop(any: Any?) {
+        super.onStop(any)
         val data = ByteArray(1)
         data[0] = 0x00
         sendToDevice(data)
     }
 
     /**
-     * Timeout function. Will be called if we have not received anything recently,
-     * in case a movement command gets stuck
+     * Create a single byte packet of duplicate motors. Passing in one argument will make
+     * both motors move at the same speed
+     *
+     * Values must be in the byte range, or it may not work correctly
      */
-    override fun timeout() {
-        onStop(null)
+    private fun createPacket(motor0Speed : Int, motor1Speed : Int = Int.MAX_VALUE) : ByteArray{
+        //allow for passing in a single variable if both are the same
+        var motor1 = motor1Speed
+        if(motor1 == Int.MAX_VALUE)
+            motor1 = motor0Speed
+        val data = ByteArray(2)
+        data[0] = SingleByteUtil.getDriveSpeed(motor0Speed.toByte(), 0)
+        data[1] = SingleByteUtil.getDriveSpeed(motor1.toByte(), 1)
+        return data
+    }
+
+    companion object {
+        const val TAG = "SingleByteProtocol"
     }
 }

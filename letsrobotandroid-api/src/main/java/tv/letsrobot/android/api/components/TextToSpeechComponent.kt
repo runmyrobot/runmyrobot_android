@@ -5,8 +5,6 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.Core
@@ -14,9 +12,9 @@ import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
-import java.io.IOException
 import java.net.URISyntaxException
 import java.util.*
 
@@ -35,20 +33,12 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         ttobj.language = Locale.US
         var host: String? = null
         var port: String? = null
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("CHAT", `object`.toString())
-                host = `object`.getString("host")
-                port = `object`.getString("port")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonObjectUtils.getJsonObjectFromUrl(
+                String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)
+        )?.let {
+            Log.d("CHAT", it.toString())
+            host = it.getString("host")
+            port = it.getString("port")
         }
 
         try {
@@ -70,41 +60,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
             if (it[0] is JSONObject) {
                 val `object` = it[0] as JSONObject
                 try {
-                    val messageRaw = `object`.getString("message")
-                    getMessageFromRaw(messageRaw)?.let {
-                        //TODO use non-deprecated call? Does not support 4.4 though
-                        if(isSpeakableText(it) && !ttobj.isSpeaking) {
-                            val pitch = 1f
-                            ttobj.setPitch(pitch)
-                            EventManager.invoke(CHAT, it)
-                            ttobj.speak(it, TextToSpeech.QUEUE_FLUSH, null)
-                        }
-                        else{
-                            if(`object`["name"] == Core.owner){
-                                val pitch = .5f
-                                ttobj.setPitch(pitch)
-                                when(it){
-                                    ".table on" -> {
-                                        ttobj.speak("Table top mode on", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".table off" -> {
-                                        ttobj.speak("Table top mode off", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".motors off" -> {
-                                        ttobj.speak("Motors turned off", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".motors on" -> {
-                                        ttobj.speak("Motors turned on", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                    ".battery level" ->{
-                                        ttobj.speak("Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent", TextToSpeech.QUEUE_FLUSH, null)
-                                    }
-                                }
-                                EventManager.invoke(CHAT, it)
-                            }
-                            1
-                        }
-                    }
+                    processMessage(`object`.getString("message"), `object`.getString("name"))
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
@@ -117,6 +73,48 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 status = ComponentStatus.INTERMITTENT
         }
         mSocket?.connect()
+    }
+
+    private fun processMessage(messageRaw: String?, user : String?) {
+        getMessageFromRaw(messageRaw)?.let {
+            var pitch = 1f
+            val speakingText : String? = if(isSpeakableText(it) && !ttobj.isSpeaking) {
+                it
+            }
+            else{
+                pitch = .5f
+                processCommand(it, user)
+            }
+            ttobj.setPitch(pitch)
+            EventManager.invoke(CHAT, it)
+            speakingText?.let{t ->
+                ttobj.speak(t, TextToSpeech.QUEUE_FLUSH, null)
+            }
+        }
+    }
+
+    private fun processCommand(it: String, user : String?): String? {
+        if(user == Core.owner) {
+            return when (it) {
+                ".table on" -> {
+                    "Table top mode on"
+                }
+                ".table off" -> {
+                    "Table top mode off"
+                }
+                ".motors off" -> {
+                    "Motors turned off"
+                }
+                ".motors on" -> {
+                    "Motors turned on"
+                }
+                ".battery level" -> {
+                    "Internal battery ${PhoneBatteryMeter.getReceiver(context.applicationContext).batteryLevel} percent"
+                }
+                else -> null
+            }
+        }
+        return null
     }
 
     private fun getPitchFromUser(name : String): Float {

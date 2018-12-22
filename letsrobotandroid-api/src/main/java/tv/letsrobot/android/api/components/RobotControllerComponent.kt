@@ -6,8 +6,6 @@ import android.os.Looper
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.Core
@@ -18,7 +16,7 @@ import tv.letsrobot.android.api.EventManager.Companion.ROBOT_DISCONNECTED
 import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
-import java.io.IOException
+import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -56,52 +54,41 @@ class RobotControllerComponent internal constructor(context : Context, private v
     override fun enableInternal(){
         var host: String? = null
         var port: String? = null
-        val client = OkHttpClient()
-        val call = client.newCall(Request.Builder().url(String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)).build())
-        try {
-            val response = call.execute()
-            if (response.body() != null) {
-                val `object` = JSONObject(response.body()!!.string())
-                Log.d("ROBOT", `object`.toString())
-                host = `object`.getString("host")
-                port = `object`.getString("port")
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        JsonObjectUtils.getJsonObjectFromUrl(
+                String.format("https://letsrobot.tv/get_control_host_port/%s?version=2", robotId)
+        )?.let {
+            host = it.getString("host")
+            port = it.getString("port")
         }
 
         try {
-            val url = String.format("http://%s:%s", host, port)
-            mSocket = IO.socket(url)
+            mSocket = IO.socket(
+                String.format("http://%s:%s", host, port)
+            )
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }
         EventManager.subscribe(EventManager.CHAT){
-            print(it as String)
-            if(it as? String == ".table on"){
-                table = true
-            }
-            else if(it as? String == ".table off"){
-                table = false
-            }
-            if(it as? String == ".motors off"){
-                allowControl = false
-            }
-            if(it as? String == ".motors on"){
-                allowControl = true
+            (it as? String)?.let {message ->
+                print(message)
+                when(message){
+                    TABLE_ON_COMMAND -> table = true
+                    TABLE_OFF_COMMAND -> table = false
+                    MOTORS_OFF_COMMAND -> allowControl = false
+                    MOTORS_ON_COMMAND -> allowControl = true
+                }
             }
         }
+        setupSocketEvents()
+        mSocket?.connect()
+    }
+
+    private fun setupSocketEvents() {
         mSocket?.let { socket ->
             socket.on(Socket.EVENT_CONNECT) {
-                mSocket?.emit("robot_id", robotId)
-                EventManager.invoke(ROBOT_CONNECTED, null)
-                status = ComponentStatus.STABLE
+                onRobotConnected()
             }.on(Socket.EVENT_RECONNECT) {
-                mSocket?.emit("robot_id", robotId)
-                EventManager.invoke(ROBOT_CONNECTED, null)
-                status = ComponentStatus.STABLE
+                onRobotConnected()
             }.on(Socket.EVENT_CONNECT_ERROR) {
                 Log.d("Robot", "Err")
                 status = ComponentStatus.ERROR
@@ -117,35 +104,46 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }.on("command_to_robot") { args ->
                 if (args != null && args[0] is JSONObject) {
                     val `object` = args[0] as JSONObject
-                    try {
-                        //broadcast what message was sent ex. F, stop, etc
-                        val command = `object`.getString("command")
-                        if(!allowControl){
-                            print("Trashing movement. Controls disabled")
-                            return@on
-                        }
-                        if(table){ //check for table top mode
-                            when(command.toLowerCase()){
-                                "f" -> {
-                                    print("f, Trashing movement. On Table")
-                                    return@on
-                                }
-                                "b" -> {
-                                    print("b, Trashing movement. On Table")
-                                    return@on
-                                }
-                                else -> {}
-                            }
-                        }
+                    parseCommand(`object`)?.let{
                         resetTimer() //resets a timer to prevent a timeout message
-                        EventManager.invoke(COMMAND, command)
-                    } catch (e: JSONException) {
-                        e.printStackTrace() //Message format must be wrong, ignore it
+                        EventManager.invoke(COMMAND, it)
                     }
                 }
             }
-            socket.connect()
         }
+    }
+
+    private fun parseCommand(jsonObject: JSONObject): String? {
+        return try {
+            //broadcast what message was sent ex. F, stop, etc
+            val command = jsonObject.getString("command")
+            if(!allowControl){ //TODO Allow non-movement commands pass
+                print("Trashing movement. Controls disabled")
+                return null
+            }
+            if(table){ //check for table top mode
+                when(command.toLowerCase()){
+                    "f" -> {
+                        print("f, Trashing movement. On Table")
+                        return null
+                    }
+                    "b" -> {
+                        print("b, Trashing movement. On Table")
+                        return null
+                    }
+                }
+            }
+            command
+        } catch (e: JSONException) {
+            e.printStackTrace() //Message format must be wrong, ignore it
+            null
+        }
+    }
+
+    private fun onRobotConnected() {
+        mSocket?.emit("robot_id", robotId)
+        EventManager.invoke(ROBOT_CONNECTED, null)
+        status = ComponentStatus.STABLE
     }
 
     /**
@@ -159,5 +157,12 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     override fun disableInternal(){
         mSocket?.disconnect()
+    }
+
+    companion object {
+        const val TABLE_ON_COMMAND = ".table on"
+        const val TABLE_OFF_COMMAND = ".table off"
+        const val MOTORS_ON_COMMAND = ".motors on"
+        const val MOTORS_OFF_COMMAND = ".motors off"
     }
 }

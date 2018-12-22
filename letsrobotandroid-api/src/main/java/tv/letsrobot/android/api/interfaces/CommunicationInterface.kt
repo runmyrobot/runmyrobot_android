@@ -23,6 +23,11 @@ interface CommunicationInterface{
     fun disable()
 
     /**
+     * Reset setup for class
+     */
+    fun clearSetup(context: Context)
+
+    /**
      * Query this component to see if it needs custom setup
      *
      * Pass in activity

@@ -2,32 +2,38 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-def getGitHash = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
-}
+
 
 android {
     compileSdkVersion 28
     buildToolsVersion = globalBuildToolsVersion
     defaultConfig {
-        buildConfigField "String", "GitHash", "\"${getGitHash()}\""
-        applicationId "com.runmyrobot.android_robot_for_phone"
+        buildConfigField "String", "GitHash", "\"${gitHash}\""
+        applicationId "tv.letsrobot.controller.android"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 6
-        versionName "0.4.2"
-        versionNameSuffix '('+versionCode+')-'+getGitHash()
+        versionCode buildNumber
+        versionName versionSemantic
+        versionNameSuffix '(' + versionCode + ')-' + gitHash
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildTypeName = variant.buildType.name
+            if(buildTypeName == "debug"){
+                //we want newer debug builds to overwrite old ones. We also don't care about version code
+                outputFileName = output.outputFile.name.replace(".apk", "-${versionSemantic}.apk").replace("app", "LetsRobotController")
+            }
+            else{
+                outputFileName = output.outputFile.name.replace(".apk", "-${variant.versionName}.apk").replace("app", "LetsRobotController")
+            }
         }
     }
 }
@@ -41,8 +47,13 @@ dependencies {
     // Required for instrumented tests
     androidTestImplementation 'androidx.annotation:annotation:1.0.0'
     androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test:rules:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.0"
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation "androidx.test.ext:junit:1.0.0"
+    implementation 'com.google.zxing:core:3.3.3'
     implementation project(':letsrobotandroid-api')
 }
 repositories {

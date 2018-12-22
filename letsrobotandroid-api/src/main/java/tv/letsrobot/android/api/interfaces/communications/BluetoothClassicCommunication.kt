@@ -4,24 +4,28 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
-import android.os.Message
 import android.util.Log
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.ROBOT_BYTE_ARRAY
 import tv.letsrobot.android.api.activities.ChooseBluetoothActivity
-import tv.letsrobot.android.api.drivers.BluetoothClassic
+import tv.letsrobot.android.api.drivers.bluetooth.BluetoothClassic
+import tv.letsrobot.android.api.drivers.bluetooth.Connection
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 
-
 /**
- * Created by Brendon on 9/11/2018.
+ * Communication class that works with bluetooth classic
+ * and takes control data via EventManager.ROBOT_BYTE_ARRAY event
  */
 class BluetoothClassicCommunication : CommunicationInterface {
-
     var bluetoothClassic : BluetoothClassic? = null
     var addr : String? = null
     var name : String? = null
+
+    override fun clearSetup(context: Context) {
+        context.getSharedPreferences(CONFIG_PREFS, 0).edit().clear().apply()
+    }
+
     override fun needsSetup(activity: Activity): Boolean {
         val pairingRequired = !activity.applicationContext.getSharedPreferences(CONFIG_PREFS, 0).contains(BLUETOOTH_ADDR)
         val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -57,56 +61,61 @@ class BluetoothClassicCommunication : CommunicationInterface {
     }
 
     override fun isConnected(): Boolean {
-        return bluetoothClassic?.BTStatus == BluetoothClassic.CONNECTION_STABLE
-        //return BTStatus == BluetoothClassic.CONNECTION_STABLE;
+        return bluetoothClassic?.status == Connection.STATE_CONNECTED
     }
 
     override fun send(byteArray: ByteArray): Boolean {
         Log.d("Bluetooth", "message out = $byteArray")
-        val message = Message.obtain()
-        message.obj = byteArray
-        message.what = BluetoothClassic.SEND_MESSAGE
-        return isConnected() && bluetoothClassic?.serviceHandler?.sendMessage(message) ?: false
+        bluetoothClassic?.writeBytes(byteArray)
+        return true
     }
 
     override fun initConnection(context: Context) {
         Log.d("Bluetooth","initConnection")
-        bluetoothClassic = BluetoothClassic(context)
         addr = context.getSharedPreferences(CONFIG_PREFS, 0).getString(BLUETOOTH_ADDR, null)
+        addr?.let {
+            bluetoothClassic = BluetoothClassic(it)
+        } ?: throw Exception("No bluetooth address supplied!")
     }
 
     override fun enable() {
-        Log.d("Bluetooth","enable")
-        bluetoothClassic?.ensurePoweredOn()
-        bluetoothClassic?.connect(addr)
-        EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+        setActive(true)
+    }
+
+    override fun disable() {
+        setActive(false)
+    }
+
+    fun setActive(value : Boolean){
+        val message : String = if(value){
+            bluetoothClassic?.connect()
+            EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+            "enable"
+        }
+        else{
+            bluetoothClassic?.disconnect()
+            EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
+            "disable"
+        }
+        Log.d("Bluetooth", message)
     }
 
     private val onControlEvent: (Any?) -> Unit = {
         Log.d("Bluetooth","onControlEvent")
-        it?.takeIf { it is ByteArray }?.let{ data ->
-            bluetoothClassic?.serviceHandler?.sendMessage(Message.obtain().also {
-                it.obj = data as ByteArray
-                it.what = BluetoothClassic.SEND_MESSAGE
-            })
+        (it as? ByteArray)?.let{ data ->
+            send(data)
             Log.d("Bluetooth","onControlEvent sent")
         }
     }
 
-    override fun disable() {
-        Log.d("Bluetooth","disable")
-        bluetoothClassic?.serviceHandler?.sendEmptyMessage(BluetoothClassic.DISCONNECT_MESSAGE)
-        EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
-    }
-
     override fun getStatus(): ComponentStatus {
-        bluetoothClassic?.BTStatus?.let{
+        bluetoothClassic?.status?.let{
             return when(it){
-                BluetoothClassic.CONNECTION_STABLE -> ComponentStatus.STABLE
-                BluetoothClassic.CONNECTING -> ComponentStatus.CONNECTING
-                BluetoothClassic.CONNECTION_LOST -> ComponentStatus.ERROR
-                BluetoothClassic.CONNECTION_NON_EXISTENT -> ComponentStatus.DISABLED
-                BluetoothClassic.CONNECTION_NOT_POSSIBLE -> ComponentStatus.ERROR
+                Connection.STATE_CONNECTED -> ComponentStatus.STABLE
+                Connection.STATE_CONNECTING -> ComponentStatus.CONNECTING
+                Connection.STATE_ERROR -> ComponentStatus.ERROR
+                Connection.STATE_IDLE -> ComponentStatus.DISABLED
+                Connection.STATE_DISCONNECTED -> ComponentStatus.ERROR
                 else -> ComponentStatus.ERROR
             }
         }
