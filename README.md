@@ -102,6 +102,8 @@ Errors do not get reported at the moment
 
 - Currently no code to use a USB webcam. Also currently not sure if the Raspberry Pi with camera functions as is
 
+- BluetoothClassic currently not hooked up to handle input. It can output just fine
+
 # Supported or broken devices
 
 Feel free to add your device to this list if you have tested it via a pull request
