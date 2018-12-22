@@ -11,7 +11,6 @@ import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_DISCONNECTED
 import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_ERROR
 import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_IDLE
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 import kotlin.random.Random
@@ -23,7 +22,7 @@ internal class BluetoothClassicHandler {
     private var btAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var selectedDevice : BluetoothDevice? = null
 
-    private var mmInStream: InputStream? = null
+    private var mmInStream: ThreadInputStream? = null
     private var mmOutStream: OutputStream? = null
     private var socket: BluetoothSocket? = null
     private var buffer = ByteArray(66)  // buffer store for the stream
@@ -37,11 +36,13 @@ internal class BluetoothClassicHandler {
     private val handlerThread = HandlerThread("Bluetooth ${Random.nextInt()}").also {
         it.start()
     }
-    internal val serviceHandler = Handler(handlerThread.looper){
-        when(it.what){
-            SEND_MESSAGE -> tryWriteBytes(it.obj as ByteArray)
-            REQUEST_CONNECT -> tryConnect(it.obj as String)
-            REQUEST_DISCONNECT -> tryDisconnect()
+    internal val serviceHandler = Handler(handlerThread.looper){ message ->
+        when(message.what){
+            SEND_MESSAGE -> tryWriteBytes(message.obj as ByteArray)
+            REQUEST_CONNECT -> tryConnect(message.obj as String)
+            REQUEST_DISCONNECT -> (message.obj as? Boolean)?.let {
+                tryDisconnect(it)
+            } ?: tryDisconnect()
             HANDLE_LOOP -> handleLoop()
         }
         true
@@ -58,17 +59,18 @@ internal class BluetoothClassicHandler {
         if(status != STATE_CONNECTED) return
         try {
             //we are expecting mmInStream not to be null, so let it catch that error when it is null
-            mmInStream!!.let {
+            mmInStream?.takeIf { !it.error }!!.let {
                 // Read from the InputStream
-                if(it.available() > 0)
-                    it.read(buffer)
-                parseMessage(buffer)
-                errCount = 0
+                while(it.hasNext()) {
+                    buffer = it.next()
+                    parseMessage(buffer)
+                    errCount = 0
+                }
             }
         } catch (e: Exception) {
             errCount += 1
             if (errCount > 50) {
-                enqueueDisconnect()
+                enqueueDisconnectFromError()
             }
         }
         serviceHandler.sendEmptyMessage(HANDLE_LOOP)
@@ -108,20 +110,23 @@ internal class BluetoothClassicHandler {
     @Throws(IOException::class)
     private fun handleConnect(socket: BluetoothSocket) {
         socket.connect()
-        mmInStream = socket.inputStream
+        mmInStream = ThreadInputStream(socket.inputStream)
         mmOutStream = socket.outputStream
         tryPublishState(STATE_CONNECTED)
         serviceHandler.obtainMessage(HANDLE_LOOP).sendToTarget()
     }
 
-    private fun tryDisconnect(){
+    private fun tryDisconnect(errorOccurred : Boolean = false){
         selectedDevice = null
         try {
             socket?.close()
         } catch (e: Exception) {
             //assume disconnect went fine
         }
-        tryPublishState(STATE_DISCONNECTED)
+        if(errorOccurred)
+            tryPublishState(STATE_DISCONNECTED)
+        else
+            tryPublishState(STATE_IDLE) //connection is now idle. Do not attempt to restart
     }
 
     /**
@@ -132,12 +137,12 @@ internal class BluetoothClassicHandler {
         try {
             mmOutStream?.write(value)
         } catch (e: Exception) {
-            enqueueDisconnect()
+            enqueueDisconnectFromError()
         }
     }
 
-    fun enqueueDisconnect(){
-        serviceHandler.sendMessageAtFrontOfQueue(serviceHandler.obtainMessage(REQUEST_DISCONNECT))
+    fun enqueueDisconnectFromError(){
+        serviceHandler.sendMessageAtFrontOfQueue(serviceHandler.obtainMessage(REQUEST_DISCONNECT, true))
     }
 
     fun onMessage(function : (bytes:ByteArray)->Unit){
