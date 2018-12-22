@@ -22,8 +22,7 @@ class SplashActivity : Activity() {
         // Setup App before initializing anything, then go back to do permissions flow
         // and to do device setup
         if(!(RobotConfig.Configured.getValue(this) as Boolean)){
-            finish()
-            startActivity(Intent(this, ManualSetupActivity::class.java))
+            startSetup()
             return
         }
 
@@ -32,6 +31,11 @@ class SplashActivity : Activity() {
                 next()
             }
         }
+    }
+
+    private fun startSetup() {
+        finish()
+        startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
     //TODO replace with co-routine once that is stable and stops breaking Android Studio
@@ -70,7 +74,7 @@ class SplashActivity : Activity() {
 
     private var pendingDeviceSetup: CommunicationInterface? = null
 
-    private var pendingResultCode: Int = -1
+    private var pendingRequestCode: Int = -1
 
     private fun setupDevice(): Boolean? {
         val commType = RobotConfig.Communication.getValue(this) as CommunicationType?
@@ -84,7 +88,7 @@ class SplashActivity : Activity() {
                         true
                     }
                     else{
-                        pendingResultCode = tmpCode
+                        pendingRequestCode = tmpCode
                         pendingDeviceSetup = it
                         false
                     }
@@ -106,12 +110,17 @@ class SplashActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         //Check if result was due to a pending interface setup
-        pendingDeviceSetup?.takeIf { pendingResultCode == requestCode}?.let {
+        pendingDeviceSetup?.takeIf { pendingRequestCode == requestCode}?.let {
             //relay info to interface
-            it.receivedComponentSetupDetails(this, data)
+            if(resultCode != Activity.RESULT_OK) {
+                startSetup() //not ok, exit to setup
+            }
+            else{
+                it.receivedComponentSetupDetails(this, data)
+                next()
+            }
             pendingDeviceSetup = null
-            pendingResultCode = -1
-            next()
+            pendingRequestCode = -1
         }
     }
 
