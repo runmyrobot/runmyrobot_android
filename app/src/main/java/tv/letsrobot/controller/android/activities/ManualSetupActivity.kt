@@ -41,6 +41,8 @@ import java.io.FileNotFoundException
 
 class ManualSetupActivity : AppCompatActivity() {
 
+    private val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manual_setup)
@@ -54,7 +56,11 @@ class ManualSetupActivity : AppCompatActivity() {
         }
 
         cameraEnableToggle.setOnCheckedChangeListener { _, isChecked ->
-            checkState(isChecked)
+            checkCameraState(isChecked)
+        }
+
+        legacyCameraEnableToggle.setOnCheckedChangeListener { _, _ ->
+            checkCameraState(cameraEnableToggle.isChecked)
         }
         refreshSettings()
     }
@@ -139,14 +145,10 @@ class ManualSetupActivity : AppCompatActivity() {
         errorReportButton.isChecked = false //Not using right now.
         screenOverlaySettingsButton.isChecked = settings.screenTimeout
         bitrateEditText.setText(settings.cameraBitrate.toString())
-        val legacyOnly = Build.VERSION.SDK_INT < 21 //phones under 21 cannot use the new camera api
         legacyCameraEnableToggle.isEnabled = !legacyOnly
-        resolutionSpinner.isEnabled = !legacyOnly
         legacyCameraEnableToggle.isChecked = settings.cameraLegacy
         bitrateEditText.isEnabled = true
-        resolutionSpinner.isEnabled = false
-        checkState(cameraEnableToggle.isChecked)
-
+        checkCameraState(cameraEnableToggle.isChecked)
         updateSpinners(settings)
     }
 
@@ -246,12 +248,18 @@ class ManualSetupActivity : AppCompatActivity() {
                 screenOverlaySettingsButton.isChecked)
     }
 
-    private fun checkState(cameraChecked : Boolean){
+    private fun checkCameraState(cameraChecked : Boolean){
         cameraPassEditText.isEnabled = cameraChecked
         cameraIDEditText.isEnabled = cameraChecked
         bitrateEditText.isEnabled = cameraChecked
-        resolutionSpinner.isEnabled = cameraChecked
+        val legacyToggled = legacyCameraEnableToggle.isChecked
+        resolutionSpinner.isEnabled = !legacyToggled
+        if(legacyToggled){
+            resolutionSpinner.setSelection(0)
+        }
     }
+
+
 
     companion object {
         private const val CAMERA_REQUEST_CODE = 1

@@ -105,11 +105,16 @@ data class RobotSettingsObject(val robotId : String,
         }
 
         fun save(context: Context, settings: RobotSettingsObject) {
+            //we don't allow higher resolution currently for legacy camera API right now, so prevent that
+            val cameraRes = if(settings.cameraLegacy)
+                RobotConfig.VideoResolution.default as String
+            else
+                settings.cameraResolution
             saveTextViewToRobotConfig(context, settings.robotId, RobotConfig.RobotId)
             saveTextViewToRobotConfig(context, settings.cameraId, RobotConfig.CameraId)
             saveTextViewToRobotConfig(context, settings.cameraPassword, RobotConfig.CameraPass)
             saveTextViewToRobotConfig(context, settings.cameraBitrate.toString(), RobotConfig.VideoBitrate)
-            saveTextViewToRobotConfig(context, settings.cameraResolution, RobotConfig.VideoResolution)
+            saveTextViewToRobotConfig(context, cameraRes, RobotConfig.VideoResolution)
             RobotConfig.UseLegacyCamera.saveValue(context, settings.cameraLegacy)
             RobotConfig.CameraEnabled.saveValue(context, settings.cameraEnabled)
             RobotConfig.MicEnabled.saveValue(context, settings.enableMic)
