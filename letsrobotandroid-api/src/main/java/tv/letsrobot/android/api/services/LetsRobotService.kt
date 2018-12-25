@@ -22,12 +22,14 @@ class LetsRobotService : Service() {
     internal class MessageHandler(
             context: Context,
             private val applicationContext: Context = context.applicationContext,
-            handlerThread : HandlerThread = HandlerThread("LetsRobotBinder").also { it.start() }
+            handlerThread : HandlerThread = HandlerThread("LetsRobotControlApi").also { it.start() }
     ) : Handler(handlerThread.looper) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                1 ->
-                    Toast.makeText(applicationContext, "hello!", Toast.LENGTH_SHORT).show()
+                START ->
+                    Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
+                STOP ->
+                    Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
                 else -> super.handleMessage(msg)
             }
         }

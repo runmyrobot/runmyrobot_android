@@ -1,17 +1,19 @@
 package tv.letsrobot.android.api.services
 
 import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 
 /**
  * Binder for LetsRobot Service that allows us to put all of the communication code in one class
  */
-sealed class LetsRobotBinder : ServiceConnection, ILetsRobotControl{
-
+class LetsRobotControlApi private constructor(private val context: Context) : ServiceConnection, ILetsRobotControl{
     private var mService: Messenger? = null
 
     private var mBound = false
@@ -33,12 +35,9 @@ sealed class LetsRobotBinder : ServiceConnection, ILetsRobotControl{
         mBound = false
     }
 
-    fun getControlInterface() : ILetsRobotControl{
-        return this
-    }
-
+    @Throws(IllegalStateException::class)
     override fun enable() {
-        mService?.send(Message.obtain(null, LetsRobotService.START))
+        mService?.send(Message.obtain(null, LetsRobotService.START)) ?: throw IllegalStateException()
     }
 
     override fun disable() {
@@ -47,5 +46,29 @@ sealed class LetsRobotBinder : ServiceConnection, ILetsRobotControl{
 
     override fun reset() {
         mService?.send(Message.obtain(null, LetsRobotService.RESET))
+    }
+
+    override fun attachToLifecycle(component: IComponent) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun detachFromLifecycle(component: IComponent) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun connectToService() {
+        Intent(context, LetsRobotService::class.java).also { intent ->
+            context.bindService(intent, this, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun disconnectFromService() {
+        context.unbindService(this)
+    }
+
+    companion object {
+        fun getNewInstance(context: Context) : ILetsRobotControl{
+            return LetsRobotControlApi(context)
+        }
     }
 }

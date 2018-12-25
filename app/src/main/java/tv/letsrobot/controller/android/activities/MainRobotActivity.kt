@@ -18,7 +18,9 @@ import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.services.LetsRobotControlApi
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.RobotApplication
@@ -45,6 +47,8 @@ class MainRobotActivity : Activity(), Runnable {
     lateinit var handler : Handler
     lateinit var settings : RobotSettingsObject
 
+    private var api: ILetsRobotControl? = null
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PhoneBatteryMeter.getReceiver(applicationContext) //Setup phone battery monitor TODO integrate with component
@@ -60,18 +64,19 @@ class MainRobotActivity : Activity(), Runnable {
         //Setup a custom component
         val component = CustomComponentExample(applicationContext, "customString")
         components.add(component) //add to custom components list
-
+        api = LetsRobotControlApi.getNewInstance(this)
+        api?.connectToService()
         recordButtonMain.setOnClickListener{ //Hook up power button to start the connection
             if (recording) {
                 recording = false
-                core?.disable() //Disable core if we hit the button to disable recording
+                api?.disable()
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
                 if(settings.screenTimeout){
                     handler.postDelayed(this, 10000)
                 }
-                core?.enable() //enable core if we hit the button to enable recording
+                api?.enable()
 
                 Log.v(LOGTAG, "Recording Started")
             }
