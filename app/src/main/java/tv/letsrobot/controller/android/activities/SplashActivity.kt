@@ -9,8 +9,8 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import tv.letsrobot.android.api.Core
-import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
+import tv.letsrobot.android.api.robot.CommunicationType
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
 

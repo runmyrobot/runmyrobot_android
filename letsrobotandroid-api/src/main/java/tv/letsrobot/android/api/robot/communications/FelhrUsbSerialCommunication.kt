@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.interfaces.communications
+package tv.letsrobot.android.api.robot.communications
 
 import android.app.Activity
 import android.content.*
@@ -9,9 +9,9 @@ import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.drivers.UsbService
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
+import tv.letsrobot.android.api.robot.drivers.UsbService
 import java.lang.ref.WeakReference
 
 /**

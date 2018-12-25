@@ -2,8 +2,8 @@ package tv.letsrobot.controller.android.robot
 
 import android.content.Context
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import java.util.*
 

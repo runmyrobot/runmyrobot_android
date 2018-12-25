@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.drivers.bluetooth
+package tv.letsrobot.android.api.robot.drivers.bluetooth
 
 import java.io.IOException
 import java.io.InputStream

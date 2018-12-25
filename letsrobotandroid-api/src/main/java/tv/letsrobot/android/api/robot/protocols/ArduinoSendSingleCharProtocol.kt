@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.interfaces.protocols
+package tv.letsrobot.android.api.robot.protocols
 
 import android.content.Context
 import android.util.Log

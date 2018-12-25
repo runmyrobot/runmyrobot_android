@@ -22,11 +22,11 @@ import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
 import tv.letsrobot.android.api.components.camera.api21.Camera2TextureComponent
-import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.enums.ComponentStatus
-import tv.letsrobot.android.api.enums.ProtocolType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
