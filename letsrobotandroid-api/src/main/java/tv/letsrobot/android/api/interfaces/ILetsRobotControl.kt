@@ -5,6 +5,9 @@ package tv.letsrobot.android.api.interfaces
  */
 interface ILetsRobotControl : IComponent {
 
+    /**
+     * Reset the service, and pull new info. Generally called after settings were changed
+     */
     fun reset()
 
     /**
