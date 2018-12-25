@@ -47,4 +47,11 @@ class LetsRobotService : Service() {
 
         }
     }
+
+    companion object {
+        const val START = 1
+        const val STOP = 2
+        const val QUEUE_UPDATE_TO_SERVER = 3
+        const val RESET = 4
+    }
 }

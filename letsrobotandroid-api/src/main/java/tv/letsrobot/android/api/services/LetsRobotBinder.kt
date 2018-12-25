@@ -3,6 +3,7 @@ package tv.letsrobot.android.api.services
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.os.Message
 import android.os.Messenger
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 
@@ -34,5 +35,17 @@ sealed class LetsRobotBinder : ServiceConnection, ILetsRobotControl{
 
     fun getControlInterface() : ILetsRobotControl{
         return this
+    }
+
+    override fun enable() {
+        mService?.send(Message.obtain(null, LetsRobotService.START))
+    }
+
+    override fun disable() {
+        mService?.send(Message.obtain(null, LetsRobotService.STOP))
+    }
+
+    override fun reset() {
+        mService?.send(Message.obtain(null, LetsRobotService.RESET))
     }
 }
