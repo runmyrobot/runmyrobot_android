@@ -43,7 +43,6 @@ class MainRobotActivity : Activity(), Runnable {
     }
 
     private var recording = false
-    var core: Core? = null
     lateinit var handler : Handler
     lateinit var settings : RobotSettingsObject
 
@@ -82,10 +81,9 @@ class MainRobotActivity : Activity(), Runnable {
             }
         }
         settingsButtonMain.setOnClickListener {
+            api?.disable()
             finish() //Stop activity
             startActivity(Intent(this, ManualSetupActivity::class.java))
-            core?.disable()
-            core = null
         }
 
         //Black overlay to try to conserve power on AMOLED displays
@@ -113,17 +111,18 @@ class MainRobotActivity : Activity(), Runnable {
 
     override fun onPause() {
         super.onPause()
-        core?.onPause()
+        //api?.onPause() TODO API Pause? Would only apply to legacy devices
     }
 
     override fun onResume() {
         super.onResume()
         //Call onResume to re-enable it if needed. If null, create it
-        core?.onResume() ?: createCore()
+        //core?.onResume() ?: createCore() TODO API Resume? Would only apply to legacy devices
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        api?.disconnectFromService()
         PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 
@@ -157,7 +156,7 @@ class MainRobotActivity : Activity(), Runnable {
         builder.communication = settings.robotCommunication
         builder.externalComponents = components //pass in arrayList of custom components
         try {
-            core = builder.build() //Retrieve the built Core instance
+//            core = builder.build() //Retrieve the built Core instance //TODO pass settings to service
         } catch (e: Core.InitializationException) {
             RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()
