@@ -22,7 +22,7 @@
  SOFTWARE.
  */
 
-package tv.letsrobot.android.api.drivers;
+package tv.letsrobot.android.api.robot.drivers;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;

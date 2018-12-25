@@ -1,15 +1,15 @@
-package tv.letsrobot.android.api.drivers.bluetooth
+package tv.letsrobot.android.api.robot.drivers.bluetooth
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import android.os.HandlerThread
-import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_CONNECTED
-import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_CONNECTING
-import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_DISCONNECTED
-import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_ERROR
-import tv.letsrobot.android.api.drivers.bluetooth.Connection.STATE_IDLE
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection.STATE_CONNECTED
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection.STATE_CONNECTING
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection.STATE_DISCONNECTED
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection.STATE_ERROR
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection.STATE_IDLE
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*

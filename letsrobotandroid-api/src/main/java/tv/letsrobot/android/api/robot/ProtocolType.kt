@@ -1,11 +1,11 @@
-package tv.letsrobot.android.api.enums
+package tv.letsrobot.android.api.robot
 
 import android.content.Context
 import tv.letsrobot.android.api.components.ControlComponent
-import tv.letsrobot.android.api.interfaces.protocols.ArduinoSendBytesProtocol
-import tv.letsrobot.android.api.interfaces.protocols.ArduinoSendSingleCharProtocol
-import tv.letsrobot.android.api.interfaces.protocols.NXTJoystickDriverProtocol
-import tv.letsrobot.android.api.interfaces.protocols.SingleByteProtocol
+import tv.letsrobot.android.api.robot.protocols.ArduinoSendBytesProtocol
+import tv.letsrobot.android.api.robot.protocols.ArduinoSendSingleCharProtocol
+import tv.letsrobot.android.api.robot.protocols.NXTJoystickDriverProtocol
+import tv.letsrobot.android.api.robot.protocols.SingleByteProtocol
 
 /**
  * Protocol types will reside in here

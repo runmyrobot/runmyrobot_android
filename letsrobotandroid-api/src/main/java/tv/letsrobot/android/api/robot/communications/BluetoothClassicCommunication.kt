@@ -1,4 +1,4 @@
-package tv.letsrobot.android.api.interfaces.communications
+package tv.letsrobot.android.api.robot.communications
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -8,10 +8,10 @@ import android.util.Log
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.ROBOT_BYTE_ARRAY
 import tv.letsrobot.android.api.activities.ChooseBluetoothActivity
-import tv.letsrobot.android.api.drivers.bluetooth.BluetoothClassic
-import tv.letsrobot.android.api.drivers.bluetooth.Connection
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
+import tv.letsrobot.android.api.robot.drivers.bluetooth.BluetoothClassic
+import tv.letsrobot.android.api.robot.drivers.bluetooth.Connection
 
 /**
  * Communication class that works with bluetooth classic

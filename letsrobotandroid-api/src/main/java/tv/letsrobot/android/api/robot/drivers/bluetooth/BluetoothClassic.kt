@@ -1,5 +1,5 @@
-package tv.letsrobot.android.api.drivers.bluetooth
-import tv.letsrobot.android.api.drivers.bluetooth.BluetoothClassicHandler.Companion.SEND_MESSAGE
+package tv.letsrobot.android.api.robot.drivers.bluetooth
+import tv.letsrobot.android.api.robot.drivers.bluetooth.BluetoothClassicHandler.Companion.SEND_MESSAGE
 
 /**
  * Bluetooth class to handle classic bluetooth (serial) connections
