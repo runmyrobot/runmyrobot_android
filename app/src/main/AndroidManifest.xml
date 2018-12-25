@@ -33,7 +33,7 @@
             android:value="451020ca1fe775c40065ae897c760d61" />
 
         <service
-            android:name="tv.letsrobot.android.api.drivers.UsbService"
+            android:name="tv.letsrobot.android.api.robot.drivers.UsbService"
             android:enabled="true"
             android:permission="" />
         <service android:name="com.ford.openxc.webcam.webcam.WebcamService" />

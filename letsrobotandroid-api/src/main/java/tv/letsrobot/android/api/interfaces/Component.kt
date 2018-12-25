@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Base component object to use to extend functionality of your robot.
  * Ex. can be used as an interface for LEDs based off of control messages
  */
-abstract class Component(val context: Context){
+abstract class Component(val context: Context) : IComponent{
     private var _status: ComponentStatus = ComponentStatus.DISABLED_FROM_SETTINGS
     var status : ComponentStatus
         get() = _status
@@ -35,27 +35,23 @@ abstract class Component(val context: Context){
 
 
     /**
-     * Called when component should startup. Multiple calls will not trigger setup more than once
-     *
-     * Return false if value was already true
+     * Called when component should startup. Will return without action if already enabled
      */
-    fun enable() : Boolean{
-        if(enabled.getAndSet(true)) return false
+    override fun enable(){
+        if(enabled.getAndSet(true)) return
         status = ComponentStatus.CONNECTING
         enableInternal()
-        return true
     }
 
     /**
      * Called when component should shut down
      *
-     * return false if value was already false
+     * Will return without action if already enabled
      */
-    fun disable() : Boolean{
-        if(!enabled.getAndSet(false)) return false
+    override fun disable(){
+        if(!enabled.getAndSet(false)) return
         disableInternal()
         status = ComponentStatus.DISABLED
-        return true
     }
 
     /**

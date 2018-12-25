@@ -6,8 +6,8 @@ import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 
 /**
