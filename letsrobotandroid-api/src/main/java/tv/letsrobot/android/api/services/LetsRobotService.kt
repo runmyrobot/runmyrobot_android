@@ -7,7 +7,8 @@ import android.os.*
 import android.widget.Toast
 
 /**
- * Created by Brendon on 12/24/2018.
+ * The main LetsRobot control service.
+ * This handles the lifecycle and communication to components that come from outside the sdk
  */
 class LetsRobotService : Service() {
     /**
