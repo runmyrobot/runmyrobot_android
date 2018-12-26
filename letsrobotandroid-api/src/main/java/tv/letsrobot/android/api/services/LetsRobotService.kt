@@ -6,6 +6,7 @@ import android.os.*
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.runBlocking
+import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.IComponent
 
 /**
@@ -137,5 +138,6 @@ class LetsRobotService : Service(){
         const val DETACH_COMPONENT = 6
 
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
+        lateinit var logLevel: LogLevel
     }
 }

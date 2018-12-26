@@ -19,8 +19,9 @@ import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.enums.Operation
-import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.models.ServiceComponentGenerator
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
 import tv.letsrobot.controller.android.R
@@ -35,7 +36,8 @@ import tv.letsrobot.controller.android.robot.RobotSettingsObject
  */
 class MainRobotActivity : FragmentActivity(), Runnable{
 
-    val components = ArrayList<Component>() //arraylist of custom components
+    var components = ArrayList<IComponent>() //arraylist of core components
+    var customComponents = ArrayList<IComponent>() //arrayList of custom components TODO refactor
 
     override fun run() {
         if (recording){
@@ -100,8 +102,15 @@ class MainRobotActivity : FragmentActivity(), Runnable{
     private fun setupButtons() {
         mainPowerButton.setOnClickListener{ //Hook up power button to start the connection
             if (recording) {
+                components.forEach { component ->
+                    letsRobotViewModel?.api?.detachFromLifecycle(component)
+                }
                 letsRobotViewModel?.api?.disable()
             } else {
+                addDefaultComponents()
+                components.forEach { component ->
+                    letsRobotViewModel?.api?.attachToLifecycle(component)
+                }
                 letsRobotViewModel?.api?.enable()
             }
         }
@@ -167,8 +176,8 @@ class MainRobotActivity : FragmentActivity(), Runnable{
      * Create the robot Core object. This will handle enabling all components on its own thread.
      * Core.Builder is the only way to create the Core to make sure settings do not change wile the robot is running
      */
-    private fun createCore() {
-        val builder = Core.Builder(applicationContext) //Initialize the Core Builder
+    private fun addDefaultComponents() {
+        val builder = ServiceComponentGenerator(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
         builder.holder = cameraSurfaceView
         builder.robotId = settings.robotId //Pass in our Robot ID
@@ -191,9 +200,9 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         builder.useMic = settings.enableMic
         builder.protocol = settings.robotProtocol
         builder.communication = settings.robotCommunication
-        builder.externalComponents = components //pass in arrayList of custom components
+        builder.externalComponents = customComponents //pass in arrayList of custom components
         try {
-//            core = builder.build() //Retrieve the built Core instance //TODO pass settings to service
+            components = builder.build()
         } catch (e: Core.InitializationException) {
             RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()

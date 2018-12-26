@@ -5,7 +5,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.TextureView
 import android.widget.Toast
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
@@ -15,18 +14,14 @@ import io.socket.client.Socket
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
 import tv.letsrobot.android.api.components.AudioComponent
-import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
-import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
-import tv.letsrobot.android.api.components.camera.api21.Camera2TextureComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.robot.CommunicationType
-import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -58,18 +53,6 @@ private constructor(val robotId : String, val cameraId : String?) {
         for (component in externalComponents!!) {
             component.timeout()
         }
-    }
-
-    /**
-     * The Class's log level
-     */
-    enum class LogLevel {
-        TRACE,
-        INFO,
-        DEBUG,
-        WARNING,
-        ERROR,
-        NONE
     }
 
     /**
@@ -262,116 +245,6 @@ private constructor(val robotId : String, val cameraId : String?) {
         }
         else{
             false
-        }
-    }
-
-    /**
-     * Builder for the Core api.
-     * Call build() after changing settings to have the actual Core class returned.
-     */
-    class Builder
-    /**
-     * Instantiate for a Builder instance. After settings have been confirmed,
-     * please call build() to receive an instance to Core
-     *
-     * Will throw NullPointerException if context is null
-     * @param context Application context
-     */
-    (context: Context) {
-        internal var context: Context = context.applicationContext
-
-        private var logLevel = LogLevel.NONE
-
-        /**
-         * Communication type to use. Ex. Bluetooth or USB
-         */
-        var communication : CommunicationType? = null
-
-        /**
-         * Protocol type to use. Ex. Arduino Raw or Sabertooth Serial
-         */
-        var protocol : ProtocolType? = null
-
-        /**
-         * Id that should be used to receive chat messages from server
-         */
-        var robotId: String? = null
-
-        /**
-         * Should chat messages be piped through the android speaker?
-         */
-        var useTTS = false
-
-        var useMic = false
-        var holder: TextureView? = null
-        var externalComponents: ArrayList<Component>? = null
-        var cameraSettings: CameraSettings? = null
-
-        /**
-         * Build a configured instance of Core.
-         * @return Core
-         * @throws InitializationException
-         */
-        @Throws(InitializationException::class)
-        fun build(): Core {
-            //TODO define preconditions that will throw errors
-
-            //RobotId MUST be defined, cameraId can be ignored
-            if (robotId == null && cameraSettings?.cameraId == null || robotId == null) {
-                TelemetryManager.Instance?.let { tm ->
-                    val robotIdStr = robotId?.let{
-                        "Value"
-                    }
-                    val cameraIdStr = cameraSettings?.cameraId?.let{
-                        "Value"
-                    }
-                    tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
-                }
-                throw InitializationException()
-            }
-            val core = Core(robotId!!, cameraSettings?.cameraId)
-            //Get list of external components, such as LED code, or more customized motor control
-            core.externalComponents = externalComponents
-            robotId?.let{
-                core.robotController = RobotControllerComponent(context, it)
-                //Setup our protocol, if it exists
-                val protocolClass = protocol?.getInstantiatedClass(context)
-                protocolClass?.let { protocol ->
-                    TelemetryManager.Instance?.invoke("Protocol Selection", protocol::javaClass.name)
-                    //Add it to the component list
-                    core.externalComponents?.add(protocol)
-                }
-                //Setup our communication, if it exists
-                val communicationClass = communication?.getInstantiatedClass
-                communicationClass?.let { communication ->
-                    //Add it to the component list
-                    TelemetryManager.Instance?.invoke("Communication Selection", communication::javaClass.name)
-                    core.externalComponents?.add(CommunicationComponent(context, communication))
-                }
-            }
-            cameraSettings?.let{ config ->
-                if(useMic) {
-                    core.audio = AudioComponent(context, config.cameraId, config.pass)
-                }
-                holder?.let {
-                    core.camera = if(false/*TODO StoreUtil or autodetect*/){
-                        ExtCameraInterface(context, config)
-                    }
-                    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !config.useLegacyApi) {
-                        Camera2TextureComponent(context, config, holder!!)
-                    }
-                    else{
-                        Camera1TextureComponent(context, config, holder!!)
-                    }
-                    TelemetryManager.Instance?.invoke("Camera Selection", core.camera!!::class.java.simpleName)
-                }
-            }
-            if (useTTS) {
-                core.textToSpeech = TextToSpeechComponent(context, robotId!!)
-            }
-            //Set the log level
-            core.logLevel = logLevel
-            return core
         }
     }
 
