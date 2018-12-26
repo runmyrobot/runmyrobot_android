@@ -10,7 +10,7 @@ import android.widget.Toast
  * The main LetsRobot control service.
  * This handles the lifecycle and communication to components that come from outside the sdk
  */
-class LetsRobotService : Service() {
+class LetsRobotService : Service(){
     /**
      * Target we publish for clients to send messages to MessageHandler.
      */
@@ -56,5 +56,6 @@ class LetsRobotService : Service() {
         const val STOP = 2
         const val QUEUE_UPDATE_TO_SERVER = 3
         const val RESET = 4
+        const val SUBSCRIBE = 5
     }
 }

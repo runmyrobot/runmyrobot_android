@@ -1,6 +1,5 @@
 package tv.letsrobot.controller.android.activities
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -10,6 +9,8 @@ import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.AudioComponent
@@ -18,10 +19,10 @@ import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.services.LetsRobotControlApi
+import tv.letsrobot.android.api.models.Operation
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
+import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.RobotApplication
 import tv.letsrobot.controller.android.robot.CustomComponentExample
@@ -32,7 +33,8 @@ import tv.letsrobot.controller.android.robot.RobotSettingsObject
  * For camera functionality, this activity needs to have a
  * SurfaceView to pass to the camera component via the Builder
  */
-class MainRobotActivity : Activity(), Runnable {
+class MainRobotActivity : FragmentActivity(), Runnable{
+
     val components = ArrayList<Component>() //arraylist of custom components
 
     override fun run() {
@@ -45,8 +47,7 @@ class MainRobotActivity : Activity(), Runnable {
     private var recording = false
     lateinit var handler : Handler
     lateinit var settings : RobotSettingsObject
-
-    private var api: ILetsRobotControl? = null
+    private var letsRobotViewModel: LetsRobotViewModel? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,25 +64,38 @@ class MainRobotActivity : Activity(), Runnable {
         //Setup a custom component
         val component = CustomComponentExample(applicationContext, "customString")
         components.add(component) //add to custom components list
-        api = LetsRobotControlApi.getNewInstance(this)
-        api?.connectToService()
-        recordButtonMain.setOnClickListener{ //Hook up power button to start the connection
+        letsRobotViewModel = LetsRobotViewModel.getObject(this)
+        letsRobotViewModel?.setServiceConnectedObserver(this, Observer{connected ->
+            // We do not want the user to be able to use the button if the service is not bound yet
+            mainPowerButton.isEnabled = connected == Operation.OK
+        })
+        letsRobotViewModel?.setStatusObserver(this, Observer { serviceStatus ->
+            recording = serviceStatus == Operation.OK
+        })
+        setupButtons()
+        initIndicators()
+    }
+
+    private val uiSetup = false
+
+    private fun setupButtons() {
+        if(uiSetup) return
+        mainPowerButton.setOnClickListener{ //Hook up power button to start the connection
             if (recording) {
                 recording = false
-                api?.disable()
+                letsRobotViewModel?.api?.disable()
                 Log.v(LOGTAG, "Recording Stopped")
             } else {
                 recording = true
                 if(settings.screenTimeout){
                     handler.postDelayed(this, 10000)
                 }
-                api?.enable()
-
+                letsRobotViewModel?.api?.enable()
                 Log.v(LOGTAG, "Recording Started")
             }
         }
         settingsButtonMain.setOnClickListener {
-            api?.disable()
+            letsRobotViewModel?.api?.disable()
             finish() //Stop activity
             startActivity(Intent(this, ManualSetupActivity::class.java))
         }
@@ -96,7 +110,6 @@ class MainRobotActivity : Activity(), Runnable {
             }
             return@setOnTouchListener false
         }
-        initIndicators()
     }
 
     private fun initIndicators() { //Indicators for Core Services
@@ -122,7 +135,6 @@ class MainRobotActivity : Activity(), Runnable {
 
     override fun onDestroy() {
         super.onDestroy()
-        api?.disconnectFromService()
         PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 

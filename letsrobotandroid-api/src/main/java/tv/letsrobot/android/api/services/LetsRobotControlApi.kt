@@ -7,16 +7,26 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
+import tv.letsrobot.android.api.models.Operation
 
 /**
  * Binder for LetsRobot Service that allows us to put all of the communication code in one class
  */
 class LetsRobotControlApi private constructor(private val context: Context) : ServiceConnection, ILetsRobotControl{
-    private var mService: Messenger? = null
 
-    private var mBound = false
+    private val serviceState: MutableLiveData<Int> by lazy {
+        MutableLiveData<Int>()
+    }
+
+    private val serviceConnectionStatus: MutableLiveData<Int> by lazy {
+        MutableLiveData<Int>()
+    }
+
+    private var mService: Messenger? = null
 
     override fun onServiceConnected(className: ComponentName, service: IBinder) {
         // This is called when the connection with the service has been
@@ -25,27 +35,44 @@ class LetsRobotControlApi private constructor(private val context: Context) : Se
         // service using a Messenger, so here we get a client-side
         // representation of that from the raw IBinder object.
         mService = Messenger(service)
-        mBound = true
+        serviceConnectionStatus.value = Operation.OK
     }
 
     override fun onServiceDisconnected(className: ComponentName) {
         // This is called when the connection with the service has been
         // unexpectedly disconnected -- that is, its process crashed.
         mService = null
-        mBound = false
+        serviceConnectionStatus.value = Operation.NOT_OK
     }
 
     @Throws(IllegalStateException::class)
     override fun enable() {
-        mService?.send(Message.obtain(null, LetsRobotService.START)) ?: throw IllegalStateException()
+        serviceState.value = Operation.LOADING
+        sendStateUnsafe(LetsRobotService.START)
     }
 
+    @Throws(IllegalStateException::class)
     override fun disable() {
-        mService?.send(Message.obtain(null, LetsRobotService.STOP))
+        serviceState.value = Operation.LOADING
+        sendStateUnsafe(LetsRobotService.STOP)
     }
 
+    @Throws(IllegalStateException::class)
     override fun reset() {
-        mService?.send(Message.obtain(null, LetsRobotService.RESET))
+        sendStateUnsafe(LetsRobotService.RESET)
+    }
+
+    @Throws(IllegalStateException::class)
+    private fun sendStateUnsafe(what : Int){
+        mService?.send(Message.obtain(null, what)) ?: throw IllegalStateException()
+    }
+
+    override fun getServiceStateObserver(): LiveData<Int> {
+        return serviceState
+    }
+
+    override fun getServiceConnectionStatusObserver(): LiveData<Int> {
+        return serviceConnectionStatus
     }
 
     override fun attachToLifecycle(component: IComponent) {

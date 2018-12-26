@@ -1,5 +1,7 @@
 package tv.letsrobot.android.api.interfaces
 
+import androidx.lifecycle.LiveData
+
 /**
  * Interface for communicating with the robot service
  */
@@ -21,7 +23,19 @@ interface ILetsRobotControl : IComponent {
     fun detachFromLifecycle(component: IComponent)
 
     /**
-     * Disconnect from service. Calling this does not terminate the service. Use terminate() for that
+     * Subscribe to status events.
+     * @return androidx.lifecycle.LiveData<Boolean>
+     */
+    fun getServiceStateObserver() : LiveData<Int>
+
+    /**
+     * Subscribe to service connection events.
+     * @return androidx.lifecycle.LiveData<Boolean>
+     */
+    fun getServiceConnectionStatusObserver() : LiveData<Int>
+
+    /**
+     * Disconnect from service. Calling this does not terminate the service.
      */
     fun disconnectFromService()
 
