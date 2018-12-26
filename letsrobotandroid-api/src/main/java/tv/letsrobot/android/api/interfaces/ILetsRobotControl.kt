@@ -5,7 +5,17 @@ import androidx.lifecycle.LiveData
 /**
  * Interface for communicating with the robot service
  */
-interface ILetsRobotControl : IComponent {
+interface ILetsRobotControl {
+
+    /**
+     * Enable the connection
+     */
+    fun enable()
+
+    /**
+     * Disable the connection
+     */
+    fun disable()
 
     /**
      * Reset the service, and pull new info. Generally called after settings were changed

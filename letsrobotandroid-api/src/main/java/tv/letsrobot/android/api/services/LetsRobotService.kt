@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.*
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.runBlocking
+import tv.letsrobot.android.api.interfaces.IComponent
 
 /**
  * The main LetsRobot control service.
@@ -19,16 +21,64 @@ class LetsRobotService : Service(){
     private lateinit var mMessenger: Messenger
     private var handlerThread : HandlerThread = HandlerThread("LetsRobotControl").also { it.start() }
 
+    private val componentList = ArrayList<IComponent>()
+    private val activeComponentList = ArrayList<IComponent>()
+
     val handler = object : Handler(handlerThread.looper) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 START ->
-                    enable()
+                    runBlocking { enable() }
                 STOP ->
-                    disable()
+                    runBlocking { disable() }
+                ATTACH_COMPONENT -> {
+                    (msg.obj as? IComponent)?.let {
+                        addToLifecycle(it)
+                    }
+                }
+                DETACH_COMPONENT -> {
+                    (msg.obj as? IComponent)?.let {
+                        removeFromLifecycle(it)
+                    }
+                }
+                RESET -> {
+                    runBlocking {
+                        reset()
+                    }
+                }
                 else -> super.handleMessage(msg)
             }
         }
+    }
+
+    /**
+     * Reset the service. If running, we will disable, reload, then start again
+     */
+    private suspend fun reset() {
+        if(running) {
+            disable()
+            reload()
+            enable()
+        }
+        else{
+            reload()
+        }
+    }
+
+    /**
+     * Reload the settings and prep for start
+     */
+    private fun reload() {
+
+    }
+
+    private fun addToLifecycle(component: IComponent) {
+        if(!componentList.contains(component))
+            componentList.add(component)
+    }
+
+    private fun removeFromLifecycle(component: IComponent) {
+        componentList.remove(component)
     }
 
     /**
@@ -42,15 +92,21 @@ class LetsRobotService : Service(){
         return mMessenger.binder
     }
 
-    fun enable(){
+    suspend fun enable(){
         Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
-        Thread.sleep(5000)
+        activeComponentList.clear()
+        activeComponentList.addAll(componentList)
+        activeComponentList.forEach{
+            it.enable().await()
+        }
         setState(true)
     }
 
-    fun disable(){
+    suspend fun disable(){
         Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
-        Thread.sleep(5000)
+        activeComponentList.forEach{
+            it.disable().await()
+        }
         setState(false)
     }
 
@@ -67,12 +123,18 @@ class LetsRobotService : Service(){
         )
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return super.onStartCommand(intent, flags, startId).also {
+            handler.obtainMessage(RESET).sendToTarget()
+        }
+    }
+
     companion object {
         const val START = 1
         const val STOP = 2
-        const val QUEUE_UPDATE_TO_SERVER = 3
         const val RESET = 4
-        const val SUBSCRIBE = 5
+        const val ATTACH_COMPONENT = 5
+        const val DETACH_COMPONENT = 6
 
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
     }

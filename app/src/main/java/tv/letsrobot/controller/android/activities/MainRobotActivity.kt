@@ -77,7 +77,6 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             val isLoading = serviceStatus == Operation.LOADING
             mainPowerButton.isEnabled = !isLoading
             if(isLoading) return@Observer //processing command. Disable button
-            if(serviceStatus == Operation.LOADING) return@Observer
             recording = serviceStatus == Operation.OK
             if(recording && settings.screenTimeout)
                 startSleepDelayed()

@@ -53,7 +53,7 @@ class LetsRobotControlApi private constructor(
     }
 
     @Throws(IllegalStateException::class)
-    override fun disable() {
+    override fun disable(){
         serviceState.value = Operation.LOADING
         sendStateUnsafe(LetsRobotService.STOP)
     }
@@ -63,9 +63,20 @@ class LetsRobotControlApi private constructor(
         sendStateUnsafe(LetsRobotService.RESET)
     }
 
+    override fun attachToLifecycle(component: IComponent) {
+        sendStateUnsafe(LetsRobotService.ATTACH_COMPONENT, component)
+    }
+
+    override fun detachFromLifecycle(component: IComponent) {
+        sendStateUnsafe(LetsRobotService.DETACH_COMPONENT, component)
+    }
+
     @Throws(IllegalStateException::class)
-    private fun sendStateUnsafe(what : Int){
-        mService?.send(Message.obtain(null, what)) ?: throw IllegalStateException()
+    private fun sendStateUnsafe(what : Int, obj : Any? = null) {
+        val message = obj?.let {
+            Message.obtain(null, what, obj)
+        } ?: Message.obtain(null, what)
+        mService?.send(message) ?: throw IllegalStateException()
     }
 
     override fun getServiceStateObserver(): LiveData<Int> {
@@ -74,14 +85,6 @@ class LetsRobotControlApi private constructor(
 
     override fun getServiceConnectionStatusObserver(): LiveData<Int> {
         return serviceConnectionStatus
-    }
-
-    override fun attachToLifecycle(component: IComponent) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun detachFromLifecycle(component: IComponent) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     private var receiver = Receiver(serviceState)
