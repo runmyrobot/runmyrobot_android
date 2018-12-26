@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
+import tv.letsrobot.android.api.enums.Operation
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 import tv.letsrobot.android.api.services.LetsRobotControlApi
 
@@ -20,7 +21,7 @@ class LetsRobotViewModel : ViewModel(){
      * Calls api.getServiceStateObserver().observe(activity, observer) in ILetsRobotControl
      * @see ILetsRobotControl.getServiceStateObserver(activity, observer)
      */
-    fun setStatusObserver(activity: FragmentActivity, observer : Observer<Int>){
+    fun setStatusObserver(activity: FragmentActivity, observer : Observer<Operation>){
         api.getServiceStateObserver().observe(activity, observer)
     }
 
@@ -28,7 +29,7 @@ class LetsRobotViewModel : ViewModel(){
      * Calls api.getServiceConnectionStatusObserver().observe(activity, observer) in ILetsRobotControl
      * @see ILetsRobotControl.getServiceConnectionStatusObserver(activity, observer)
      */
-    fun setServiceConnectedObserver(activity: FragmentActivity, observer : Observer<Int>){
+    fun setServiceConnectedObserver(activity: FragmentActivity, observer : Observer<Operation>){
         api.getServiceConnectionStatusObserver().observe(activity, observer)
     }
 

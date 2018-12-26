@@ -18,9 +18,9 @@ import tv.letsrobot.android.api.components.CommunicationComponent
 import tv.letsrobot.android.api.components.RobotControllerComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
+import tv.letsrobot.android.api.enums.Operation
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.models.Operation
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
 import tv.letsrobot.controller.android.R
@@ -87,7 +87,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         components.add(component) //add to custom components list
     }
 
-    fun parseColorForOperation(state : Int) : Int{
+    fun parseColorForOperation(state : Operation) : Int{
         val color : Int = when(state){
             Operation.OK -> Color.GREEN
             Operation.NOT_OK -> Color.RED

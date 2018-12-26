@@ -7,9 +7,9 @@ import android.os.Messenger
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import tv.letsrobot.android.api.enums.Operation
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
-import tv.letsrobot.android.api.models.Operation
 
 /**
  * Binder for LetsRobot Service that allows us to put all of the communication code in one class
@@ -19,12 +19,12 @@ class LetsRobotControlApi private constructor(
         private val context : Context = anyContext.applicationContext
 ) : ServiceConnection, ILetsRobotControl{
 
-    private val serviceState: MutableLiveData<Int> by lazy {
-        MutableLiveData<Int>()
+    private val serviceState: MutableLiveData<Operation> by lazy {
+        MutableLiveData<Operation>()
     }
 
-    private val serviceConnectionStatus: MutableLiveData<Int> by lazy {
-        MutableLiveData<Int>()
+    private val serviceConnectionStatus: MutableLiveData<Operation> by lazy {
+        MutableLiveData<Operation>()
     }
 
     private var mService: Messenger? = null
@@ -79,11 +79,11 @@ class LetsRobotControlApi private constructor(
         mService?.send(message) ?: throw IllegalStateException()
     }
 
-    override fun getServiceStateObserver(): LiveData<Int> {
+    override fun getServiceStateObserver(): LiveData<Operation> {
         return serviceState
     }
 
-    override fun getServiceConnectionStatusObserver(): LiveData<Int> {
+    override fun getServiceConnectionStatusObserver(): LiveData<Operation> {
         return serviceConnectionStatus
     }
 
@@ -103,7 +103,7 @@ class LetsRobotControlApi private constructor(
         context.unbindService(this)
     }
 
-    class Receiver(val liveData: MutableLiveData<Int>) : BroadcastReceiver() {
+    class Receiver(val liveData: MutableLiveData<Operation>) : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent?.takeIf { it.action == LetsRobotService.SERVICE_STATUS_BROADCAST }?.let {
                 liveData.value = if(it.getBooleanExtra("value", false)){

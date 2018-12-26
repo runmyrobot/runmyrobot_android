@@ -1,6 +1,7 @@
 package tv.letsrobot.android.api.interfaces
 
 import androidx.lifecycle.LiveData
+import tv.letsrobot.android.api.enums.Operation
 
 /**
  * Interface for communicating with the robot service
@@ -36,13 +37,13 @@ interface ILetsRobotControl {
      * Subscribe to status events.
      * @return androidx.lifecycle.LiveData<Boolean>
      */
-    fun getServiceStateObserver() : LiveData<Int>
+    fun getServiceStateObserver() : LiveData<Operation>
 
     /**
      * Subscribe to service connection events.
      * @return androidx.lifecycle.LiveData<Boolean>
      */
-    fun getServiceConnectionStatusObserver() : LiveData<Int>
+    fun getServiceConnectionStatusObserver() : LiveData<Operation>
 
     /**
      * Disconnect from service. Calling this does not terminate the service.
