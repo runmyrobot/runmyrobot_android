@@ -137,6 +137,15 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         //To add more, add another icon to the layout file somewhere and pass in your component
     }
 
+    private fun destroyIndicators() {
+        cloudStatusIcon.onDestroy()
+        cameraStatusIcon.onDestroy()
+        robotStatusIcon.onDestroy()
+        micStatusIcon.onDestroy()
+        ttsStatusIcon.onDestroy()
+        robotMotorStatusIcon.onDestroy()
+    }
+
     override fun onPause() {
         super.onPause()
         //api?.onPause() TODO API Pause? Would only apply to legacy devices
@@ -150,6 +159,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
 
     override fun onDestroy() {
         super.onDestroy()
+        destroyIndicators()
         PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 
