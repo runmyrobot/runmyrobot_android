@@ -379,7 +379,7 @@ private constructor(val robotId : String, val cameraId : String?) {
 
     companion object {
         fun initDependencies(context: Context, done: () -> Unit) {
-            TelemetryManager.init(context)
+            TelemetryManager.init(context.applicationContext)
             val ffmpeg = FFmpeg.getInstance(context.applicationContext)
             try {
                 ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
@@ -401,7 +401,7 @@ private constructor(val robotId : String, val cameraId : String?) {
          */
         fun resetCommunicationConfig(context: Context) {
             CommunicationType.values().forEach {
-                it.getInstantiatedClass?.clearSetup(context)
+                it.getInstantiatedClass?.clearSetup(context.applicationContext)
             }
         }
 
