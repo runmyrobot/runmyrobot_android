@@ -1,14 +1,12 @@
 package tv.letsrobot.android.api.services
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.interfaces.ILetsRobotControl
 import tv.letsrobot.android.api.models.Operation
@@ -16,7 +14,10 @@ import tv.letsrobot.android.api.models.Operation
 /**
  * Binder for LetsRobot Service that allows us to put all of the communication code in one class
  */
-class LetsRobotControlApi private constructor(private val context: Context) : ServiceConnection, ILetsRobotControl{
+class LetsRobotControlApi private constructor(
+        anyContext: Context,
+        private val context : Context = anyContext.applicationContext
+) : ServiceConnection, ILetsRobotControl{
 
     private val serviceState: MutableLiveData<Int> by lazy {
         MutableLiveData<Int>()
@@ -83,14 +84,32 @@ class LetsRobotControlApi private constructor(private val context: Context) : Se
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    private var receiver = Receiver(serviceState)
+
     override fun connectToService() {
+        receiver = Receiver(serviceState)
+        LocalBroadcastManager.getInstance(context).registerReceiver(receiver,
+                IntentFilter(LetsRobotService.SERVICE_STATUS_BROADCAST))
         Intent(context, LetsRobotService::class.java).also { intent ->
             context.bindService(intent, this, Context.BIND_AUTO_CREATE)
         }
     }
 
     override fun disconnectFromService() {
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
         context.unbindService(this)
+    }
+
+    class Receiver(val liveData: MutableLiveData<Int>) : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.takeIf { it.action == LetsRobotService.SERVICE_STATUS_BROADCAST }?.let {
+                liveData.value = if(it.getBooleanExtra("value", false)){
+                    Operation.OK
+                }else{
+                    Operation.NOT_OK
+                }
+            }
+        }
     }
 
     companion object {

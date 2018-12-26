@@ -2,10 +2,10 @@ package tv.letsrobot.controller.android.activities
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -61,37 +61,49 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main_robot) //Set the layout to use for activity
 
-        //Setup a custom component
-        val component = CustomComponentExample(applicationContext, "customString")
-        components.add(component) //add to custom components list
+        setupApiInterface()
+        setupButtons()
+        initIndicators()
+    }
+
+    private fun setupApiInterface() {
         letsRobotViewModel = LetsRobotViewModel.getObject(this)
         letsRobotViewModel?.setServiceConnectedObserver(this, Observer{connected ->
             // We do not want the user to be able to use the button if the service is not bound yet
             mainPowerButton.isEnabled = connected == Operation.OK
         })
         letsRobotViewModel?.setStatusObserver(this, Observer { serviceStatus ->
+            mainPowerButton.setTextColor(parseColorForOperation(serviceStatus))
+            val isLoading = serviceStatus == Operation.LOADING
+            mainPowerButton.isEnabled = !isLoading
+            if(isLoading) return@Observer //processing command. Disable button
+            if(serviceStatus == Operation.LOADING) return@Observer
             recording = serviceStatus == Operation.OK
+            if(recording && settings.screenTimeout)
+                startSleepDelayed()
         })
-        setupButtons()
-        initIndicators()
+
+        //Setup a custom component
+        val component = CustomComponentExample(applicationContext, "customString")
+        components.add(component) //add to custom components list
     }
 
-    private val uiSetup = false
+    fun parseColorForOperation(state : Int) : Int{
+        val color : Int = when(state){
+            Operation.OK -> Color.GREEN
+            Operation.NOT_OK -> Color.RED
+            Operation.LOADING -> Color.YELLOW
+            else -> Color.BLACK
+        }
+        return color
+    }
 
     private fun setupButtons() {
-        if(uiSetup) return
         mainPowerButton.setOnClickListener{ //Hook up power button to start the connection
             if (recording) {
-                recording = false
                 letsRobotViewModel?.api?.disable()
-                Log.v(LOGTAG, "Recording Stopped")
             } else {
-                recording = true
-                if(settings.screenTimeout){
-                    handler.postDelayed(this, 10000)
-                }
                 letsRobotViewModel?.api?.enable()
-                Log.v(LOGTAG, "Recording Started")
             }
         }
         settingsButtonMain.setOnClickListener {
@@ -103,13 +115,17 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
             if(settings.screenTimeout) {
-                fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
-                handler.removeCallbacks(this)
-                handler.postDelayed(this, 10000) //10 second delay
+                startSleepDelayed()
                 //TODO disable touch if black screen is up
             }
-            return@setOnTouchListener false
+            return@setOnTouchListener (fakeSleepView.background as? ColorDrawable)?.color == Color.BLACK
         }
+    }
+
+    private fun startSleepDelayed() {
+        fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
+        handler.removeCallbacks(this)
+        handler.postDelayed(this, 10000) //10 second delay
     }
 
     private fun initIndicators() { //Indicators for Core Services

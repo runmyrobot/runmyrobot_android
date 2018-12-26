@@ -1,35 +1,31 @@
 package tv.letsrobot.android.api.services
 
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 /**
  * The main LetsRobot control service.
  * This handles the lifecycle and communication to components that come from outside the sdk
  */
 class LetsRobotService : Service(){
+
+    private var running = false
     /**
      * Target we publish for clients to send messages to MessageHandler.
      */
     private lateinit var mMessenger: Messenger
+    private var handlerThread : HandlerThread = HandlerThread("LetsRobotControl").also { it.start() }
 
-    /**
-     * Handler of incoming messages from clients.
-     */
-    internal class MessageHandler(
-            context: Context,
-            private val applicationContext: Context = context.applicationContext,
-            handlerThread : HandlerThread = HandlerThread("LetsRobotControlApi").also { it.start() }
-    ) : Handler(handlerThread.looper) {
+    val handler = object : Handler(handlerThread.looper) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 START ->
-                    Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
+                    enable()
                 STOP ->
-                    Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
+                    disable()
                 else -> super.handleMessage(msg)
             }
         }
@@ -41,14 +37,34 @@ class LetsRobotService : Service(){
      */
     override fun onBind(intent: Intent): IBinder? {
         Toast.makeText(applicationContext, "binding", Toast.LENGTH_SHORT).show()
-        mMessenger = Messenger(MessageHandler(this))
+        mMessenger = Messenger(handler)
+        emitState()
         return mMessenger.binder
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId).also {
+    fun enable(){
+        Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
+        Thread.sleep(5000)
+        setState(true)
+    }
 
-        }
+    fun disable(){
+        Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
+        Thread.sleep(5000)
+        setState(false)
+    }
+
+    fun setState(value : Boolean){
+        running = value
+        emitState()
+    }
+
+    private fun emitState() {
+        LocalBroadcastManager.getInstance(this).sendBroadcast(
+                Intent(SERVICE_STATUS_BROADCAST).also {
+                    it.putExtra("value", running)
+                }
+        )
     }
 
     companion object {
@@ -57,5 +73,7 @@ class LetsRobotService : Service(){
         const val QUEUE_UPDATE_TO_SERVER = 3
         const val RESET = 4
         const val SUBSCRIBE = 5
+
+        const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
     }
 }
