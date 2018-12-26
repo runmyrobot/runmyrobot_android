@@ -14,7 +14,7 @@ import tv.letsrobot.android.api.services.LetsRobotControlApi
  */
 class LetsRobotViewModel : ViewModel(){
 
-    lateinit var api : ILetsRobotControl
+    var api : ILetsRobotControl? = null
         private set
 
     /**
@@ -22,7 +22,7 @@ class LetsRobotViewModel : ViewModel(){
      * @see ILetsRobotControl.getServiceStateObserver(activity, observer)
      */
     fun setStatusObserver(activity: FragmentActivity, observer : Observer<Operation>){
-        api.getServiceStateObserver().observe(activity, observer)
+        api?.getServiceStateObserver()?.observe(activity, observer)
     }
 
     /**
@@ -30,19 +30,21 @@ class LetsRobotViewModel : ViewModel(){
      * @see ILetsRobotControl.getServiceConnectionStatusObserver(activity, observer)
      */
     fun setServiceConnectedObserver(activity: FragmentActivity, observer : Observer<Operation>){
-        api.getServiceConnectionStatusObserver().observe(activity, observer)
+        api?.getServiceConnectionStatusObserver()?.observe(activity, observer)
     }
 
     override fun onCleared() {
         super.onCleared()
-        api.disconnectFromService()
+        api?.disconnectFromService()
     }
 
     companion object {
         fun getObject(activity: FragmentActivity) : LetsRobotViewModel {
             return ViewModelProviders.of(activity).get(LetsRobotViewModel::class.java).also {
-                it.api = LetsRobotControlApi.getNewInstance(activity).also { api ->
-                    api.connectToService()
+                if (it.api == null) {
+                    it.api = LetsRobotControlApi.getNewInstance(activity).also { api ->
+                        api.connectToService()
+                    }
                 }
             }
         }
