@@ -16,7 +16,6 @@ import tv.letsrobot.controller.android.R
 /**
  * Status view that will communicate directly with a chosen component
  *
- * FIXME Leaks memory since it uses Context
  * TODO replace with ViewModel
  */
 class LRStatusImageView @JvmOverloads constructor(
