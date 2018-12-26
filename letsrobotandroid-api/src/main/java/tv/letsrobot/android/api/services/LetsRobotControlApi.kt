@@ -19,10 +19,16 @@ class LetsRobotControlApi private constructor(
         private val context : Context = anyContext.applicationContext
 ) : ServiceConnection, ILetsRobotControl{
 
+    /**
+     * LiveData object for whether or not the service has the components enabled
+     */
     private val serviceState: MutableLiveData<Operation> by lazy {
         MutableLiveData<Operation>()
     }
 
+    /**
+     * LiveData object for whether or not we have a valid connection to the service
+     */
     private val serviceConnectionStatus: MutableLiveData<Operation> by lazy {
         MutableLiveData<Operation>()
     }
