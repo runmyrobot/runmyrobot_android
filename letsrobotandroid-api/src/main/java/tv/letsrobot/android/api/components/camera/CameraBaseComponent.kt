@@ -4,14 +4,19 @@ import android.content.Context
 import android.graphics.*
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Message
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
+import org.json.JSONObject
+import tv.letsrobot.android.api.components.WatchDogComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.models.ComponentMessage
+import tv.letsrobot.android.api.models.ComponentMessage.Companion.SOCKET_MESSAGE
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -44,6 +49,9 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         handlerThread.start()
         handler = Handler(handlerThread.looper){ message ->
             when(message.what){
+                DO_SOME_WORK -> {
+                    maybeSendVideoStatus()
+                }
                 CAMERA_PUSH -> {
                     (message.obj as? CameraPackage)?.let {
                         if(streaming.get() && limiter.tryAcquire()) {
@@ -83,6 +91,15 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
             }
             return@Handler true
         }
+    }
+
+    private fun maybeSendVideoStatus() {
+        val obj = JSONObject()
+        obj.put("send_video_process_exists",true)
+        obj.put("ffmpeg_process_exists", status == ComponentStatus.STABLE)
+        obj.put("camera_id", config.cameraId)
+        obj.put("name", "send_video_status")
+        sendUpwards(ComponentMessage(WatchDogComponent::class, Message.obtain(null, SOCKET_MESSAGE, obj), handler))
     }
 
 

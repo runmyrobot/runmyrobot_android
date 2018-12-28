@@ -136,7 +136,6 @@ class LetsRobotService : Service(){
         const val RESET = 4
         const val ATTACH_COMPONENT = 5
         const val DETACH_COMPONENT = 6
-
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
         lateinit var logLevel: LogLevel
     }

@@ -8,7 +8,6 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.COMMAND
 import tv.letsrobot.android.api.EventManager.Companion.ROBOT_CONNECTED
@@ -28,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 class RobotControllerComponent internal constructor(context : Context, private val robotId: String) : Component(context){
     var running = AtomicBoolean(false)
     private var mSocket: Socket? = null
-    private var handler: Handler
 
     /**
      * Sends a timeout message via EventManager when run
@@ -92,10 +90,7 @@ class RobotControllerComponent internal constructor(context : Context, private v
             }.on(Socket.EVENT_CONNECT_ERROR) {
                 Log.d("Robot", "Err")
                 status = ComponentStatus.ERROR
-                Core.handler?.post {
-                    disable()
-                    enable()
-                }
+                reset()
             }.on(Socket.EVENT_DISCONNECT) {
                 EventManager.invoke(ROBOT_DISCONNECTED, null)
                 EventManager.invoke(STOP_EVENT, null)

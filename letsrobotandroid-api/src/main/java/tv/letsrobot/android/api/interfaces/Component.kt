@@ -3,8 +3,10 @@ package tv.letsrobot.android.api.interfaces
 import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Message
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
@@ -15,13 +17,18 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * Base component object to use to extend functionality of your robot.
+ *
+ * Runs on its own threads, as long as this.handler is used
  * Ex. can be used as an interface for LEDs based off of control messages
  */
 abstract class Component(val context: Context) : IComponent{
     private var handlerThread = HandlerThread(
             javaClass.simpleName
     ).also { it.start() }
-    private var handler = Handler(handlerThread.looper)
+    protected val handler = Handler(handlerThread.looper){
+        handleMessage(it)
+    }
+
     private var _status: ComponentStatus = ComponentStatus.DISABLED_FROM_SETTINGS
     var status : ComponentStatus
         get() = _status
@@ -44,6 +51,13 @@ abstract class Component(val context: Context) : IComponent{
         return javaClass.simpleName
     }
 
+
+    protected fun reset() { //TODO this could potentially create thread locks?
+        runBlocking {
+            disable().await()
+            enable().await()
+        }
+    }
 
     /**
      * Called when component should startup. Will return without action if already enabled
@@ -100,4 +114,21 @@ abstract class Component(val context: Context) : IComponent{
      * Called when we have not received a response from the server in a while
      */
     open fun timeout(){}
+
+    /**
+     * Handle message sent to this component's handler
+     */
+    open fun handleMessage(it: Message?): Boolean{
+        return false
+    }
+
+    override fun sendMessage(message: Message) {
+        val newMessage = Message.obtain(message)
+        newMessage.target = handler
+        newMessage.sendToTarget()
+    }
+
+    companion object {
+        const val DO_SOME_WORK = 0
+    }
 }
