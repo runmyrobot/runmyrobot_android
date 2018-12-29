@@ -2,21 +2,15 @@ package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
 import android.graphics.*
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.Message
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
-import org.json.JSONObject
-import tv.letsrobot.android.api.components.WatchDogComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.models.ComponentMessage
-import tv.letsrobot.android.api.models.ComponentMessage.Companion.SOCKET_MESSAGE
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -25,6 +19,11 @@ import java.util.concurrent.atomic.AtomicLong
  * Abstracted class for different camera implementations
  */
 abstract class CameraBaseComponent(context: Context, val config: CameraSettings) : Component(context), FFmpegExecuteResponseHandler {
+
+    override fun getType(): Int {
+        return Component.CAMERA
+    }
+
     internal var ffmpegRunning = AtomicBoolean(false)
     protected var ffmpeg : FFmpeg = FFmpeg.getInstance(context)
     protected var UUID = java.util.UUID.randomUUID().toString()
@@ -42,66 +41,6 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     protected val cameraActive = AtomicBoolean(false)
     private val cameraPacketNumber = AtomicLong(1)
     protected var successCounter: Int = 0
-
-    private var handlerThread = HandlerThread("CameraProcessing")
-    var handler: Handler
-    init {
-        handlerThread.start()
-        handler = Handler(handlerThread.looper){ message ->
-            when(message.what){
-                DO_SOME_WORK -> {
-                    maybeSendVideoStatus()
-                }
-                CAMERA_PUSH -> {
-                    (message.obj as? CameraPackage)?.let {
-                        if(streaming.get() && limiter.tryAcquire()) {
-                            if (!ffmpegRunning.getAndSet(true)) {
-                                bootFFMPEG(it.r)
-                            }
-                            process?.let { _process ->
-                                (it.b as? ByteArray)?.let { _ ->
-                                    when (it.format) {
-                                        ImageFormat.JPEG -> {
-                                            _process.outputStream.write(it.b)
-                                        }
-                                        ImageFormat.NV21 -> {
-                                            val im = YuvImage(it.b, it.format, width, height, null)
-                                            try {
-                                                it.r?.let { rect ->
-                                                    im.compressToJpeg(rect, 100, _process.outputStream)
-                                                }
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                            }
-                                        }
-                                        else -> {
-                                        }
-                                    }
-                                } ?: (it.b as? Bitmap)?.let { image ->
-                                    try {
-                                        image.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
-                                    } catch (e: Exception) {
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else -> {}
-            }
-            return@Handler true
-        }
-    }
-
-    private fun maybeSendVideoStatus() {
-        val obj = JSONObject()
-        obj.put("send_video_process_exists",true)
-        obj.put("ffmpeg_process_exists", status == ComponentStatus.STABLE)
-        obj.put("camera_id", config.cameraId)
-        obj.put("name", "send_video_status")
-        sendUpwards(ComponentMessage(WatchDogComponent::class, Message.obtain(null, SOCKET_MESSAGE, obj), handler))
-    }
-
 
     //override getName so all of the camera classes have the same name
     override fun getName(): String {
@@ -129,7 +68,53 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         streaming.set(false)
     }
 
-    private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?)
+    override fun handleMessage(message: Message): Boolean {
+        return when(message.what){
+            CAMERA_PUSH -> {
+                (message.obj as? CameraPackage)?.let {
+                    processCamera(it)
+                }
+                true
+            }
+            else -> {super.handleMessage(message)}
+        }
+    }
+
+    private fun processCamera(it: CameraPackage) {
+        if(streaming.get() && limiter.tryAcquire()) {
+            if (!ffmpegRunning.getAndSet(true)) {
+                bootFFMPEG(it.r)
+            }
+            process?.let { _process ->
+                (it.b as? ByteArray)?.let { _ ->
+                    when (it.format) {
+                        ImageFormat.JPEG -> {
+                            _process.outputStream.write(it.b)
+                        }
+                        ImageFormat.NV21 -> {
+                            val im = YuvImage(it.b, it.format, width, height, null)
+                            try {
+                                it.r?.let { rect ->
+                                    im.compressToJpeg(rect, 100, _process.outputStream)
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                        else -> {
+                        }
+                    }
+                } ?: (it.b as? Bitmap)?.let { image ->
+                    try {
+                        image.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
+                    } catch (e: Exception) {
+                    }
+                }
+            }
+        }
+    }
+
+    private data class CameraPackage(val b : Any?, val format : Int, val r : Rect?)
 
     fun push(b : Any?, format : Int, r : Rect?){
         if(!handler.hasMessages(CAMERA_PUSH)) {

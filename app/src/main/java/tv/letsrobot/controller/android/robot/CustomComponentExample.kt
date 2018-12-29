@@ -7,6 +7,10 @@ import tv.letsrobot.android.api.interfaces.Component
  * Example of a custom component
  */
 class CustomComponentExample(context: Context, customParam : String) : Component(context){
+    override fun getType(): Int {
+        return Component.CUSTOM
+    }
+
     override fun enableInternal() {
         //add code here
     }

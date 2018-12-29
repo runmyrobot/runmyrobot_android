@@ -3,15 +3,18 @@ package tv.letsrobot.android.api.components
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 import tv.letsrobot.android.api.interfaces.Component
 
 /**
- * Created by Brendon on 9/11/2018.
+ * Main Communication Component that holds a reference to CommunicationInterface and controls it
  */
 class CommunicationComponent(context: Context, val communicationInterface: CommunicationInterface) : Component(context) , Runnable{
+    override fun getType(): Int {
+        return Component.CONTROL_DRIVER
+    }
+
     val uiHandler = Handler(Looper.getMainLooper())
     init {
         communicationInterface.initConnection(context)
@@ -37,10 +40,7 @@ class CommunicationComponent(context: Context, val communicationInterface: Commu
                 && communicationInterface.getStatus() == ComponentStatus.ERROR){
             errorCounter++
             if(errorCounter > 10){
-                Core.handler?.post {
-                    disable()
-                    enable()
-                }
+                reset()
                 errorCounter = 0
             }
         }

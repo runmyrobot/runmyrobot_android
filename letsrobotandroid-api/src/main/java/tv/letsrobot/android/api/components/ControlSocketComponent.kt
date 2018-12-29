@@ -1,8 +1,6 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -24,7 +22,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Also grabs chat messages for TTS and sends it to EventManager
  */
-class RobotControllerComponent internal constructor(context : Context, private val robotId: String) : Component(context){
+class ControlSocketComponent internal constructor(context : Context, private val robotId: String) : Component(context){
+    override fun getType(): Int {
+        return Component.CONTROL_SOCKET
+    }
+
     var running = AtomicBoolean(false)
     private var mSocket: Socket? = null
 
@@ -35,15 +37,6 @@ class RobotControllerComponent internal constructor(context : Context, private v
 
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
-
-    init {
-        try {
-            Looper.prepare() //Setup our looper
-        } catch (ignored: Exception) {
-            //catch exception if looper is already setup
-        }
-        handler = Handler(Looper.myLooper())
-    }
 
     private var table = false
 

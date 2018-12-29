@@ -14,7 +14,7 @@ import io.socket.client.Socket
 import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager.Companion.TIMEOUT
 import tv.letsrobot.android.api.components.AudioComponent
-import tv.letsrobot.android.api.components.RobotControllerComponent
+import tv.letsrobot.android.api.components.ControlSocketComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
@@ -46,7 +46,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     private var logLevel = LogLevel.NONE
     var camera: CameraBaseComponent? = null
     var audio: AudioComponent? = null
-    var robotController: RobotControllerComponent? = null
+    var controlSocket: ControlSocketComponent? = null
     var textToSpeech: TextToSpeechComponent? = null
     private var externalComponents: ArrayList<Component>? = null
     private var onControllerTimeout = fun(_: Any?) {
@@ -161,7 +161,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     private fun enableComponents() {
         camera?.enable()
         audio?.enable()
-        robotController?.enable()
+        controlSocket?.enable()
         textToSpeech?.enable()
         for (component in externalComponents!!) {
             component.enable()
@@ -179,8 +179,8 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     private fun disableComponents(){
-        if (robotController != null) {
-            robotController!!.disable()
+        if (controlSocket != null) {
+            controlSocket!!.disable()
         }
         if (camera != null) {
             camera!!.disable()

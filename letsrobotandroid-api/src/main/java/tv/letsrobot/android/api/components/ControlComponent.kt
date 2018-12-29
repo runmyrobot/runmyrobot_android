@@ -14,6 +14,10 @@ import tv.letsrobot.android.api.interfaces.Component
  */
 abstract class ControlComponent(context: Context) : Component(context){
 
+    override fun getType(): Int {
+        return Component.CONTROL_DRIVER
+    }
+
     /**
      * Called when any command is received, including but not limited to strings
      */

@@ -7,7 +7,7 @@ import tv.letsrobot.android.api.Core.InitializationException
 import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.components.AudioComponent
 import tv.letsrobot.android.api.components.CommunicationComponent
-import tv.letsrobot.android.api.components.RobotControllerComponent
+import tv.letsrobot.android.api.components.ControlSocketComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
@@ -77,7 +77,7 @@ class ServiceComponentGenerator
         //RobotId MUST be defined, cameraId can be ignored
         validateSettings(robotId, cameraSettings) //will throw if bad
         robotId?.let{
-            val robotController = RobotControllerComponent(context, it)
+            val robotController = ControlSocketComponent(context, it)
             componentList.add(robotController)
             //Setup our protocol, if it exists
             val protocolClass = protocol?.getInstantiatedClass(context)

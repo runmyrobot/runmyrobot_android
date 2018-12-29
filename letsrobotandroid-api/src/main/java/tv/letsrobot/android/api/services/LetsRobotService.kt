@@ -7,15 +7,28 @@ import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.runBlocking
 import tv.letsrobot.android.api.enums.LogLevel
+import tv.letsrobot.android.api.interfaces.ComponentEventListener
+import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.interfaces.IComponent
 
 /**
  * The main LetsRobot control service.
  * This handles the lifecycle and communication to components that come from outside the sdk
  */
-class LetsRobotService : Service(){
+class LetsRobotService : Service(), ComponentEventListener {
+    /**
+     * Message handler for components that we are controlling.
+     * Best thing to do after is to push it to the service handler for processing,
+     * as this could be from any thread
+     */
+    override fun handleMessage(eventObject: ComponentEventObject) {
+        handler.obtainMessage(EVENT_BROADCAST, eventObject)
+    }
 
     private var running = false
+
+
+
     /**
      * Target we publish for clients to send messages to MessageHandler.
      */
@@ -47,8 +60,29 @@ class LetsRobotService : Service(){
                         reset()
                     }
                 }
+                EVENT_BROADCAST ->{
+                    runBlocking {
+                        sendToComponents(msg)
+                    }
+                }
                 else -> super.handleMessage(msg)
             }
+        }
+    }
+
+    private fun sendToComponents(msg: Message) {
+        val obj = msg.obj as? ComponentEventObject
+        var targetFilter : Int? = null
+        obj?.let {
+            if((obj.source as? IComponent)?.getType() != obj.type){
+                //send a message to all components of type obj.type
+                targetFilter = obj.type
+            }
+        }
+
+        activeComponentList.forEach { component ->
+            targetFilter?.takeIf { component.getType() != it }
+                    ?: component.dispatchMessage(msg)
         }
     }
 
@@ -98,6 +132,7 @@ class LetsRobotService : Service(){
         activeComponentList.clear()
         activeComponentList.addAll(componentList)
         activeComponentList.forEach{
+            it.setEventListener(this)
             it.enable().await()
         }
         setState(true)
@@ -107,6 +142,7 @@ class LetsRobotService : Service(){
         Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
         activeComponentList.forEach{
             it.disable().await()
+            it.setEventListener(null)
         }
         setState(false)
     }
@@ -136,6 +172,7 @@ class LetsRobotService : Service(){
         const val RESET = 4
         const val ATTACH_COMPONENT = 5
         const val DETACH_COMPONENT = 6
+        const val EVENT_BROADCAST = 7
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
         lateinit var logLevel: LogLevel
     }

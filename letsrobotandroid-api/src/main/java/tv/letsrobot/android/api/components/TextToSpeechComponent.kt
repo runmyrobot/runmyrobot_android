@@ -22,8 +22,14 @@ import java.util.*
  * Text to speech component class
  *
  * TODO different voice or voice options?
+ *
+ * TODO split into TTSComponent and ChatSocketComponent
  */
 class TextToSpeechComponent internal constructor(context: Context, private val robotId : String) : Component(context){
+    override fun getType(): Int {
+        return Component.TTS
+    }
+
     private var ttobj: TextToSpeech = TextToSpeech(context, TextToSpeech.OnInitListener {})
     private var mSocket: Socket? = null
     val connected: Boolean

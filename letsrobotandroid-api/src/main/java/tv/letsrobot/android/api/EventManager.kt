@@ -66,7 +66,7 @@ class EventManager{
 
         /**
          * Call a control event. Open to be called anywhere,
-         * but mainly used by the RobotControllerComponent
+         * but mainly used by the ControlSocketComponent
          */
         fun invoke(event: String, message : Any? = null){
             val list = subscribers[event]

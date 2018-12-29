@@ -1,7 +1,6 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
-import android.os.Handler
 import android.os.Message
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -11,14 +10,19 @@ import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RobotConfig
+import java.util.concurrent.TimeUnit
 
 /**
- * Watchdog service for LetsRobot. Contains main app socket, and will send updates on camera status
- * and IP
+ * App Socket for LetsRobot. Will send updates on camera status
+ * and IP, and publishes other useful information
  */
-class WatchDogComponent(val serviceHandler: Handler, context: Context) : Component(context) {
+class MainSocketComponent(context: Context) : Component(context) {
     var owner : String? = null
     var robotId = RobotConfig.RobotId.getValue(context) as String
+
+    override fun getType(): Int {
+        return Component.APP_SOCKET
+    }
 
     override fun enableInternal() {
         setOwner()
@@ -37,6 +41,8 @@ class WatchDogComponent(val serviceHandler: Handler, context: Context) : Compone
         )?.let {
             it.getString("owner")
         }
+        //maybe this should rest somewhere else for lookup
+        eventDispatcher?.handleMessage(getType(), ROBOT_OWNER, owner, this)
     }
 
     private fun setupAppWebSocket() {
@@ -54,35 +60,44 @@ class WatchDogComponent(val serviceHandler: Handler, context: Context) : Compone
         }
     }
 
-    private var count = 0
-    private val onUpdateServer: () -> Unit = {
-        appServerSocket?.emit("identify_robot_id", robotId)
-        if(count % 60 == 0){
-            camera?.let {
-                val obj = JSONObject()
-                obj.put("send_video_process_exists",true)
-                obj.put("ffmpeg_process_exists", getCameraRunning())
-                obj.put("camera_id",cameraId)
-                appServerSocket?.emit("send_video_status", obj)
-            }
-            val ipInfo = JSONObject()
-            ipInfo.put("ip", "169.254.25.110") //TODO actually use a different ip...
-            ipInfo.put("robot_id", robotId)
-            appServerSocket?.emit("ip_information", ipInfo)
-        }
-        handler.sendEmptyMessage(DO_SOME_WORK)
-        count++
+    private fun maybeSendVideoStatus() {
+        val obj = JSONObject()
+        obj.put("send_video_process_exists",true)
+        obj.put("ffmpeg_process_exists", status == ComponentStatus.STABLE)
+        obj.put("camera_id", RobotConfig.CameraId.getValue(context) as String)
+        appServerSocket?.emit("send_video_status", obj)
     }
 
-    override fun handleMessage(it: Message?): Boolean {
-        return when(it?.what){
+    private fun maybeUpdateIp() {
+        val ipInfo = JSONObject()
+        ipInfo.put("ip", "169.254.25.110") //TODO actually use a different ip...
+        ipInfo.put("robot_id", robotId)
+        appServerSocket?.emit("ip_information", ipInfo)
+    }
+
+    /**
+     * Update server properties every minute
+     */
+    private fun onUpdateServer() {
+        appServerSocket?.emit("identify_robot_id", robotId)
+        maybeSendVideoStatus()
+        maybeUpdateIp()
+        handler.sendEmptyMessageDelayed(DO_SOME_WORK, TimeUnit.MINUTES.toMillis(1))
+    }
+
+    override fun handleMessage(message: Message): Boolean {
+        return when(message.what){
             DO_SOME_WORK -> {
                 onUpdateServer()
                 true
             }
             else ->{
-                /*return*/super.handleMessage(it)
+                /*return*/super.handleMessage(message)
             }
         }
+    }
+
+    companion object {
+        const val ROBOT_OWNER = 0
     }
 }

@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by Brendon on 9/1/2018.
  */
 class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
+    override fun getType(): Int {
+        return Component.MICROPHONE
+    }
 
     internal var ffmpegRunning = AtomicBoolean(false)
 
