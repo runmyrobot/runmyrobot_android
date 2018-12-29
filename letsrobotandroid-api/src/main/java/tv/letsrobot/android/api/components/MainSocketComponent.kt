@@ -8,6 +8,7 @@ import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RobotConfig
 import java.util.concurrent.TimeUnit
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit
 class MainSocketComponent(context: Context) : Component(context) {
     var owner : String? = null
     var robotId = RobotConfig.RobotId.getValue(context) as String
+    private var cameraStatus: ComponentStatus? = null
 
     override fun getType(): Int {
         return Component.APP_SOCKET
@@ -27,6 +29,7 @@ class MainSocketComponent(context: Context) : Component(context) {
     override fun enableInternal() {
         setOwner()
         setupAppWebSocket()
+        handler.sendEmptyMessage(DO_SOME_WORK)
     }
 
     override fun disableInternal() {
@@ -61,11 +64,13 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun maybeSendVideoStatus() {
-        val obj = JSONObject()
-        obj.put("send_video_process_exists",true)
-        obj.put("ffmpeg_process_exists", status == ComponentStatus.STABLE)
-        obj.put("camera_id", RobotConfig.CameraId.getValue(context) as String)
-        appServerSocket?.emit("send_video_status", obj)
+        cameraStatus?.let { //don't bother if we have not received camera status
+            val obj = JSONObject()
+            obj.put("send_video_process_exists",true)
+            obj.put("ffmpeg_process_exists", it == ComponentStatus.STABLE)
+            obj.put("camera_id", RobotConfig.CameraId.getValue(context) as String)
+            appServerSocket?.emit("send_video_status", obj)
+        }
     }
 
     private fun maybeUpdateIp() {
@@ -95,6 +100,12 @@ class MainSocketComponent(context: Context) : Component(context) {
                 /*return*/super.handleMessage(message)
             }
         }
+    }
+
+    override fun handleExternalMessage(message: ComponentEventObject): Boolean {
+        if(message.type == CAMERA && message.what == Component.STATUS_EVENT)
+            cameraStatus = message.data as ComponentStatus
+        return super.handleExternalMessage(message)
     }
 
     companion object {

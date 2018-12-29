@@ -35,6 +35,28 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
      */
     private var mBackgroundHandler: Handler? = null
 
+    /**
+     * [CameraDevice.StateCallback] is called when [CameraDevice] changes its status.
+     */
+    private val mStateCallback = object : CameraDevice.StateCallback() {
+
+        override fun onOpened(@NonNull cameraDevice: CameraDevice) {
+            mCameraDevice = cameraDevice
+            startPreview()
+        }
+
+        override fun onDisconnected(@NonNull cameraDevice: CameraDevice) {
+            cameraDevice.close()
+            mCameraDevice = null
+        }
+
+        override fun onError(@NonNull cameraDevice: CameraDevice, error: Int) {
+            cameraDevice.close()
+            mCameraDevice = null
+        }
+
+    }
+
     init {
         Log.v("CameraAPI", "init")
         init()
@@ -97,28 +119,6 @@ class Camera2TextureComponent(context: Context, settings: CameraSettings, surfac
         } finally {
             image?.close()
         }
-    }
-
-    /**
-     * [CameraDevice.StateCallback] is called when [CameraDevice] changes its status.
-     */
-    private val mStateCallback = object : CameraDevice.StateCallback() {
-
-        override fun onOpened(@NonNull cameraDevice: CameraDevice) {
-            mCameraDevice = cameraDevice
-            startPreview()
-        }
-
-        override fun onDisconnected(@NonNull cameraDevice: CameraDevice) {
-            cameraDevice.close()
-            mCameraDevice = null
-        }
-
-        override fun onError(@NonNull cameraDevice: CameraDevice, error: Int) {
-            cameraDevice.close()
-            mCameraDevice = null
-        }
-
     }
 
     /**

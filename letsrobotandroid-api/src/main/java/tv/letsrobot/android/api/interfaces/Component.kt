@@ -87,6 +87,7 @@ abstract class Component(val context: Context) : IComponent{
     fun disableWithCallback(callback: Callback<Boolean>){
         handler.post {
             disableInternal()
+            handler.removeCallbacksAndMessages(null)
             callback.onComplete(true)
         }
     }

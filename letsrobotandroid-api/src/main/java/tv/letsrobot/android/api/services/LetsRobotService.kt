@@ -22,7 +22,7 @@ class LetsRobotService : Service(), ComponentEventListener {
      * as this could be from any thread
      */
     override fun handleMessage(eventObject: ComponentEventObject) {
-        handler.obtainMessage(EVENT_BROADCAST, eventObject)
+        handler.obtainMessage(EVENT_BROADCAST, eventObject).sendToTarget()
     }
 
     private var running = false
