@@ -13,10 +13,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.Core
-import tv.letsrobot.android.api.components.AudioComponent
-import tv.letsrobot.android.api.components.CommunicationComponent
-import tv.letsrobot.android.api.components.ControlSocketComponent
-import tv.letsrobot.android.api.components.TextToSpeechComponent
+import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.enums.Operation
 import tv.letsrobot.android.api.interfaces.IComponent
@@ -137,7 +134,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
     }
 
     private fun initIndicators() { //Indicators for Core Services
-        cloudStatusIcon.setComponentInterface(Core::class.java.simpleName)
+        cloudStatusIcon.setComponentInterface(MainSocketComponent::class.java.simpleName)
         cameraStatusIcon.setComponentInterface(CameraBaseComponent.EVENTNAME)
         robotStatusIcon.setComponentInterface(ControlSocketComponent::class.java.simpleName)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.simpleName)
