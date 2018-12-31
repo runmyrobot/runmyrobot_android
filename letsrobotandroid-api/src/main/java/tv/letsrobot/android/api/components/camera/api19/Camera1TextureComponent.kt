@@ -4,11 +4,18 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.hardware.Camera
+import android.opengl.EGLConfig
+import android.opengl.EGLContext
+import android.opengl.EGLDisplay
+import android.opengl.EGLSurface
+import android.os.Build
 import android.util.Log
 import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
 import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.utils.GLTools
+import tv.letsrobot.android.api.utils.SurfaceTextureUtils
 import java.io.IOException
 
 
@@ -33,8 +40,22 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
     private var camera : android.hardware.Camera? = null
     private var _widthV1 = 0
     private var _heightV1 = 0
+    private var eglDisplay : EGLDisplay? = null
+    private var eglConfig: EGLConfig? = null
+    private var eglContext: EGLContext? = null
+    private var eglSurface: EGLSurface? = null
+    private var mStManager : SurfaceTextureUtils.SurfaceTextureManager? = null
+
     init {
         Log.v("CameraAPI", "init")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            eglDisplay = GLTools.newDisplay()
+            eglConfig = GLTools.newConfig(eglDisplay!!, true)
+            eglContext = GLTools.newContext(eglDisplay!!, eglConfig!!)
+            eglSurface = GLTools.newSurface(eglDisplay!!, eglConfig!!, 640, 480)
+            GLTools.makeCurrent(eglDisplay!!, eglSurface!!, eglContext!!)
+        }
+        mStManager = SurfaceTextureUtils.SurfaceTextureManager()
         init()
     }
 
@@ -81,7 +102,7 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
                     //p.setPreviewSize(previewSize.width, previewSize.height);
                     p.setPreviewSize(640, 480)
                     it.parameters = p
-                    it.setPreviewTexture(textureView.surfaceTexture)
+                    it.setPreviewTexture(mStManager?.surfaceTexture!!)
                     it.setPreviewCallback(this)
                     Log.v(LOGTAG, "startPreview")
                     it.startPreview()
