@@ -92,14 +92,7 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                             _process.outputStream.write(it.b)
                         }
                         ImageFormat.NV21 -> {
-                            val im = YuvImage(it.b, it.format, width, height, null)
-                            try {
-                                it.r?.let { rect ->
-                                    im.compressToJpeg(rect, 100, _process.outputStream)
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
+                            processYUV21(_process, it)
                         }
                         else -> {
                         }
@@ -111,6 +104,17 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                     }
                 }
             }
+        }
+    }
+
+    private fun processYUV21(process : Process, cp: CameraPackage) {
+        val im = YuvImage(cp.b as ByteArray, cp.format, width, height, null)
+        try {
+            cp.r?.let { rect ->
+                im.compressToJpeg(rect, 100, process.outputStream)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -168,12 +172,7 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
                 else builder.append(",transpose=1")
             }
             print("\"$builder\"")
-            val kbps = bitrateKb
-            val video_host = host
-            val video_port = port
-            val stream_key = config.pass
-            //TODO hook up with resolution prefs
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${kbps}k -minrate ${kbps}k -maxrate ${kbps}k -bufsize ${kbps/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
+            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${bitrateKb}k -minrate ${bitrateKb}k -maxrate ${bitrateKb}k -bufsize ${bitrateKb/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$host:$port/${config.pass}/$xres/$yres/"
             ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()
