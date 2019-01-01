@@ -10,6 +10,7 @@ import org.json.JSONObject
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
@@ -25,8 +26,8 @@ import java.util.*
  * TODO split into TTSComponent and ChatSocketComponent
  */
 class TextToSpeechComponent internal constructor(context: Context, private val robotId : String) : Component(context){
-    override fun getType(): Int {
-        return Component.TTS
+    override fun getType(): ComponentType {
+        return ComponentType.TTS
     }
 
     private var ttobj: TextToSpeech = TextToSpeech(context, TextToSpeech.OnInitListener {})

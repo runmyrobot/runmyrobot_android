@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
-import androidx.annotation.IntDef
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -154,23 +153,7 @@ abstract class Component(val context: Context) : IComponent{
 
         //some constant strings
         const val STATUS_EVENT = 0
-
-        //Some static event keys
-        @IntDef(CAMERA, CONTROL_DRIVER, CONTROL_TRANSLATOR, CONTROL_SOCKET, CHAT_COMMAND, APP_SOCKET, TTS, MICROPHONE)
-        @kotlin.annotation.Retention(AnnotationRetention.SOURCE)
-        annotation class Event
-
-        /**
-         * Connection has no active connections that failed prematurely
-         */
-        const val CAMERA = 0
-        const val CONTROL_DRIVER = 1
-        const val CONTROL_TRANSLATOR = 2
-        const val CONTROL_SOCKET = 3
-        const val CHAT_COMMAND = 4
-        const val APP_SOCKET = 5
-        const val TTS = 6
-        const val MICROPHONE = 7
-        const val CUSTOM = 8
+        const val EVENT_MAIN = 1
+        const val MESSAGE_TIMEOUT = 2
     }
 }

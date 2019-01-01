@@ -7,7 +7,9 @@ import tv.letsrobot.android.api.utils.SurfaceTextureUtils
 import javax.microedition.khronos.egl.EGLSurface
 
 /**
- * Created by Brendon on 10/6/2018.
+ * Creates an off screen surface texture for rendering the camera preview
+ *
+ * Compatible down to API16
  */
 abstract class SurfaceTextureCameraBaseComponent(context: Context, settings: CameraSettings) : CameraBaseComponent(context, settings){
     protected abstract fun setupCamera()

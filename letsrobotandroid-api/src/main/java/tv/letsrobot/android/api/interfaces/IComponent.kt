@@ -2,6 +2,7 @@ package tv.letsrobot.android.api.interfaces
 
 import android.os.Message
 import kotlinx.coroutines.Deferred
+import tv.letsrobot.android.api.enums.ComponentType
 
 /**
  * Base methods that any component requires
@@ -29,6 +30,5 @@ interface IComponent{
     /**
      * Gets the current type of the component based on Component.Companion.Event
      */
-    @Component.Companion.Event
-    fun getType() : Int
+    fun getType() : ComponentType
 }

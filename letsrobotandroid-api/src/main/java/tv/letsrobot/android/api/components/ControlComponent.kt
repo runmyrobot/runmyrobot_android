@@ -2,9 +2,9 @@ package tv.letsrobot.android.api.components
 
 import android.content.Context
 import android.util.Log
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.ROBOT_BYTE_ARRAY
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.interfaces.ComponentEventObject
 
 /**
  *  Base robot control component
@@ -14,8 +14,8 @@ import tv.letsrobot.android.api.interfaces.Component
  */
 abstract class ControlComponent(context: Context) : Component(context){
 
-    override fun getType(): Int {
-        return Component.CONTROL_DRIVER
+    override fun getType(): ComponentType {
+        return ComponentType.CONTROL_TRANSLATOR
     }
 
     /**
@@ -31,12 +31,10 @@ abstract class ControlComponent(context: Context) : Component(context){
 
     override fun enableInternal(){
         Log.d(TAG, "enable")
-        handleSubscriptions(true)
     }
 
     override fun disableInternal(){
         Log.d(TAG, "disable")
-        handleSubscriptions(false)
     }
 
     override fun timeout() {
@@ -44,21 +42,16 @@ abstract class ControlComponent(context: Context) : Component(context){
         onStopInternal(null)
     }
 
-    /**
-     * Enable or disable subscriptions to EventManager
-     */
-    private fun handleSubscriptions(enable : Boolean){
-        if(enable){
-            EventManager.subscribe(EventManager.COMMAND, onCommandInternal)
-            EventManager.subscribe(EventManager.STOP_EVENT, onStopInternal)
+    override fun handleExternalMessage(message: ComponentEventObject): Boolean {
+        if(message.type == ComponentType.CONTROL_SOCKET){
+            when(message.what){
+                EVENT_MAIN -> onCommandInternal(message.data)
+            }
         }
-        else{
-            EventManager.unsubscribe(EventManager.COMMAND, onCommandInternal)
-            EventManager.unsubscribe(EventManager.STOP_EVENT, onStopInternal)
-        }
+        return super.handleExternalMessage(message)
     }
 
-    private val onCommandInternal: (Any?) -> Unit = { command ->
+    private fun onCommandInternal(command : Any?){
         (command as? String)?.let{it ->
             onStringCommand(it)
         }
@@ -75,7 +68,7 @@ abstract class ControlComponent(context: Context) : Component(context){
     fun sendToDevice(byteArray: ByteArray?){
         byteArray?.let {
             Log.d("ControlComponent","sendToDevice")
-            EventManager.invoke(ROBOT_BYTE_ARRAY, byteArray)
+            eventDispatcher?.handleMessage(getType(), EVENT_MAIN, byteArray, this)
         }
     }
 

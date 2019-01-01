@@ -9,6 +9,7 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.JsonObjectUtils
@@ -20,8 +21,8 @@ import java.util.concurrent.atomic.AtomicLong
  */
 abstract class CameraBaseComponent(context: Context, val config: CameraSettings) : Component(context), FFmpegExecuteResponseHandler {
 
-    override fun getType(): Int {
-        return Component.CAMERA
+    override fun getType(): ComponentType {
+        return ComponentType.CAMERA
     }
 
     internal var ffmpegRunning = AtomicBoolean(false)

@@ -6,13 +6,10 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.COMMAND
-import tv.letsrobot.android.api.EventManager.Companion.ROBOT_CONNECTED
-import tv.letsrobot.android.api.EventManager.Companion.ROBOT_DISCONNECTED
-import tv.letsrobot.android.api.EventManager.Companion.STOP_EVENT
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
+import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -23,8 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Also grabs chat messages for TTS and sends it to EventManager
  */
 class ControlSocketComponent internal constructor(context : Context, private val robotId: String) : Component(context){
-    override fun getType(): Int {
-        return Component.CONTROL_SOCKET
+    override fun getType(): ComponentType {
+        return ComponentType.CONTROL_SOCKET
     }
 
     var running = AtomicBoolean(false)
@@ -33,7 +30,9 @@ class ControlSocketComponent internal constructor(context : Context, private val
     /**
      * Sends a timeout message via EventManager when run
      */
-    private var runnable: Runnable = Runnable { EventManager.invoke(EventManager.TIMEOUT, null) }
+    private var runnable: Runnable = Runnable {
+        eventDispatcher?.handleMessage(getType(), MESSAGE_TIMEOUT, null, this)
+    }
 
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
@@ -58,17 +57,6 @@ class ControlSocketComponent internal constructor(context : Context, private val
             )
         } catch (e: URISyntaxException) {
             e.printStackTrace()
-        }
-        EventManager.subscribe(EventManager.CHAT){
-            (it as? String)?.let {message ->
-                print(message)
-                when(message){
-                    TABLE_ON_COMMAND -> table = true
-                    TABLE_OFF_COMMAND -> table = false
-                    MOTORS_OFF_COMMAND -> allowControl = false
-                    MOTORS_ON_COMMAND -> allowControl = true
-                }
-            }
         }
         setupSocketEvents()
         mSocket?.connect()
@@ -101,14 +89,17 @@ class ControlSocketComponent internal constructor(context : Context, private val
             val `object` = args[0] as JSONObject
             parseCommand(`object`)?.let{
                 resetTimer() //resets a timer to prevent a timeout message
-                EventManager.invoke(COMMAND, it)
+                sendCommand(it)
             }
         }
     }
 
+    private fun sendCommand(command : String){
+        eventDispatcher?.handleMessage(getType(), EVENT_MAIN, command, this)
+    }
+
     private fun onSocketDisconnect() {
-        EventManager.invoke(ROBOT_DISCONNECTED, null)
-        EventManager.invoke(STOP_EVENT, null)
+        sendCommand(STOP_COMMAND)
         if(status != ComponentStatus.DISABLED)
             status = ComponentStatus.INTERMITTENT
     }
@@ -140,9 +131,31 @@ class ControlSocketComponent internal constructor(context : Context, private val
         }
     }
 
+    override fun handleExternalMessage(message: ComponentEventObject): Boolean {
+        if(message.type == ComponentType.CHAT_SOCKET){
+            when(message.what){
+                EVENT_MAIN -> {
+                    parseChat(message)
+                }
+            }
+        }
+        return super.handleExternalMessage(message)
+    }
+
+    private fun parseChat(message : ComponentEventObject) {
+        (message.data as? String)?.let {it ->
+            print(it)
+            when(it){
+                TABLE_ON_COMMAND -> table = true
+                TABLE_OFF_COMMAND -> table = false
+                MOTORS_OFF_COMMAND -> allowControl = false
+                MOTORS_ON_COMMAND -> allowControl = true
+            }
+        }
+    }
+
     private fun onRobotConnected() {
         mSocket?.emit("robot_id", robotId)
-        EventManager.invoke(ROBOT_CONNECTED, null)
         status = ComponentStatus.STABLE
     }
 
@@ -160,6 +173,7 @@ class ControlSocketComponent internal constructor(context : Context, private val
     }
 
     companion object {
+        const val STOP_COMMAND = "stop"
         const val TABLE_ON_COMMAND = ".table on"
         const val TABLE_OFF_COMMAND = ".table off"
         const val MOTORS_ON_COMMAND = ".motors on"

@@ -6,6 +6,7 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
@@ -20,8 +21,8 @@ class MainSocketComponent(context: Context) : Component(context) {
     var robotId = RobotConfig.RobotId.getValue(context) as String
     private var cameraStatus: ComponentStatus? = null
 
-    override fun getType(): Int {
-        return Component.APP_SOCKET
+    override fun getType(): ComponentType {
+        return ComponentType.APP_SOCKET
     }
 
     override fun enableInternal() {
@@ -101,7 +102,7 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     override fun handleExternalMessage(message: ComponentEventObject): Boolean {
-        if(message.type == CAMERA && message.what == Component.STATUS_EVENT)
+        if(message.type == ComponentType.CAMERA && message.what == Component.STATUS_EVENT)
             cameraStatus = message.data as ComponentStatus
         return super.handleExternalMessage(message)
     }
