@@ -4,19 +4,16 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.hardware.Camera
-import android.opengl.EGLConfig
-import android.opengl.EGLContext
-import android.opengl.EGLDisplay
-import android.opengl.EGLSurface
 import android.os.Build
 import android.util.Log
 import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.utils.GLTools
+import tv.letsrobot.android.api.utils.EglCore
 import tv.letsrobot.android.api.utils.SurfaceTextureUtils
 import java.io.IOException
+import javax.microedition.khronos.egl.EGLSurface
 
 
 /**
@@ -40,20 +37,17 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
     private var camera : android.hardware.Camera? = null
     private var _widthV1 = 0
     private var _heightV1 = 0
-    private var eglDisplay : EGLDisplay? = null
-    private var eglConfig: EGLConfig? = null
-    private var eglContext: EGLContext? = null
     private var eglSurface: EGLSurface? = null
     private var mStManager : SurfaceTextureUtils.SurfaceTextureManager? = null
+
+    private var eglCore: EglCore? = null
 
     init {
         Log.v("CameraAPI", "init")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            eglDisplay = GLTools.newDisplay()
-            eglConfig = GLTools.newConfig(eglDisplay!!, true)
-            eglContext = GLTools.newContext(eglDisplay!!, eglConfig!!)
-            eglSurface = GLTools.newSurface(eglDisplay!!, eglConfig!!, 640, 480)
-            GLTools.makeCurrent(eglDisplay!!, eglSurface!!, eglContext!!)
+            eglCore = EglCore()
+            eglSurface = eglCore?.createOffscreenSurface(640, 480)
+            eglCore?.makeCurrent(eglSurface)
         }
         mStManager = SurfaceTextureUtils.SurfaceTextureManager()
         init()
