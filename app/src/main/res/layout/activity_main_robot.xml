@@ -83,11 +83,6 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:text="@string/settings" />
-
-        <TextureView
-            android:id="@+id/cameraSurfaceView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
     </LinearLayout>
     <View
         android:layout_width="match_parent"
