@@ -5,7 +5,6 @@ import android.os.Message
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
-import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
@@ -38,27 +37,27 @@ class MainSocketComponent(context: Context) : Component(context) {
     private var appServerSocket: Socket? = null
 
     private fun setOwner(){
-        Companion.owner = JsonObjectUtils.getJsonObjectFromUrl(
+        owner = JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)
         )?.let {
             it.getString("owner")
         }
         //maybe this should rest somewhere else for lookup
-        eventDispatcher?.handleMessage(getType(), ROBOT_OWNER, Companion.owner, this)
+        eventDispatcher?.handleMessage(getType(), ROBOT_OWNER, owner, this)
     }
 
     private fun setupAppWebSocket() {
         appServerSocket = IO.socket("http://letsrobot.tv:8022")
         appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
-            EventManager.invoke(javaClass.simpleName, ComponentStatus.ERROR)
+            status = ComponentStatus.ERROR
         }
         appServerSocket?.on(Socket.EVENT_CONNECT){
-            EventManager.invoke(javaClass.simpleName, ComponentStatus.STABLE)
+            status = ComponentStatus.STABLE
             appServerSocket?.emit("identify_robot_id", robotId)
         }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
-            EventManager.invoke(javaClass.simpleName, ComponentStatus.DISABLED)
+            status = ComponentStatus.DISABLED
         }
     }
 

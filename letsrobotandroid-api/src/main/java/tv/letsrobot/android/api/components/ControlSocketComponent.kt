@@ -81,24 +81,36 @@ class ControlSocketComponent internal constructor(context : Context, private val
             }.on(Socket.EVENT_RECONNECT) {
                 onRobotConnected()
             }.on(Socket.EVENT_CONNECT_ERROR) {
-                Log.d("Robot", "Err")
-                status = ComponentStatus.ERROR
-                reset()
+                handleConnectError()
             }.on(Socket.EVENT_DISCONNECT) {
-                EventManager.invoke(ROBOT_DISCONNECTED, null)
-                EventManager.invoke(STOP_EVENT, null)
-                if(status != ComponentStatus.DISABLED)
-                    status = ComponentStatus.INTERMITTENT
+                onSocketDisconnect()
             }.on("command_to_robot") { args ->
-                if (args != null && args[0] is JSONObject) {
-                    val `object` = args[0] as JSONObject
-                    parseCommand(`object`)?.let{
-                        resetTimer() //resets a timer to prevent a timeout message
-                        EventManager.invoke(COMMAND, it)
-                    }
-                }
+                handleCommand(args)
             }
         }
+    }
+
+    private fun handleConnectError() {
+        Log.d("Robot", "Err")
+        status = ComponentStatus.ERROR
+        reset()
+    }
+
+    private fun handleCommand(args: Array<out Any>?) {
+        if (args != null && args[0] is JSONObject) {
+            val `object` = args[0] as JSONObject
+            parseCommand(`object`)?.let{
+                resetTimer() //resets a timer to prevent a timeout message
+                EventManager.invoke(COMMAND, it)
+            }
+        }
+    }
+
+    private fun onSocketDisconnect() {
+        EventManager.invoke(ROBOT_DISCONNECTED, null)
+        EventManager.invoke(STOP_EVENT, null)
+        if(status != ComponentStatus.DISABLED)
+            status = ComponentStatus.INTERMITTENT
     }
 
     private fun parseCommand(jsonObject: JSONObject): String? {

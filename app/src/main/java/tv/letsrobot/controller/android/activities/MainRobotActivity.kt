@@ -151,17 +151,6 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         robotMotorStatusIcon.onDestroy()
     }
 
-    override fun onPause() {
-        super.onPause()
-        //api?.onPause() TODO API Pause? Would only apply to legacy devices
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //Call onResume to re-enable it if needed. If null, create it
-        //core?.onResume() ?: createCore() TODO API Resume? Would only apply to legacy devices
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         destroyIndicators()
