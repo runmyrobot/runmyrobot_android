@@ -17,7 +17,7 @@ import tv.letsrobot.android.api.components.AudioComponent
 import tv.letsrobot.android.api.components.ControlSocketComponent
 import tv.letsrobot.android.api.components.TextToSpeechComponent
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
-import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
+import tv.letsrobot.android.api.components.camera.api19.Camera1SurfaceTextureComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.Component
@@ -237,7 +237,7 @@ private constructor(val robotId : String, val cameraId : String?) {
     }
 
     fun shouldFollowLifecycle() : Boolean{
-        return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP || camera is Camera1TextureComponent){
+        return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP || camera is Camera1SurfaceTextureComponent){
             if (!shouldRun.get()) {
                 return false
             }

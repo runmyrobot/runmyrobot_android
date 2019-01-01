@@ -4,16 +4,11 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.hardware.Camera
-import android.os.Build
 import android.util.Log
-import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
-import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
+import tv.letsrobot.android.api.components.camera.SurfaceTextureCameraBaseComponent
 import tv.letsrobot.android.api.models.CameraSettings
-import tv.letsrobot.android.api.utils.EglCore
-import tv.letsrobot.android.api.utils.SurfaceTextureUtils
 import java.io.IOException
-import javax.microedition.khronos.egl.EGLSurface
 
 
 /**
@@ -25,31 +20,21 @@ import javax.microedition.khronos.egl.EGLSurface
  *
  * Does not support USB webcams
  */
-class Camera1TextureComponent
+@Suppress("DEPRECATION")
+class Camera1SurfaceTextureComponent
 /**
  * Init camera object.
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(context: Context, settings: CameraSettings, textureView: TextureView) : TextureViewCameraBaseComponent(context, settings, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
-
+constructor(context: Context, settings: CameraSettings) : SurfaceTextureCameraBaseComponent(context, settings), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
     private var r: Rect? = null
     private var camera : android.hardware.Camera? = null
     private var _widthV1 = 0
     private var _heightV1 = 0
-    private var eglSurface: EGLSurface? = null
-    private var mStManager : SurfaceTextureUtils.SurfaceTextureManager? = null
-
-    private var eglCore: EglCore? = null
 
     init {
         Log.v("CameraAPI", "init")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            eglCore = EglCore()
-            eglSurface = eglCore?.createOffscreenSurface(640, 480)
-            eglCore?.makeCurrent(eglSurface)
-        }
-        mStManager = SurfaceTextureUtils.SurfaceTextureManager()
         init()
     }
 
@@ -67,10 +52,10 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
 
     override fun releaseCamera() {
         cameraActive.set(false)
-        surfaceAvailable = false
         previewRunning = false
         camera?.stopPreview()
         camera?.setPreviewCallback (null)
+        camera?.setPreviewTexture(null)
         camera?.release()
         camera = null
     }
@@ -81,7 +66,7 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
             camera = Camera.open()
             camera?.setDisplayOrientation(90)
         }
-        if (!cameraActive.get() && surfaceAvailable) {
+        if (!cameraActive.get()) {
             Log.v("CameraAPI", "!cameraActive.get() && surfaceAvailable")
             camera?.let {
                 if (previewRunning) {
@@ -96,7 +81,7 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
                     //p.setPreviewSize(previewSize.width, previewSize.height);
                     p.setPreviewSize(640, 480)
                     it.parameters = p
-                    it.setPreviewTexture(mStManager?.surfaceTexture!!)
+                    it.setPreviewTexture(mStManager.surfaceTexture)
                     it.setPreviewCallback(this)
                     Log.v(LOGTAG, "startPreview")
                     it.startPreview()

@@ -176,7 +176,6 @@ class MainRobotActivity : FragmentActivity(), Runnable{
     private fun addDefaultComponents() {
         val builder = ServiceComponentGenerator(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
-        builder.holder = cameraSurfaceView
         builder.robotId = settings.robotId //Pass in our Robot ID
 
         (settings.cameraId).takeIf {

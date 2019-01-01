@@ -2,13 +2,12 @@ package tv.letsrobot.android.api.models
 
 import android.content.Context
 import android.os.Build
-import android.view.TextureView
 import tv.letsrobot.android.api.Core.InitializationException
 import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
-import tv.letsrobot.android.api.components.camera.api19.Camera1TextureComponent
-import tv.letsrobot.android.api.components.camera.api21.Camera2TextureComponent
+import tv.letsrobot.android.api.components.camera.api19.Camera1SurfaceTextureComponent
+import tv.letsrobot.android.api.components.camera.api21.Camera2SurfaceTextureComponent
 import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.robot.CommunicationType
@@ -58,7 +57,6 @@ class ServiceComponentGenerator
     var useTTS = false
 
     var useMic = false
-    var holder: TextureView? = null
     var externalComponents: ArrayList<IComponent>? = null
     var cameraSettings: CameraSettings? = null
 
@@ -97,19 +95,17 @@ class ServiceComponentGenerator
                 val audioComponent = AudioComponent(context, config.cameraId, config.pass)
                 componentList.add(audioComponent)
             }
-            holder?.let {
-                val camera = if(false/*TODO StoreUtil or autodetect*/){
-                    ExtCameraInterface(context, config)
-                }
-                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !config.useLegacyApi) {
-                    Camera2TextureComponent(context, config, holder!!)
-                }
-                else{
-                    Camera1TextureComponent(context, config, holder!!)
-                }
-                componentList.add(camera)
-                TelemetryManager.Instance?.invoke("Camera Selection", camera::class.java.simpleName)
+            val camera = if(false/*TODO StoreUtil or autodetect*/){
+                ExtCameraInterface(context, config)
             }
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !config.useLegacyApi) {
+                Camera2SurfaceTextureComponent(context, config)
+            }
+            else{
+                Camera1SurfaceTextureComponent(context, config)
+            }
+            componentList.add(camera)
+            TelemetryManager.Instance?.invoke("Camera Selection", camera::class.java.simpleName)
         }
         if (useTTS) {
             val textToSpeech = TextToSpeechComponent(context, robotId!!)
