@@ -12,7 +12,6 @@ import android.view.WindowManager
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main_robot.*
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.enums.Operation
@@ -199,7 +198,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         builder.externalComponents = customComponents //pass in arrayList of custom components
         try {
             components = builder.build()
-        } catch (e: Core.InitializationException) {
+        } catch (e: ServiceComponentGenerator.InitializationException) {
             RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()
         }

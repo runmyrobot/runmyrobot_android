@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit
  * and IP, and publishes other useful information
  */
 class MainSocketComponent(context: Context) : Component(context) {
-    var owner : String? = null
     var robotId = RobotConfig.RobotId.getValue(context) as String
     private var cameraStatus: ComponentStatus? = null
 
@@ -39,13 +38,13 @@ class MainSocketComponent(context: Context) : Component(context) {
     private var appServerSocket: Socket? = null
 
     private fun setOwner(){
-        owner = JsonObjectUtils.getJsonObjectFromUrl(
+        Companion.owner = JsonObjectUtils.getJsonObjectFromUrl(
                 String.format("https://letsrobot.tv/get_robot_owner/%s", robotId)
         )?.let {
             it.getString("owner")
         }
         //maybe this should rest somewhere else for lookup
-        eventDispatcher?.handleMessage(getType(), ROBOT_OWNER, owner, this)
+        eventDispatcher?.handleMessage(getType(), ROBOT_OWNER, Companion.owner, this)
     }
 
     private fun setupAppWebSocket() {
@@ -110,5 +109,6 @@ class MainSocketComponent(context: Context) : Component(context) {
 
     companion object {
         const val ROBOT_OWNER = 0
+        var owner : String? = null
     }
 }

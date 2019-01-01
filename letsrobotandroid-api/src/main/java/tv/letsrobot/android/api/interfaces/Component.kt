@@ -9,7 +9,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.services.LetsRobotService
@@ -45,7 +44,6 @@ abstract class Component(val context: Context) : IComponent{
     init {
         status = ComponentStatus.DISABLED
     }
-    protected val coreInstance : Core? = null
     protected val enabled = AtomicBoolean(false)
 
     protected abstract fun enableInternal()

@@ -7,7 +7,6 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
@@ -100,7 +99,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
     }
 
     private fun processCommand(it: String, user : String?): String? {
-        if(user == Core.owner) {
+        if(user == MainSocketComponent.owner) {
             return when (it) {
                 ".table on" -> {
                     "Table top mode on"

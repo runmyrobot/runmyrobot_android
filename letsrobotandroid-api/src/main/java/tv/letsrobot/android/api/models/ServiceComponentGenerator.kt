@@ -2,7 +2,11 @@ package tv.letsrobot.android.api.models
 
 import android.content.Context
 import android.os.Build
-import tv.letsrobot.android.api.Core.InitializationException
+import android.util.Log
+import android.widget.Toast
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
 import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
@@ -30,6 +34,8 @@ class ServiceComponentGenerator
  * @param context Application context
  */
 (context: Context) {
+
+    class InitializationException : Exception()
 
 
     internal var context: Context = context.applicationContext
@@ -131,6 +137,35 @@ class ServiceComponentGenerator
                 tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
             }
             throw InitializationException()
+        }
+    }
+
+    companion object {
+        fun initDependencies(context: Context, done: () -> Unit) {
+            TelemetryManager.init(context.applicationContext)
+            val ffmpeg = FFmpeg.getInstance(context.applicationContext)
+            try {
+                ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
+                    override fun onFinish() {
+                        super.onFinish()
+                        Log.d("FFMPEG", "onFinish")
+                        done() //run next action
+                    }
+                })
+            } catch (e: FFmpegNotSupportedException) {
+                Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                e.printStackTrace()
+                done() //run next action
+            }
+        }
+
+        /**
+         * Clear all stored config data for our Communication components, which would trigger setup again
+         */
+        fun resetCommunicationConfig(context: Context) {
+            CommunicationType.values().forEach {
+                it.getInstantiatedClass?.clearSetup(context.applicationContext)
+            }
         }
     }
 }
