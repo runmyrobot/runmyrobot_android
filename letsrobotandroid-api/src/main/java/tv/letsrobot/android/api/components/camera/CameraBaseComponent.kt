@@ -83,38 +83,34 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     private fun processCamera(it: CameraPackage) {
         if(streaming.get() && limiter.tryAcquire()) {
             if (!ffmpegRunning.getAndSet(true)) {
-                bootFFMPEG(it.r)
+                tryBootFFmpeg(it.r)
             }
-            process?.let { _process ->
-                (it.b as? ByteArray)?.let { _ ->
-                    when (it.format) {
-                        ImageFormat.JPEG -> {
-                            _process.outputStream.write(it.b)
-                        }
-                        ImageFormat.NV21 -> {
-                            processYUV21(_process, it)
-                        }
-                        else -> {
-                        }
-                    }
-                } ?: (it.b as? Bitmap)?.let { image ->
-                    try {
-                        image.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
-                    } catch (e: Exception) {
-                    }
+            try {
+                process?.let { _process ->
+                    (it.b as? ByteArray)?.let { _ ->
+                        processByteArray(_process, it)
+                    } ?: (it.b as? Bitmap)?.compress(Bitmap.CompressFormat.JPEG,
+                            100, _process.outputStream)
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
-    private fun processYUV21(process : Process, cp: CameraPackage) {
-        val im = YuvImage(cp.b as ByteArray, cp.format, width, height, null)
-        try {
-            cp.r?.let { rect ->
-                im.compressToJpeg(rect, 100, process.outputStream)
+    private fun processByteArray(_process: Process, it: CameraPackage) {
+        when (it.format) {
+            ImageFormat.JPEG -> {
+                _process.outputStream.write(it.b as ByteArray)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            ImageFormat.NV21 -> {
+                val im = YuvImage(it.b as ByteArray, it.format, width, height, null)
+                it.r?.let { rect ->
+                    im.compressToJpeg(rect, 100, _process.outputStream)
+                }
+            }
+            else -> {
+            }
         }
     }
 
@@ -148,36 +144,39 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     /**
      * Boot ffmpeg using config. If given a Rect, use that for resolution instead.
      */
-    fun bootFFMPEG(r : Rect? = null){
+    fun tryBootFFmpeg(r : Rect? = null){
         if(!streaming.get()){
             ffmpegRunning.set(false)
             status = ComponentStatus.DISABLED
             return
         }
-        successCounter = 0
-        status = ComponentStatus.CONNECTING
-        try {
-            // to execute "ffmpeg -version" command you just need to pass "-version"
-            var xres = width
-            var yres = height
-            r?.let {
-                xres = r.width()
-                yres = r.height()
-            }
-
-            val rotationOption = config.orientation.ordinal //leave blank
-            val builder = StringBuilder()
-            for (i in 0..rotationOption){
-                if(i == 0) builder.append("-vf transpose=1")
-                else builder.append(",transpose=1")
-            }
-            print("\"$builder\"")
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${bitrateKb}k -minrate ${bitrateKb}k -maxrate ${bitrateKb}k -bufsize ${bitrateKb/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$host:$port/${config.pass}/$xres/$yres/"
-            ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
+        try{
+            bootFFmpeg(r)
         } catch (e: FFmpegCommandAlreadyRunningException) {
             e.printStackTrace()
             // Handle if FFmpeg is already running
         }
+    }
+
+    @Throws(FFmpegCommandAlreadyRunningException::class)
+    private fun bootFFmpeg(r : Rect? = null) {
+        successCounter = 0
+        status = ComponentStatus.CONNECTING
+        var xres = width
+        var yres = height
+        r?.let {
+            xres = r.width()
+            yres = r.height()
+        }
+
+        val rotationOption = config.orientation.ordinal //leave blank
+        val builder = StringBuilder()
+        for (i in 0..rotationOption){
+            if(i == 0) builder.append("-vf transpose=1")
+            else builder.append(",transpose=1")
+        }
+        val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${bitrateKb}k -minrate ${bitrateKb}k -maxrate ${bitrateKb}k -bufsize ${bitrateKb/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$host:$port/${config.pass}/$xres/$yres/"
+        ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
     }
 
     override fun onStart() {

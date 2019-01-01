@@ -92,50 +92,6 @@ public class SurfaceTextureUtils {
             return mSurfaceTexture;
         }
 
-        /**
-         * Replaces the fragment shader.
-         */
-        public void changeFragmentShader(String fragmentShader) {
-            mTextureRender.changeFragmentShader(fragmentShader);
-        }
-
-        /**
-         * Latches the next buffer into the texture.  Must be called from the thread that created
-         * the OutputSurface object.
-         */
-        public void awaitNewImage() {
-            final int TIMEOUT_MS = 2500;
-
-            synchronized (mFrameSyncObject) {
-                while (!mFrameAvailable) {
-                    try {
-                        // Wait for onFrameAvailable() to signal us.  Use a timeout to avoid
-                        // stalling the test if it doesn't arrive.
-                        mFrameSyncObject.wait(TIMEOUT_MS);
-                        if (!mFrameAvailable) {
-                            // TODO: if "spurious wakeup", continue while loop
-                            throw new RuntimeException("Camera frame wait timed out");
-                        }
-                    } catch (InterruptedException ie) {
-                        // shouldn't happen
-                        throw new RuntimeException(ie);
-                    }
-                }
-                mFrameAvailable = false;
-            }
-
-            // Latch the data.
-            mTextureRender.checkGlError("before updateTexImage");
-            mSurfaceTexture.updateTexImage();
-        }
-
-        /**
-         * Draws the data from SurfaceTexture onto the current EGL surface.
-         */
-        public void drawImage() {
-            mTextureRender.drawFrame(mSurfaceTexture);
-        }
-
         @Override
         public void onFrameAvailable(SurfaceTexture st) {
             if (VERBOSE) Log.d(TAG, "new frame available");
@@ -212,48 +168,6 @@ public class SurfaceTextureUtils {
             return mTextureID;
         }
 
-        public void drawFrame(SurfaceTexture st) {
-            checkGlError("onDrawFrame start");
-            st.getTransformMatrix(mSTMatrix);
-
-            // (optional) clear to green so we can see if we're failing to set pixels
-            GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-
-            GLES20.glUseProgram(mProgram);
-            checkGlError("glUseProgram");
-
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureID);
-
-            mTriangleVertices.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
-            GLES20.glVertexAttribPointer(maPositionHandle, 3, GLES20.GL_FLOAT, false,
-                    TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices);
-            checkGlError("glVertexAttribPointer maPosition");
-            GLES20.glEnableVertexAttribArray(maPositionHandle);
-            checkGlError("glEnableVertexAttribArray maPositionHandle");
-
-            mTriangleVertices.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
-            GLES20.glVertexAttribPointer(maTextureHandle, 2, GLES20.GL_FLOAT, false,
-                    TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices);
-            checkGlError("glVertexAttribPointer maTextureHandle");
-            GLES20.glEnableVertexAttribArray(maTextureHandle);
-            checkGlError("glEnableVertexAttribArray maTextureHandle");
-
-            Matrix.setIdentityM(mMVPMatrix, 0);
-            GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-            GLES20.glUniformMatrix4fv(muSTMatrixHandle, 1, false, mSTMatrix, 0);
-
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-            checkGlError("glDrawArrays");
-
-            // IMPORTANT: on some devices, if you are sharing the external texture between two
-            // contexts, one context may not see updates to the texture unless you un-bind and
-            // re-bind it.  If you're not using shared EGL contexts, you don't need to bind
-            // texture 0 here.
-            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
-        }
-
         /**
          * Initializes GL state.  Call this after the EGL surface has been created and made current.
          */
@@ -289,20 +203,6 @@ public class SurfaceTextureUtils {
             GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
                     GLES20.GL_CLAMP_TO_EDGE);
             checkGlError("glTexParameter");
-        }
-
-        /**
-         * Replaces the fragment shader.  Pass in null to reset to default.
-         */
-        public void changeFragmentShader(String fragmentShader) {
-            if (fragmentShader == null) {
-                fragmentShader = FRAGMENT_SHADER;
-            }
-            GLES20.glDeleteProgram(mProgram);
-            mProgram = createProgram(VERTEX_SHADER, fragmentShader);
-            if (mProgram == 0) {
-                throw new RuntimeException("failed creating program");
-            }
         }
 
         private int loadShader(int shaderType, String source) {
