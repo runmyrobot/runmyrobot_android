@@ -6,6 +6,7 @@ import android.os.*
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.runBlocking
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.ComponentEventListener
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
@@ -72,7 +73,7 @@ class LetsRobotService : Service(), ComponentEventListener {
 
     private fun sendToComponents(msg: Message) {
         val obj = msg.obj as? ComponentEventObject
-        var targetFilter : Int? = null
+        var targetFilter : ComponentType? = null
         obj?.let {
             if((obj.source as? IComponent)?.getType() != obj.type){
                 //send a message to all components of type obj.type
