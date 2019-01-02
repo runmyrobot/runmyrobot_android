@@ -7,7 +7,6 @@ import android.widget.Toast
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException
-import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1SurfaceTextureComponent
@@ -84,7 +83,6 @@ class ServiceComponentGenerator
             //Setup our protocol, if it exists
             val protocolClass = protocol?.getInstantiatedClass(context)
             protocolClass?.let { protocol ->
-                TelemetryManager.Instance?.invoke("Protocol Selection", protocol::javaClass.name)
                 //Add it to the component list
                 externalComponents?.add(protocol)
             }
@@ -92,7 +90,6 @@ class ServiceComponentGenerator
             val communicationClass = communication?.getInstantiatedClass
             communicationClass?.let { communication ->
                 //Add it to the component list
-                TelemetryManager.Instance?.invoke("Communication Selection", communication::javaClass.name)
                 externalComponents?.add(CommunicationComponent(context, communication))
             }
         }
@@ -111,7 +108,6 @@ class ServiceComponentGenerator
                 Camera1SurfaceTextureComponent(context, config)
             }
             componentList.add(camera)
-            TelemetryManager.Instance?.invoke("Camera Selection", camera::class.java.simpleName)
         }
         if (useTTS) {
             val textToSpeech = TextToSpeechComponent(context, robotId!!)
@@ -127,22 +123,12 @@ class ServiceComponentGenerator
     @Throws(InitializationException::class)
     fun validateSettings(robotId : String?, cameraSettings: CameraSettings?){
         if (robotId == null && cameraSettings?.cameraId == null || robotId == null) {
-            TelemetryManager.Instance?.let { tm ->
-                val robotIdStr = robotId?.let{
-                    "Value"
-                }
-                val cameraIdStr = cameraSettings?.cameraId?.let{
-                    "Value"
-                }
-                tm.invoke("InitializationException", "robotId=$robotIdStr, cameraId=$cameraIdStr")
-            }
             throw InitializationException()
         }
     }
 
     companion object {
         fun initDependencies(context: Context, done: () -> Unit) {
-            TelemetryManager.init(context.applicationContext)
             val ffmpeg = FFmpeg.getInstance(context.applicationContext)
             try {
                 ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {

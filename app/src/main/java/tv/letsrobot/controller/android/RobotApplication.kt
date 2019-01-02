@@ -3,7 +3,6 @@ package tv.letsrobot.controller.android
 import android.app.Application
 import android.widget.Toast
 import com.squareup.leakcanary.LeakCanary
-import tv.letsrobot.android.api.TelemetryManager
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 
 /**
@@ -32,7 +31,6 @@ class RobotApplication : Application() {
     fun reportError(e: Exception) {
         Toast.makeText(this, "ERROR:\n${e.message} " +
                 "\n", Toast.LENGTH_LONG).show()
-        TelemetryManager.Instance?.invoke("error", e.toString())
     }
 
     companion object {

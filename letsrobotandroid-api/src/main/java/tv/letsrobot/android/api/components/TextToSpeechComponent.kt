@@ -7,8 +7,6 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.CHAT
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
@@ -92,7 +90,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 processCommand(it, user)
             }
             ttobj.setPitch(pitch)
-            EventManager.invoke(CHAT, it)
+            eventDispatcher?.handleMessage(getType(), EVENT_MAIN, it, this)
             speakingText?.let{t ->
                 ttobj.speak(t, TextToSpeech.QUEUE_FLUSH, null)
             }
