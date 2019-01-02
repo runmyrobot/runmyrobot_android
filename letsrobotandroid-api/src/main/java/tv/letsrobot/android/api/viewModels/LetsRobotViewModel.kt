@@ -17,20 +17,29 @@ class LetsRobotViewModel : ViewModel(){
     var api : ILetsRobotControl? = null
         private set
 
+    private var serviceStatusObserver : Observer<Operation>? = null
+    private var serviceConnectionObserver : Observer<Operation>? = null
+
     /**
      * Calls api.getServiceStateObserver().observe(activity, observer) in ILetsRobotControl
      * @see ILetsRobotControl.getServiceStateObserver(activity, observer)
      */
-    fun setStatusObserver(activity: FragmentActivity, observer : Observer<Operation>){
-        api?.getServiceStateObserver()?.observe(activity, observer)
+    fun setStatusObserver(activity: FragmentActivity, observer : (Operation) -> Unit){
+        serviceStatusObserver = Observer{
+            observer(it)
+        }
+        api?.getServiceStateObserver()?.observe(activity, serviceStatusObserver!!)
     }
 
     /**
-     * Calls api.getServiceConnectionStatusObserver().observe(activity, observer) in ILetsRobotControl
-     * @see ILetsRobotControl.getServiceConnectionStatusObserver(activity, observer)
+     * Calls api.getServiceBoundObserver().observe(activity, observer) in ILetsRobotControl
+     * @see ILetsRobotControl.getServiceBoundObserver(activity, observer)
      */
-    fun setServiceConnectedObserver(activity: FragmentActivity, observer : Observer<Operation>){
-        api?.getServiceConnectionStatusObserver()?.observe(activity, observer)
+    fun setServiceBoundListener(activity: FragmentActivity, observer : (Operation) -> Unit){
+        serviceConnectionObserver = Observer{
+            observer(it)
+        }
+        api?.getServiceBoundObserver()?.observe(activity, serviceConnectionObserver!!)
     }
 
     override fun onCleared() {

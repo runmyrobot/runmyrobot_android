@@ -37,7 +37,6 @@ class ServiceComponentGenerator
 
     class InitializationException : Exception()
 
-
     internal var context: Context = context.applicationContext
 
     private var logLevel = LogLevel.NONE
@@ -78,22 +77,26 @@ class ServiceComponentGenerator
         //RobotId MUST be defined, cameraId can be ignored
         validateSettings(robotId, cameraSettings) //will throw if bad
         componentList.add(MainSocketComponent(context))
-        robotId?.let{
-            val robotController = ControlSocketComponent(context, it)
-            componentList.add(robotController)
-            //Setup our protocol, if it exists
-            val protocolClass = protocol?.getInstantiatedClass(context)
-            protocolClass?.let { protocol ->
-                //Add it to the component list
-                externalComponents?.add(protocol)
-            }
-            //Setup our communication, if it exists
-            val communicationClass = communication?.getInstantiatedClass
-            communicationClass?.let { communication ->
-                //Add it to the component list
-                externalComponents?.add(CommunicationComponent(context, communication))
-            }
+        maybeSetupRobotComponents(componentList)
+        maybeSetupCameraComponents(componentList)
+        maybeSetupTextToSpeechComponents(componentList)
+        //Get list of external components, such as LED code, or more customized motor control
+        externalComponents?.let { componentList.addAll(it) }
+        //Set the log level
+        LetsRobotService.logLevel = logLevel
+        return componentList
+    }
+
+    private fun maybeSetupTextToSpeechComponents(componentList: ArrayList<IComponent>) {
+        if (useTTS) {
+            val textToSpeech = ChatSocketComponent(context, robotId!!)
+            val ttsEngine = SystemDefaultTTSComponent(context)
+            componentList.add(ttsEngine)
+            componentList.add(textToSpeech)
         }
+    }
+
+    private fun maybeSetupCameraComponents(componentList: ArrayList<IComponent>) {
         cameraSettings?.let{ config ->
             if(useMic) {
                 val audioComponent = AudioComponent(context, config.cameraId, config.pass)
@@ -110,17 +113,25 @@ class ServiceComponentGenerator
             }
             componentList.add(camera)
         }
-        if (useTTS) {
-            val textToSpeech = ChatSocketComponent(context, robotId!!)
-            val ttsEngine = SystemDefaultTTSComponent(context)
-            componentList.add(ttsEngine)
-            componentList.add(textToSpeech)
+    }
+
+    private fun maybeSetupRobotComponents(componentList: ArrayList<IComponent>) {
+        robotId?.let{
+            val robotController = ControlSocketComponent(context, it)
+            componentList.add(robotController)
+            //Setup our protocol, if it exists
+            val protocolClass = protocol?.getInstantiatedClass(context)
+            protocolClass?.let { protocol ->
+                //Add it to the component list
+                externalComponents?.add(protocol)
+            }
+            //Setup our communication, if it exists
+            val communicationClass = communication?.getInstantiatedClass
+            communicationClass?.let { communication ->
+                //Add it to the component list
+                externalComponents?.add(CommunicationComponent(context, communication))
+            }
         }
-        //Get list of external components, such as LED code, or more customized motor control
-        externalComponents?.let { componentList.addAll(it) }
-        //Set the log level
-        LetsRobotService.logLevel = logLevel
-        return componentList
     }
 
     @Throws(InitializationException::class)

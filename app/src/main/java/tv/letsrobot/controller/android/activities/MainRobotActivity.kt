@@ -10,7 +10,6 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
@@ -65,19 +64,18 @@ class MainRobotActivity : FragmentActivity(), Runnable{
 
     private fun setupApiInterface() {
         letsRobotViewModel = LetsRobotViewModel.getObject(this)
-        letsRobotViewModel?.setServiceConnectedObserver(this, Observer{connected ->
-            // We do not want the user to be able to use the button if the service is not bound yet
+        letsRobotViewModel?.setServiceBoundListener(this){ connected ->
             mainPowerButton.isEnabled = connected == Operation.OK
-        })
-        letsRobotViewModel?.setStatusObserver(this, Observer { serviceStatus ->
+        }
+        letsRobotViewModel?.setStatusObserver(this){ serviceStatus ->
             mainPowerButton.setTextColor(parseColorForOperation(serviceStatus))
             val isLoading = serviceStatus == Operation.LOADING
             mainPowerButton.isEnabled = !isLoading
-            if(isLoading) return@Observer //processing command. Disable button
+            if(isLoading) return@setStatusObserver //processing command. Disable button
             recording = serviceStatus == Operation.OK
             if(recording && settings.screenTimeout)
                 startSleepDelayed()
-        })
+        }
 
         //Setup a custom component
         val component = CustomComponentExample(applicationContext, "customString")

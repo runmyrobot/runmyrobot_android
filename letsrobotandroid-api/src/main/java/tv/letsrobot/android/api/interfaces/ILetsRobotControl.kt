@@ -43,7 +43,7 @@ interface ILetsRobotControl {
      * Subscribe to service connection events.
      * @return androidx.lifecycle.LiveData<Boolean>
      */
-    fun getServiceConnectionStatusObserver() : LiveData<Operation>
+    fun getServiceBoundObserver() : LiveData<Operation>
 
     /**
      * Disconnect from service. Calling this does not terminate the service.

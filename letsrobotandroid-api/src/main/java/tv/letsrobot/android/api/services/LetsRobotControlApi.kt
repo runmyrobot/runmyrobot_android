@@ -22,14 +22,14 @@ class LetsRobotControlApi private constructor(
     /**
      * LiveData object for whether or not the service has the components enabled
      */
-    private val serviceState: MutableLiveData<Operation> by lazy {
+    private val serviceStateObserver: MutableLiveData<Operation> by lazy {
         MutableLiveData<Operation>()
     }
 
     /**
      * LiveData object for whether or not we have a valid connection to the service
      */
-    private val serviceConnectionStatus: MutableLiveData<Operation> by lazy {
+    private val serviceBoundObserver: MutableLiveData<Operation> by lazy {
         MutableLiveData<Operation>()
     }
 
@@ -42,25 +42,25 @@ class LetsRobotControlApi private constructor(
         // service using a Messenger, so here we get a client-side
         // representation of that from the raw IBinder object.
         mService = Messenger(service)
-        serviceConnectionStatus.value = Operation.OK
+        serviceBoundObserver.value = Operation.OK
     }
 
     override fun onServiceDisconnected(className: ComponentName) {
         // This is called when the connection with the service has been
         // unexpectedly disconnected -- that is, its process crashed.
         mService = null
-        serviceConnectionStatus.value = Operation.NOT_OK
+        serviceBoundObserver.value = Operation.NOT_OK
     }
 
     @Throws(IllegalStateException::class)
     override fun enable() {
-        serviceState.value = Operation.LOADING
+        serviceStateObserver.value = Operation.LOADING
         sendStateUnsafe(LetsRobotService.START)
     }
 
     @Throws(IllegalStateException::class)
     override fun disable(){
-        serviceState.value = Operation.LOADING
+        serviceStateObserver.value = Operation.LOADING
         sendStateUnsafe(LetsRobotService.STOP)
     }
 
@@ -86,17 +86,17 @@ class LetsRobotControlApi private constructor(
     }
 
     override fun getServiceStateObserver(): LiveData<Operation> {
-        return serviceState
+        return serviceStateObserver
     }
 
-    override fun getServiceConnectionStatusObserver(): LiveData<Operation> {
-        return serviceConnectionStatus
+    override fun getServiceBoundObserver(): LiveData<Operation> {
+        return serviceBoundObserver
     }
 
-    private var receiver = Receiver(serviceState)
+    private var receiver = Receiver(serviceStateObserver)
 
     override fun connectToService() {
-        receiver = Receiver(serviceState)
+        receiver = Receiver(serviceStateObserver)
         LocalBroadcastManager.getInstance(context).registerReceiver(receiver,
                 IntentFilter(LetsRobotService.SERVICE_STATUS_BROADCAST))
         Intent(context, LetsRobotService::class.java).also { intent ->

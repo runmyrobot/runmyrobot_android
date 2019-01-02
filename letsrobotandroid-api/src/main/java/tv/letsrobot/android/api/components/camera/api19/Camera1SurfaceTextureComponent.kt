@@ -61,29 +61,19 @@ constructor(context: Context, settings: CameraSettings) : SurfaceTextureCameraBa
     }
 
     override fun setupCamera(){
-        Log.v("CameraAPI", "setupCamera")
         camera ?: kotlin.run {
             camera = Camera.open()
             camera?.setDisplayOrientation(90)
         }
         if (!cameraActive.get()) {
-            Log.v("CameraAPI", "!cameraActive.get() && surfaceAvailable")
             camera?.let {
                 if (previewRunning) {
                     it.stopPreview()
                 }
-
                 try {
-                    val p = it.parameters
-                    val previewSizes = p.supportedPreviewSizes
-                    // You need to choose the most appropriate previewSize for your app
-                    val previewSize = previewSizes.get(0) // .... select one of previewSizes here
-                    //p.setPreviewSize(previewSize.width, previewSize.height);
-                    p.setPreviewSize(640, 480)
-                    it.parameters = p
+                    it.parameters.setPreviewSize(640, 480)
                     it.setPreviewTexture(mStManager.surfaceTexture)
                     it.setPreviewCallback(this)
-                    Log.v(LOGTAG, "startPreview")
                     it.startPreview()
                     previewRunning = true
                     cameraActive.set(true)
