@@ -85,7 +85,7 @@ class MainSocketComponent(context: Context) : Component(context) {
     private fun onUpdateServer() {
         appServerSocket?.emit("identify_robot_id", robotId)
         maybeSendVideoStatus()
-        maybeUpdateIp()
+//        maybeUpdateIp()
         handler.sendEmptyMessageDelayed(DO_SOME_WORK, TimeUnit.MINUTES.toMillis(1))
     }
 

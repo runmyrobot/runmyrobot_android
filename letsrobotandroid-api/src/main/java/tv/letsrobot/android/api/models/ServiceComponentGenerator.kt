@@ -72,7 +72,6 @@ class ServiceComponentGenerator
      */
     @Throws(InitializationException::class)
     fun build(): ArrayList<IComponent> {
-        //TODO define preconditions that will throw errors
         val componentList = ArrayList<IComponent>()
         //RobotId MUST be defined, cameraId can be ignored
         validateSettings(robotId, cameraSettings) //will throw if bad
@@ -123,13 +122,13 @@ class ServiceComponentGenerator
             val protocolClass = protocol?.getInstantiatedClass(context)
             protocolClass?.let { protocol ->
                 //Add it to the component list
-                externalComponents?.add(protocol)
+                componentList.add(protocol)
             }
             //Setup our communication, if it exists
             val communicationClass = communication?.getInstantiatedClass
             communicationClass?.let { communication ->
                 //Add it to the component list
-                externalComponents?.add(CommunicationComponent(context, communication))
+                componentList.add(CommunicationComponent(context, communication))
             }
         }
     }

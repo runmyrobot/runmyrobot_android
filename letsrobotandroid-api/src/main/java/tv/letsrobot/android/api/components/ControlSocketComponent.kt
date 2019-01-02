@@ -108,7 +108,7 @@ class ControlSocketComponent internal constructor(context : Context, private val
         return try {
             //broadcast what message was sent ex. F, stop, etc
             val command = jsonObject.getString("command")
-            if(!allowControl){ //TODO Allow non-movement commands pass
+            if(!allowControl){
                 print("Trashing movement. Controls disabled")
                 return null
             }

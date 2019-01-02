@@ -107,11 +107,6 @@ public final class EglCore {
                 EGL11.EGL_NONE, 0,      // placeholder for recordable [@-3]
                 EGL11.EGL_NONE
         };
-        /*fixme if recordable
-            if ((flags & FLAG_RECORDABLE) != 0) {
-            attribList[attribList.length - 3] = EGL_RECORDABLE_ANDROID;
-            attribList[attribList.length - 2] = 1;
-        }*/
         EGLConfig[] configs = new EGLConfig[1];
         int[] numConfigs = new int[1];
         if (!mEgl.eglChooseConfig(mEGLDisplay, attribList, configs, configs.length,

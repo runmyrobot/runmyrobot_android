@@ -7,8 +7,6 @@ import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import java.util.*
 
 /**
- * TODO different voice or voice options?
- *
  * Uses the System TTS system. This uses whatever the default engine is set to
  */
 class SystemDefaultTTSComponent(context: Context) : TTSBaseComponent(context) {

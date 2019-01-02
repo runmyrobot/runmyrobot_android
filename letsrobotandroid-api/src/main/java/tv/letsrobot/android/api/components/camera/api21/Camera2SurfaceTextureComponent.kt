@@ -67,16 +67,7 @@ class Camera2SurfaceTextureComponent(context: Context, settings: CameraSettings)
         reader.setOnImageAvailableListener(this, mBackgroundHandler)
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-            /*//TODO MAYBE
-                if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-                    throw RuntimeException("Time out waiting to lock camera opening.")
-            }*/
             val cameraId = manager.cameraIdList[0]
-
-            // Choose the sizes for camera preview and video recording
-            val characteristics = manager.getCameraCharacteristics(cameraId)
-            val map = characteristics
-                    .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             manager.openCamera(cameraId, mStateCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()

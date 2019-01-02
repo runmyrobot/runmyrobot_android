@@ -31,7 +31,6 @@ import tv.letsrobot.controller.android.robot.RobotSettingsObject
 class MainRobotActivity : FragmentActivity(), Runnable{
 
     var components = ArrayList<IComponent>() //arraylist of core components
-    var customComponents = ArrayList<IComponent>() //arrayList of custom components TODO refactor
 
     override fun run() {
         if (recording){
@@ -56,10 +55,17 @@ class MainRobotActivity : FragmentActivity(), Runnable{
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main_robot) //Set the layout to use for activity
-
+        setupExternalComponents()
         setupApiInterface()
         setupButtons()
         initIndicators()
+    }
+
+    private fun setupExternalComponents() {
+        //add custom components here
+        //Setup a custom component
+        val component = CustomComponentExample(applicationContext, "customString")
+        components.add(component) //add to custom components list
     }
 
     private fun setupApiInterface() {
@@ -76,10 +82,6 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             if(recording && settings.screenTimeout)
                 startSleepDelayed()
         }
-
-        //Setup a custom component
-        val component = CustomComponentExample(applicationContext, "customString")
-        components.add(component) //add to custom components list
     }
 
     fun parseColorForOperation(state : Operation) : Int{
@@ -185,7 +187,6 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         builder.useMic = settings.enableMic
         builder.protocol = settings.robotProtocol
         builder.communication = settings.robotCommunication
-        builder.externalComponents = customComponents //pass in arrayList of custom components
         try {
             components = builder.build()
         } catch (e: ServiceComponentGenerator.InitializationException) {

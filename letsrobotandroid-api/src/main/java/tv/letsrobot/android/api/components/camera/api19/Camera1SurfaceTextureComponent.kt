@@ -71,7 +71,9 @@ constructor(context: Context, settings: CameraSettings) : SurfaceTextureCameraBa
                     it.stopPreview()
                 }
                 try {
-                    it.parameters.setPreviewSize(640, 480)
+                    val p = it.parameters
+                    p.setPreviewSize(640, 480)
+                    it.parameters = p
                     it.setPreviewTexture(mStManager.surfaceTexture)
                     it.setPreviewCallback(this)
                     it.startPreview()

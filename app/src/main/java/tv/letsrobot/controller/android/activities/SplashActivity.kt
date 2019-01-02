@@ -38,7 +38,6 @@ class SplashActivity : Activity() {
         startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
-    //TODO replace with co-routine once that is stable and stops breaking Android Studio
     private fun next() {
         //Check permissions. break out if that returns false
         if(!checkPermissions()){
