@@ -36,6 +36,7 @@ import java.nio.FloatBuffer;
  * Surface Texture utils for rendering a texture without displaying on screen
  */
 public class SurfaceTextureUtils {
+    private SurfaceTextureUtils(){}
     private static final boolean VERBOSE = false;           // lots of logging
     private static final String TAG = "SurfaceTexture";
     /**
