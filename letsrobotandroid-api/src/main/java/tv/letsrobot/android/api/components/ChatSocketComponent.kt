@@ -1,12 +1,12 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
+import tv.letsrobot.android.api.components.tts.TTSBaseComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
@@ -18,23 +18,17 @@ import java.util.*
 
 /**
  * Text to speech component class
- *
- * TODO different voice or voice options?
- *
- * TODO split into TTSComponent and ChatSocketComponent
  */
-class TextToSpeechComponent internal constructor(context: Context, private val robotId : String) : Component(context){
+class ChatSocketComponent internal constructor(context: Context, private val robotId : String) : Component(context){
     override fun getType(): ComponentType {
         return ComponentType.TTS
     }
 
-    private var ttobj: TextToSpeech = TextToSpeech(context, TextToSpeech.OnInitListener {})
     private var mSocket: Socket? = null
     val connected: Boolean
         get() = mSocket != null && mSocket!!.connected()
 
     override fun enableInternal(){
-        ttobj.language = Locale.US
         var host: String? = null
         var port: String? = null
         JsonObjectUtils.getJsonObjectFromUrl(
@@ -55,8 +49,7 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
         mSocket?.on(Socket.EVENT_CONNECT) {
             mSocket!!.emit("identify_robot_id", robotId)
             status = ComponentStatus.STABLE
-            ttobj.setPitch(.5f)
-            ttobj.speak("OK", TextToSpeech.QUEUE_FLUSH, null)
+            sendText(TTSBaseComponent.TTS_OK, TTSBaseComponent.COMMAND_PITCH, flushQueue = true)
         }?.on(Socket.EVENT_CONNECT_ERROR) {
             Log.d("Robot", "Err")
             status = ComponentStatus.ERROR
@@ -70,9 +63,8 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
                 }
             }
         }?.on(Socket.EVENT_DISCONNECT){
-            val pitch = .5f
-            ttobj.setPitch(pitch)
-            ttobj.speak("Disconnected", TextToSpeech.QUEUE_FLUSH, null)
+            sendText(TTSBaseComponent.TTS_DISCONNECTED, TTSBaseComponent.COMMAND_PITCH
+                    , flushQueue = true)
             if(status != ComponentStatus.DISABLED)
                 status = ComponentStatus.INTERMITTENT
         }
@@ -82,18 +74,22 @@ class TextToSpeechComponent internal constructor(context: Context, private val r
     private fun processMessage(messageRaw: String?, user : String?) {
         getMessageFromRaw(messageRaw)?.let {
             var pitch = 1f
-            val speakingText : String? = if(isSpeakableText(it) && !ttobj.isSpeaking) {
+            val speakingText : String? = if(isSpeakableText(it)) {
                 it
             }
             else{
                 pitch = .5f
                 processCommand(it, user)
             }
-            ttobj.setPitch(pitch)
-            eventDispatcher?.handleMessage(getType(), EVENT_MAIN, it, this)
-            speakingText?.let{t ->
-                ttobj.speak(t, TextToSpeech.QUEUE_FLUSH, null)
-            }
+            sendText(speakingText, pitch)
+        }
+    }
+
+    private fun sendText(message: String?,pitch : Float = 1.0f, flushQueue : Boolean = false,
+                         isSpeakable : Boolean = true, user: String? = null) {
+        message?.let {
+            val obj = TTSBaseComponent.TTSObject(it, user, pitch, flushQueue, isSpeakable)
+            eventDispatcher?.handleMessage(getType(), EVENT_MAIN, obj, this)
         }
     }
 

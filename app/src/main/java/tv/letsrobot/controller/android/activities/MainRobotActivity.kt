@@ -137,7 +137,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         cameraStatusIcon.setComponentInterface(CameraBaseComponent.EVENTNAME)
         robotStatusIcon.setComponentInterface(ControlSocketComponent::class.java.simpleName)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.simpleName)
-        ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.simpleName)
+        ttsStatusIcon.setComponentInterface(ChatSocketComponent::class.java.simpleName)
         robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.simpleName)
         //To add more, add another icon to the layout file somewhere and pass in your component
     }

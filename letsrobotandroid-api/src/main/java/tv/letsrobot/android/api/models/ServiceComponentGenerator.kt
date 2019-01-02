@@ -11,6 +11,7 @@ import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.ExtCameraInterface
 import tv.letsrobot.android.api.components.camera.api19.Camera1SurfaceTextureComponent
 import tv.letsrobot.android.api.components.camera.api21.Camera2SurfaceTextureComponent
+import tv.letsrobot.android.api.components.tts.SystemDefaultTTSComponent
 import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.robot.CommunicationType
@@ -110,7 +111,9 @@ class ServiceComponentGenerator
             componentList.add(camera)
         }
         if (useTTS) {
-            val textToSpeech = TextToSpeechComponent(context, robotId!!)
+            val textToSpeech = ChatSocketComponent(context, robotId!!)
+            val ttsEngine = SystemDefaultTTSComponent(context)
+            componentList.add(ttsEngine)
             componentList.add(textToSpeech)
         }
         //Get list of external components, such as LED code, or more customized motor control
