@@ -72,20 +72,12 @@ class MainSocketComponent(context: Context) : Component(context) {
         }
     }
 
-    private fun maybeUpdateIp() {
-        val ipInfo = JSONObject()
-        ipInfo.put("ip", "169.254.25.110") //TODO actually use a different ip...
-        ipInfo.put("robot_id", robotId)
-        appServerSocket?.emit("ip_information", ipInfo)
-    }
-
     /**
      * Update server properties every minute
      */
     private fun onUpdateServer() {
         appServerSocket?.emit("identify_robot_id", robotId)
         maybeSendVideoStatus()
-//        maybeUpdateIp()
         handler.sendEmptyMessageDelayed(DO_SOME_WORK, TimeUnit.MINUTES.toMillis(1))
     }
 
