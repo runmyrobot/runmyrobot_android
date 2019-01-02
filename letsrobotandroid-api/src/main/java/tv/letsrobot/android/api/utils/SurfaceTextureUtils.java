@@ -77,15 +77,6 @@ public class SurfaceTextureUtils {
             mSurfaceTexture.setOnFrameAvailableListener(this);
         }
 
-        public void release() {
-            // this causes a bunch of warnings that appear harmless but might confuse someone:
-            //  W BufferQueue: [unnamed-3997-2] cancelBuffer: BufferQueue has been abandoned!
-            //mSurfaceTexture.release();
-
-            mTextureRender = null;
-            mSurfaceTexture = null;
-        }
-
         /**
          * Returns the SurfaceTexture.
          */
@@ -112,9 +103,6 @@ public class SurfaceTextureUtils {
      */
     private static class STextureRender {
         private static final int FLOAT_SIZE_BYTES = 4;
-        private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
-        private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
-        private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
         private final float[] mTriangleVerticesData = {
                 // X, Y, Z, U, V
                 -1.0f, -1.0f, 0, 0.f, 0.f,
@@ -146,7 +134,6 @@ public class SurfaceTextureUtils {
                         "    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
                         "}\n";
 
-        private float[] mMVPMatrix = new float[16];
         private float[] mSTMatrix = new float[16];
 
         private int mProgram;

@@ -38,6 +38,11 @@ import javax.microedition.khronos.egl.EGLSurface;
  * The EGLContext must only be attached to one thread at a time.  This class is not thread-safe.
  */
 public final class EglCore {
+    public class EglCoreException extends Exception{
+        EglCoreException(String egl_already_set_up) {
+            super(egl_already_set_up);
+        }
+    }
     private static final String TAG = EglCore.class.getSimpleName();
     private EGL10 mEgl;
     private EGLContext mEGLContext = EGL11.EGL_NO_CONTEXT;
@@ -48,25 +53,25 @@ public final class EglCore {
      * Prepares EGL display and context.
      * <p>
      */
-    public EglCore() {
+    public EglCore() throws EglCoreException {
         if (mEGLDisplay != EGL11.EGL_NO_DISPLAY) {
-            throw new RuntimeException("EGL already set up");
+            throw new EglCoreException("EGL already set up");
         }
         mEgl = (EGL10) EGLContext.getEGL();
         mEGLDisplay = mEgl.eglGetDisplay(EGL11.EGL_DEFAULT_DISPLAY);
         if (mEGLDisplay == EGL11.EGL_NO_DISPLAY) {
-            throw new RuntimeException("unable to get EGL14 display");
+            throw new EglCoreException("unable to get EGL14 display");
         }
 
         int[] version = new int[2];
         if (!mEgl.eglInitialize(mEGLDisplay, version)) {
             mEGLDisplay = null;
-            throw new RuntimeException("unable to initialize EGL11");
+            throw new EglCoreException("unable to initialize EGL11");
         }
 
         EGLConfig config = getConfig();
         if (config == null) {
-            throw new RuntimeException("Unable to find a suitable EGLConfig");
+            throw new EglCoreException("Unable to find a suitable EGLConfig");
         }
             /*uses gles10 by default here*/
         int[] attrib2_list = {
@@ -145,10 +150,10 @@ public final class EglCore {
      * <p>
      * If this is destined for MediaCodec, the EGLConfig should have the "recordable" attribute.
      */
-    public EGLSurface createWindowSurface(Object surface) {
+    public EGLSurface createWindowSurface(Object surface) throws EglCoreException {
         if (!(surface instanceof Surface) && !(surface instanceof SurfaceTexture) &&
                 !(surface instanceof SurfaceHolder)) {
-            throw new RuntimeException("invalid surface: " + surface);
+            throw new EglCoreException("invalid surface: " + surface);
         }
 
         // Create a window surface, and attach it to the Surface we received.
@@ -159,7 +164,7 @@ public final class EglCore {
                 surfaceAttribs);
         checkEglError("eglCreateWindowSurface");
         if (eglSurface == null) {
-            throw new RuntimeException("surface was null");
+            throw new EglCoreException("surface was null");
         }
         return eglSurface;
     }
@@ -167,7 +172,7 @@ public final class EglCore {
     /**
      * Creates an EGL surface associated with an offscreen buffer.
      */
-    public EGLSurface createOffscreenSurface(int width, int height) {
+    public EGLSurface createOffscreenSurface(int width, int height) throws EglCoreException {
         int[] surfaceAttribs = {
                 EGL11.EGL_WIDTH, width,
                 EGL11.EGL_HEIGHT, height,
@@ -177,7 +182,7 @@ public final class EglCore {
                 mEGLConfig, surfaceAttribs);
         checkEglError("eglCreatePbufferSurface");
         if (eglSurface == null) {
-            throw new RuntimeException("surface was null");
+            throw new EglCoreException("surface was null");
         }
         return eglSurface;
     }
@@ -185,36 +190,36 @@ public final class EglCore {
     /**
      * Makes our EGL context current, using the supplied surface for both "draw" and "read".
      */
-    public void makeCurrent(EGLSurface eglSurface) {
+    public void makeCurrent(EGLSurface eglSurface) throws EglCoreException {
         if (mEGLDisplay == EGL11.EGL_NO_DISPLAY) {
             // called makeCurrent() before create?
             Log.d(TAG, "NOTE: makeCurrent w/o display");
         }
         if (!mEgl.eglMakeCurrent(mEGLDisplay, eglSurface, eglSurface, mEGLContext)) {
-            throw new RuntimeException("eglMakeCurrent failed");
+            throw new EglCoreException("eglMakeCurrent failed");
         }
     }
 
     /**
      * Makes our EGL context current, using the supplied "draw" and "read" surfaces.
      */
-    public void makeCurrent(EGLSurface drawSurface, EGLSurface readSurface) {
+    public void makeCurrent(EGLSurface drawSurface, EGLSurface readSurface) throws EglCoreException {
         if (mEGLDisplay == EGL11.EGL_NO_DISPLAY) {
             // called makeCurrent() before create?
             Log.d(TAG, "NOTE: makeCurrent w/o display");
         }
         if (!mEgl.eglMakeCurrent(mEGLDisplay, drawSurface, readSurface, mEGLContext)) {
-            throw new RuntimeException("eglMakeCurrent(draw,read) failed");
+            throw new EglCoreException("eglMakeCurrent(draw,read) failed");
         }
     }
 
     /**
      * Makes no context current.
      */
-    public void makeNothingCurrent() {
+    public void makeNothingCurrent() throws EglCoreException {
         if (!mEgl.eglMakeCurrent(mEGLDisplay, EGL11.EGL_NO_SURFACE
                 , EGL11.EGL_NO_SURFACE, EGL11.EGL_NO_CONTEXT)) {
-            throw new RuntimeException("eglMakeCurrent failed");
+            throw new EglCoreException("eglMakeCurrent failed");
         }
     }
 
@@ -268,10 +273,10 @@ public final class EglCore {
     /**
      * Checks for EGL errors.  Throws an exception if an error has been raised.
      */
-    private void checkEglError(String msg) {
+    private void checkEglError(String msg) throws EglCoreException {
         int error;
         if ((error = mEgl.eglGetError()) != EGL10.EGL_SUCCESS) {
-            throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
+            throw new EglCoreException(msg + ": EGL error: 0x" + Integer.toHexString(error));
         }
     }
 }
