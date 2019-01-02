@@ -9,9 +9,9 @@ import tv.letsrobot.android.api.interfaces.Component
  */
 abstract class TTSBaseComponent(context: Context) : Component(context) {
     data class TTSObject(val text: String,
+                         val pitch: Float = 1.0f,
                          val user: String? = null,
-                         val pitch : Float = 1.0f,
-                         val shouldFlush : Boolean = false,
+                         val shouldFlush: Boolean = false,
                          val isSpeakable: Boolean = true)
     companion object {
         var TTS_OK = "ok"

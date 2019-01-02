@@ -57,14 +57,10 @@ class LetsRobotService : Service(), ComponentEventListener {
                     }
                 }
                 RESET -> {
-                    runBlocking {
-                        reset()
-                    }
+                    runBlocking { reset() }
                 }
                 EVENT_BROADCAST ->{
-                    runBlocking {
-                        sendToComponents(msg)
-                    }
+                    runBlocking { sendToComponents(msg) }
                 }
                 else -> super.handleMessage(msg)
             }

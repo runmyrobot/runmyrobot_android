@@ -29,46 +29,75 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
         get() = mSocket != null && mSocket!!.connected()
 
     override fun enableInternal(){
+        mSocket = setupSocket(robotId)
+        mSocket?.on(Socket.EVENT_CONNECT) {
+            onConnect()
+        }?.on(Socket.EVENT_CONNECT_ERROR) {
+            onConnectError()
+        }?.on("chat_message_with_name"){
+            onChatMessageWithName(it)
+        }?.on(Socket.EVENT_DISCONNECT){
+            onDisconnect()
+        }
+        mSocket?.connect()
+    }
+
+    override fun disableInternal(){
+        mSocket?.disconnect()
+    }
+
+    /**
+     * Setup a chat socket using robot id
+     */
+    private fun setupSocket(robotId : String) : Socket?{
         var host: String? = null
         var port: String? = null
         JsonObjectUtils.getJsonObjectFromUrl(
-                String.format("https://letsrobot.tv/get_chat_host_port/%s", robotId)
+                String.format(CHAT_URL, robotId)
         )?.let {
             Log.d("CHAT", it.toString())
             host = it.getString("host")
             port = it.getString("port")
         }
 
-        try {
-            val url = String.format("http://%s:%s", host, port)
-            mSocket = IO.socket(url)
+        return try {
+            val url = String.format(SOCKET_TEMPLATE, host, port)
+            IO.socket(url)
         } catch (e: URISyntaxException) {
             status = ComponentStatus.ERROR
             e.printStackTrace()
+            null
         }
-        mSocket?.on(Socket.EVENT_CONNECT) {
-            mSocket!!.emit("identify_robot_id", robotId)
-            status = ComponentStatus.STABLE
-            sendText(TTSBaseComponent.TTS_OK, TTSBaseComponent.COMMAND_PITCH, flushQueue = true)
-        }?.on(Socket.EVENT_CONNECT_ERROR) {
-            Log.d("Robot", "Err")
-            status = ComponentStatus.ERROR
-        }?.on("chat_message_with_name"){
-            if (it[0] is JSONObject) {
-                val `object` = it[0] as JSONObject
-                try {
-                    processMessage(`object`.getString("message"), `object`.getString("name"))
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
+    }
+
+    private fun onConnect() {
+        mSocket!!.emit("identify_robot_id", robotId)
+        status = ComponentStatus.STABLE
+        sendText(TTSBaseComponent.TTSObject(TTSBaseComponent.TTS_OK
+                , TTSBaseComponent.COMMAND_PITCH, shouldFlush = true))
+    }
+
+    private fun onConnectError() {
+        Log.d("Robot", "Err")
+        status = ComponentStatus.ERROR
+    }
+
+    private fun onDisconnect() {
+        sendText(TTSBaseComponent.TTSObject(TTSBaseComponent.TTS_DISCONNECTED
+                , TTSBaseComponent.COMMAND_PITCH, shouldFlush = true))
+        if(status != ComponentStatus.DISABLED)
+            status = ComponentStatus.INTERMITTENT
+    }
+
+    private fun onChatMessageWithName(params: Array<out Any>) {
+        if (params[0] is JSONObject) {
+            val `object` = params[0] as JSONObject
+            try {
+                processMessage(`object`.getString("message"), `object`.getString("name"))
+            } catch (e: JSONException) {
+                e.printStackTrace()
             }
-        }?.on(Socket.EVENT_DISCONNECT){
-            sendText(TTSBaseComponent.TTS_DISCONNECTED, TTSBaseComponent.COMMAND_PITCH
-                    , flushQueue = true)
-            if(status != ComponentStatus.DISABLED)
-                status = ComponentStatus.INTERMITTENT
         }
-        mSocket?.connect()
     }
 
     private fun processMessage(messageRaw: String?, user : String?) {
@@ -81,16 +110,14 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
                 pitch = .5f
                 processCommand(it, user)
             }
-            sendText(speakingText, pitch)
+            speakingText?.let {
+                sendText(TTSBaseComponent.TTSObject(speakingText, pitch))
+            }
         }
     }
 
-    private fun sendText(message: String?,pitch : Float = 1.0f, flushQueue : Boolean = false,
-                         isSpeakable : Boolean = true, user: String? = null) {
-        message?.let {
-            val obj = TTSBaseComponent.TTSObject(it, user, pitch, flushQueue, isSpeakable)
-            eventDispatcher?.handleMessage(getType(), EVENT_MAIN, obj, this)
-        }
+    private fun sendText(data : TTSBaseComponent.TTSObject) {
+        eventDispatcher?.handleMessage(getType(), EVENT_MAIN, data, this)
     }
 
     private fun processCommand(it: String, user : String?): String? {
@@ -122,11 +149,9 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
         return ValueUtil.map(scale,0f, 1f, 0f, 10f, 1.0f)
     }
 
-    override fun disableInternal(){
-        mSocket?.disconnect()
-    }
-
     companion object {
+        const val CHAT_URL = "https://letsrobot.tv/get_chat_host_port/%s"
+        const val SOCKET_TEMPLATE = "http://%s:%s"
         fun getMessageFromRaw(inVal : String?) : String?{
             inVal?.let{ //In case there is no message object
                 val index = it.indexOf("]").takeIf {

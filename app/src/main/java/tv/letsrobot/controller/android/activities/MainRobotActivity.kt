@@ -16,7 +16,6 @@ import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.enums.Operation
 import tv.letsrobot.android.api.interfaces.IComponent
-import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.models.ServiceComponentGenerator
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
@@ -97,32 +96,45 @@ class MainRobotActivity : FragmentActivity(), Runnable{
 
     private fun setupButtons() {
         mainPowerButton.setOnClickListener{ //Hook up power button to start the connection
-            if (recording) {
-                components.forEach { component ->
-                    letsRobotViewModel?.api?.detachFromLifecycle(component)
-                }
-                letsRobotViewModel?.api?.disable()
-            } else {
-                addDefaultComponents()
-                components.forEach { component ->
-                    letsRobotViewModel?.api?.attachToLifecycle(component)
-                }
-                letsRobotViewModel?.api?.enable()
-            }
+            toggleServiceConnection()
         }
         settingsButtonMain.setOnClickListener {
-            letsRobotViewModel?.api?.disable()
-            finish() //Stop activity
-            startActivity(Intent(this, ManualSetupActivity::class.java))
+            launchSetupActivity()
         }
 
         //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
-            if(settings.screenTimeout) {
-                startSleepDelayed()
-                //TODO disable touch if black screen is up
+            handleSleepLayoutTouch()
+        }
+    }
+
+    private fun handleSleepLayoutTouch(): Boolean {
+        if(settings.screenTimeout) {
+            startSleepDelayed()
+            //TODO disable touch if black screen is up
+        }
+        return (fakeSleepView.background as? ColorDrawable)?.color == Color.BLACK
+    }
+
+    private fun launchSetupActivity() {
+        letsRobotViewModel?.api?.disable()
+        finish() //Stop activity
+        startActivity(Intent(this, ManualSetupActivity::class.java))
+    }
+
+    private fun toggleServiceConnection() {
+        if (recording) {
+            components.forEach { component ->
+                letsRobotViewModel?.api?.detachFromLifecycle(component)
             }
-            return@setOnTouchListener (fakeSleepView.background as? ColorDrawable)?.color == Color.BLACK
+            letsRobotViewModel?.api?.disable()
+        } else {
+            addDefaultComponents()
+            components.forEach { component ->
+                letsRobotViewModel?.api?.attachToLifecycle(component)
+            }
+            letsRobotViewModel?.api?.reset()
+            letsRobotViewModel?.api?.enable()
         }
     }
 
@@ -169,16 +181,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         (settings.cameraId).takeIf {
             settings.cameraEnabled
         }?.let{ cameraId ->
-            val arrRes = settings.cameraResolution.split('x')
-            val cameraSettings = CameraSettings(cameraId = cameraId,
-                    pass = settings.cameraPassword,
-                    width = arrRes[0].toInt(),
-                    height = arrRes[1].toInt(),
-                    bitrate = settings.cameraBitrate,
-                    useLegacyApi = settings.cameraLegacy,
-                    orientation = settings.cameraOrientation
-            )
-            builder.cameraSettings = cameraSettings
+            builder.cameraSettings = RobotSettingsObject.buildCameraSettings(settings)
         }
         builder.useTTS = settings.enableTTS
         builder.useMic = settings.enableMic
