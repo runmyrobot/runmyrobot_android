@@ -4,16 +4,12 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
-import java.util.*
 
 /**
  * Uses the System TTS system. This uses whatever the default engine is set to
  */
 class SystemDefaultTTSComponent(context: Context) : TTSBaseComponent(context) {
     private var ttobj: TextToSpeech? = null
-    init {
-        ttobj?.language = Locale.US
-    }
 
     override fun enableInternal() {
         ttobj = TextToSpeech(context, TextToSpeech.OnInitListener {})
