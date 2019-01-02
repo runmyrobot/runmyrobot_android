@@ -36,6 +36,11 @@ import java.nio.FloatBuffer;
  * Surface Texture utils for rendering a texture without displaying on screen
  */
 public class SurfaceTextureUtils {
+    private static class SurfaceTextureException extends Exception{
+        SurfaceTextureException(String egl_already_set_up) {
+            super(egl_already_set_up);
+        }
+    }
     private SurfaceTextureUtils(){}
     private static final boolean VERBOSE = false;           // lots of logging
     private static final String TAG = "SurfaceTexture";
@@ -47,6 +52,7 @@ public class SurfaceTextureUtils {
      */
     public static class SurfaceTextureManager
             implements SurfaceTexture.OnFrameAvailableListener {
+
         private SurfaceTexture mSurfaceTexture;
         private STextureRender mTextureRender;
 
@@ -56,7 +62,7 @@ public class SurfaceTextureUtils {
         /**
          * Creates instances of TextureRender and SurfaceTexture.
          */
-        public SurfaceTextureManager() {
+        public SurfaceTextureManager() throws SurfaceTextureException {
             mTextureRender = new STextureRender();
             mTextureRender.surfaceCreated();
 
@@ -159,11 +165,11 @@ public class SurfaceTextureUtils {
         /**
          * Initializes GL state.  Call this after the EGL surface has been created and made current.
          */
-        public void surfaceCreated() {
+        public void surfaceCreated() throws SurfaceTextureException {
 
             mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
             if (mProgram == 0) {
-                throw new RuntimeException("failed creating program");
+                throw new SurfaceTextureException("failed creating program");
             }
             maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
             checkLocation(maPositionHandle, "aPosition");
@@ -193,7 +199,7 @@ public class SurfaceTextureUtils {
             checkGlError("glTexParameter");
         }
 
-        private int loadShader(int shaderType, String source) {
+        private int loadShader(int shaderType, String source) throws SurfaceTextureException {
             int shader = GLES20.glCreateShader(shaderType);
             checkGlError("glCreateShader type=" + shaderType);
             GLES20.glShaderSource(shader, source);
@@ -209,7 +215,7 @@ public class SurfaceTextureUtils {
             return shader;
         }
 
-        private int createProgram(String vertexSource, String fragmentSource) {
+        private int createProgram(String vertexSource, String fragmentSource) throws SurfaceTextureException {
             int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
             if (vertexShader == 0) {
                 return 0;
@@ -239,17 +245,17 @@ public class SurfaceTextureUtils {
             return program;
         }
 
-        public void checkGlError(String op) {
+        public void checkGlError(String op) throws SurfaceTextureException {
             int error;
             while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
                 Log.e(TAG, op + ": glError " + error);
-                throw new RuntimeException(op + ": glError " + error);
+                throw new SurfaceTextureException(op + ": glError " + error);
             }
         }
 
-        public static void checkLocation(int location, String label) {
+        public static void checkLocation(int location, String label) throws SurfaceTextureException {
             if (location < 0) {
-                throw new RuntimeException("Unable to locate '" + label + "' in program");
+                throw new SurfaceTextureException("Unable to locate '" + label + "' in program");
             }
         }
     }
