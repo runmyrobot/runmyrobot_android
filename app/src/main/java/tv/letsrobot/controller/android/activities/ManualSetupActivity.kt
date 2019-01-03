@@ -25,8 +25,8 @@ import kotlinx.android.synthetic.main.activity_manual_setup.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import tv.letsrobot.android.api.Core
 import tv.letsrobot.android.api.enums.CameraDirection
+import tv.letsrobot.android.api.models.ServiceComponentGenerator
 import tv.letsrobot.android.api.robot.CommunicationType
 import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
@@ -219,7 +219,7 @@ class ManualSetupActivity : AppCompatActivity() {
 
     private fun launchActivity() {
         if(resetRobotComponentsCheckbox.isChecked){
-            Core.resetCommunicationConfig(this)
+            ServiceComponentGenerator.resetCommunicationConfig(this)
         }
         finish()
         startActivity(Intent(this, SplashActivity::class.java))

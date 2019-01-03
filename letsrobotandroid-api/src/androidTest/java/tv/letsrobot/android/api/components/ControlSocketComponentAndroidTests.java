@@ -19,10 +19,10 @@ import androidx.test.runner.AndroidJUnit4;
  * To trigger events in the logs, please use the website controls on the robot page
  */
 @RunWith(AndroidJUnit4.class)
-public class RobotControllerComponentAndroidTests {
+public class ControlSocketComponentAndroidTests {
     @Test
     public void Init(){
-        RobotControllerComponent controllerComponent = new RobotControllerComponent(InstrumentationRegistry.getTargetContext(),""); //TODO ROBOTID
+        ControlSocketComponent controllerComponent = new ControlSocketComponent(InstrumentationRegistry.getTargetContext(),""); //TODO ROBOTID
         controllerComponent.enable();
         Assert.assertTrue(controllerComponent.getRunning().get());
         CountDownLatch latch = new CountDownLatch(1);

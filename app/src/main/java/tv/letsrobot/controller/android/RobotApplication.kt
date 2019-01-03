@@ -2,7 +2,7 @@ package tv.letsrobot.controller.android
 
 import android.app.Application
 import android.widget.Toast
-import tv.letsrobot.android.api.TelemetryManager
+import com.squareup.leakcanary.LeakCanary
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 
 /**
@@ -13,6 +13,12 @@ class RobotApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+            return
+        }
+        LeakCanary.install(this)
         instance = this
         meter = PhoneBatteryMeter.getReceiver(applicationContext)
     }
@@ -25,7 +31,6 @@ class RobotApplication : Application() {
     fun reportError(e: Exception) {
         Toast.makeText(this, "ERROR:\n${e.message} " +
                 "\n", Toast.LENGTH_LONG).show()
-        TelemetryManager.Instance?.invoke("error", e.toString())
     }
 
     companion object {

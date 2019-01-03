@@ -18,18 +18,18 @@ import tv.letsrobot.android.api.enums.ComponentStatus;
 public class TTSAndroidTest {
     @Test
     public void Init(){
-        TextToSpeechComponent textToSpeechComponent
-                = new TextToSpeechComponent(InstrumentationRegistry.getTargetContext(), ""); //TODO ROBOTID
-        textToSpeechComponent.enable();
-        Assert.assertEquals(ComponentStatus.DISABLED, textToSpeechComponent.getStatus());
+        ChatSocketComponent chatSocketComponent
+                = new ChatSocketComponent(InstrumentationRegistry.getTargetContext(), ""); //TODO ROBOTID
+        chatSocketComponent.enable();
+        Assert.assertEquals(ComponentStatus.DISABLED, chatSocketComponent.getStatus());
         CountDownLatch latch = new CountDownLatch(1);
         try {
             latch.await(2, TimeUnit.MINUTES); //Wait for 2 Minutes
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertTrue(textToSpeechComponent.getConnected()); //Make sure socket is actually connected
-        textToSpeechComponent.disable(); //Disable TTS
+        Assert.assertTrue(chatSocketComponent.getConnected()); //Make sure socket is actually connected
+        chatSocketComponent.disable(); //Disable TTS
         latch = new CountDownLatch(1);
         try {
             //wait a little bit to make sure it had time to disconnect
@@ -37,6 +37,6 @@ public class TTSAndroidTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertFalse(textToSpeechComponent.getConnected()); //Make sure disable works
+        Assert.assertFalse(chatSocketComponent.getConnected()); //Make sure disable works
     }
 }

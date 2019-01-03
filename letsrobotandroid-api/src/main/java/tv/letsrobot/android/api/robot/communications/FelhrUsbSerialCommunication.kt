@@ -8,7 +8,6 @@ import android.os.IBinder
 import android.os.Message
 import android.util.Log
 import android.widget.Toast
-import tv.letsrobot.android.api.EventManager
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
 import tv.letsrobot.android.api.robot.drivers.UsbService
@@ -28,12 +27,10 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
 
     override fun enable() {
         Log.d(TAG, "enable")
-        EventManager.subscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
     override fun disable() {
         Log.d(TAG, "disable")
-        EventManager.unsubscribe(EventManager.ROBOT_BYTE_ARRAY, onSendRobotCommand)
     }
 
     override fun clearSetup(context: Context) {
@@ -59,13 +56,6 @@ class FelhrUsbSerialCommunication : CommunicationInterface {
     override fun send(byteArray: ByteArray): Boolean {
         usbService?.write(byteArray) //TODO actually get result?
         return true
-    }
-
-    private val onSendRobotCommand: (Any?) -> Unit = {
-        Log.d(TAG, "onSendRobotCommand")
-        it?.takeIf { it is ByteArray }?.let{ data ->
-            send(data as ByteArray)
-        }
     }
 
     override fun getStatus(): ComponentStatus {

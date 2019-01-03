@@ -5,9 +5,8 @@ import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.hardware.Camera
 import android.util.Log
-import android.view.TextureView
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
-import tv.letsrobot.android.api.components.camera.TextureViewCameraBaseComponent
+import tv.letsrobot.android.api.components.camera.SurfaceTextureCameraBaseComponent
 import tv.letsrobot.android.api.models.CameraSettings
 import java.io.IOException
 
@@ -21,18 +20,19 @@ import java.io.IOException
  *
  * Does not support USB webcams
  */
-class Camera1TextureComponent
+@Suppress("DEPRECATION")
+class Camera1SurfaceTextureComponent
 /**
  * Init camera object.
  * @param context Needed to access the camera
  * @param cameraId camera id for robot
  */
-constructor(context: Context, settings: CameraSettings, textureView: TextureView) : TextureViewCameraBaseComponent(context, settings, textureView), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
-
+constructor(context: Context, settings: CameraSettings) : SurfaceTextureCameraBaseComponent(context, settings), FFmpegExecuteResponseHandler, android.hardware.Camera.PreviewCallback{
     private var r: Rect? = null
     private var camera : android.hardware.Camera? = null
     private var _widthV1 = 0
     private var _heightV1 = 0
+
     init {
         Log.v("CameraAPI", "init")
         init()
@@ -52,38 +52,30 @@ constructor(context: Context, settings: CameraSettings, textureView: TextureView
 
     override fun releaseCamera() {
         cameraActive.set(false)
-        surfaceAvailable = false
         previewRunning = false
         camera?.stopPreview()
         camera?.setPreviewCallback (null)
+        camera?.setPreviewTexture(null)
         camera?.release()
         camera = null
     }
 
     override fun setupCamera(){
-        Log.v("CameraAPI", "setupCamera")
         camera ?: kotlin.run {
             camera = Camera.open()
             camera?.setDisplayOrientation(90)
         }
-        if (!cameraActive.get() && surfaceAvailable) {
-            Log.v("CameraAPI", "!cameraActive.get() && surfaceAvailable")
+        if (!cameraActive.get()) {
             camera?.let {
                 if (previewRunning) {
                     it.stopPreview()
                 }
-
                 try {
                     val p = it.parameters
-                    val previewSizes = p.supportedPreviewSizes
-                    // You need to choose the most appropriate previewSize for your app
-                    val previewSize = previewSizes.get(0) // .... select one of previewSizes here
-                    //p.setPreviewSize(previewSize.width, previewSize.height);
                     p.setPreviewSize(640, 480)
                     it.parameters = p
-                    it.setPreviewTexture(textureView.surfaceTexture)
+                    it.setPreviewTexture(mStManager.surfaceTexture)
                     it.setPreviewCallback(this)
-                    Log.v(LOGTAG, "startPreview")
                     it.startPreview()
                     previewRunning = true
                     cameraActive.set(true)

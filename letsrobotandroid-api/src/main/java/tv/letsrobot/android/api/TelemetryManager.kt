@@ -2,8 +2,6 @@ package tv.letsrobot.android.api
 
 import android.content.Context
 import android.util.Log
-import tv.letsrobot.android.api.EventManager.Companion.CHAT
-import tv.letsrobot.android.api.EventManager.Companion.ROBOT_BYTE_ARRAY
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import java.io.File
@@ -41,17 +39,17 @@ class TelemetryManager(val context: Context) : (String, Any?) -> Unit {
      * Interceptor for all events
      */
     override fun invoke(eventName: String, data: Any?) {
-        when(eventName){
-            CHAT -> {
-                (data as? String)?.let {
-                    //This is so the CSV cannot get messed up by comments, and because we probably don't need to store this
-                    log(eventName, "{REDACTED}")
-                }
-            } // do nothing
-            ROBOT_BYTE_ARRAY -> {} // do nothing
-            BATTERY_EVENT -> logBattery(data)
-            else-> log(eventName, data)
-        }
+//        when(eventName){
+//            CHAT -> {
+//                (data as? String)?.let {
+//                    //This is so the CSV cannot get messed up by comments, and because we probably don't need to store this
+//                    log(eventName, "{REDACTED}")
+//                }
+//            } // do nothing
+//            ROBOT_BYTE_ARRAY -> {} // do nothing
+//            BATTERY_EVENT -> logBattery(data)
+//            else-> log(eventName, data)
+//        }
     }
 
     private var lastTime: Double = Double.NEGATIVE_INFINITY

@@ -28,13 +28,6 @@ class EventManager{
     companion object {
         private val subscribers = HashMap<String, ArrayList<(Any?) -> Unit>>()
         private val globalListener = ArrayList<(String, Any?) -> Unit>()
-        const val COMMAND: String = "command"
-        const val TIMEOUT: String = "timeout"
-        const val ROBOT_DISCONNECTED = "robot_disconnect"
-        const val ROBOT_CONNECTED = "robot_connect"
-        const val STOP_EVENT = "stop_event"
-        const val ROBOT_BYTE_ARRAY = "robot_byte_array"
-        const val CHAT = "chat"
 
         /**
          * Subscribe to a control
@@ -66,7 +59,7 @@ class EventManager{
 
         /**
          * Call a control event. Open to be called anywhere,
-         * but mainly used by the RobotControllerComponent
+         * but mainly used by the ControlSocketComponent
          */
         fun invoke(event: String, message : Any? = null){
             val list = subscribers[event]

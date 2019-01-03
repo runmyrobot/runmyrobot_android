@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import tv.letsrobot.android.api.EventManager
-import tv.letsrobot.android.api.EventManager.Companion.ROBOT_BYTE_ARRAY
 import tv.letsrobot.android.api.activities.ChooseBluetoothActivity
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
@@ -89,23 +87,13 @@ class BluetoothClassicCommunication : CommunicationInterface {
     fun setActive(value : Boolean){
         val message : String = if(value){
             bluetoothClassic?.connect()
-            EventManager.subscribe(ROBOT_BYTE_ARRAY, onControlEvent)
             "enable"
         }
         else{
             bluetoothClassic?.disconnect()
-            EventManager.unsubscribe(ROBOT_BYTE_ARRAY, onControlEvent)
             "disable"
         }
         Log.d("Bluetooth", message)
-    }
-
-    private val onControlEvent: (Any?) -> Unit = {
-        Log.d("Bluetooth","onControlEvent")
-        (it as? ByteArray)?.let{ data ->
-            send(data)
-            Log.d("Bluetooth","onControlEvent sent")
-        }
     }
 
     override fun getStatus(): ComponentStatus {

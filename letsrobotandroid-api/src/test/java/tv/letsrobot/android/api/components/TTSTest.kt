@@ -9,23 +9,23 @@ import org.junit.Test
 class TTSTest{
     @Test
     fun testChat(){
-        Assert.assertEquals("Test message", TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] Test message"))
-        Assert.assertEquals("Test message", TextToSpeechComponent.getMessageFromRaw("[ROBOTNAME] Test message"))
-        Assert.assertEquals(null, TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] "))
-        Assert.assertEquals(null, TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME]  "))
+        Assert.assertEquals("Test message", ChatSocketComponent.getMessageFromRaw("[ROBOT NAME] Test message"))
+        Assert.assertEquals("Test message", ChatSocketComponent.getMessageFromRaw("[ROBOTNAME] Test message"))
+        Assert.assertEquals(null, ChatSocketComponent.getMessageFromRaw("[ROBOT NAME] "))
+        Assert.assertEquals(null, ChatSocketComponent.getMessageFromRaw("[ROBOT NAME]  "))
     }
 
     @Test
     fun testSilence(){
-        val msg = TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] .message")
-        Assert.assertEquals(false, TextToSpeechComponent.isSpeakableText(msg))
-        val msg2 = TextToSpeechComponent.getMessageFromRaw("[ROBOT NAME] Test message")
-        Assert.assertEquals(true, TextToSpeechComponent.isSpeakableText(msg2))
+        val msg = ChatSocketComponent.getMessageFromRaw("[ROBOT NAME] .message")
+        Assert.assertEquals(false, ChatSocketComponent.isSpeakableText(msg))
+        val msg2 = ChatSocketComponent.getMessageFromRaw("[ROBOT NAME] Test message")
+        Assert.assertEquals(true, ChatSocketComponent.isSpeakableText(msg2))
     }
 
     @Test
     fun testBrokenResponse(){
-        Assert.assertEquals(null, TextToSpeechComponent.getMessageFromRaw(null))
-        Assert.assertEquals(null, TextToSpeechComponent.getMessageFromRaw("[[[dawaowdhawuhfda"))
+        Assert.assertEquals(null, ChatSocketComponent.getMessageFromRaw(null))
+        Assert.assertEquals(null, ChatSocketComponent.getMessageFromRaw("[[[dawaowdhawuhfda"))
     }
 }

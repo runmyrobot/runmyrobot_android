@@ -5,6 +5,7 @@ import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RecordingThread
@@ -16,6 +17,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by Brendon on 9/1/2018.
  */
 class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
+    override fun getType(): ComponentType {
+        return ComponentType.MICROPHONE
+    }
 
     internal var ffmpegRunning = AtomicBoolean(false)
 

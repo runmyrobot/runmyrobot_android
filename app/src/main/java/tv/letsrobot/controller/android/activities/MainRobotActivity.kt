@@ -1,25 +1,23 @@
 package tv.letsrobot.controller.android.activities
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import androidx.fragment.app.FragmentActivity
 import kotlinx.android.synthetic.main.activity_main_robot.*
-import tv.letsrobot.android.api.Core
-import tv.letsrobot.android.api.components.AudioComponent
-import tv.letsrobot.android.api.components.CommunicationComponent
-import tv.letsrobot.android.api.components.RobotControllerComponent
-import tv.letsrobot.android.api.components.TextToSpeechComponent
+import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
-import tv.letsrobot.android.api.interfaces.Component
-import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.enums.Operation
+import tv.letsrobot.android.api.interfaces.IComponent
+import tv.letsrobot.android.api.models.ServiceComponentGenerator
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
+import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.RobotApplication
 import tv.letsrobot.controller.android.robot.CustomComponentExample
@@ -30,8 +28,9 @@ import tv.letsrobot.controller.android.robot.RobotSettingsObject
  * For camera functionality, this activity needs to have a
  * SurfaceView to pass to the camera component via the Builder
  */
-class MainRobotActivity : Activity(), Runnable {
-    val components = ArrayList<Component>() //arraylist of custom components
+class MainRobotActivity : FragmentActivity(), Runnable{
+
+    var components = ArrayList<IComponent>() //arraylist of core components
 
     override fun run() {
         if (recording){
@@ -41,9 +40,9 @@ class MainRobotActivity : Activity(), Runnable {
     }
 
     private var recording = false
-    var core: Core? = null
     lateinit var handler : Handler
     lateinit var settings : RobotSettingsObject
+    private var letsRobotViewModel: LetsRobotViewModel? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,69 +55,117 @@ class MainRobotActivity : Activity(), Runnable {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main_robot) //Set the layout to use for activity
+        setupExternalComponents()
+        setupApiInterface()
+        setupButtons()
+        initIndicators()
+    }
 
+    private fun setupExternalComponents() {
+        //add custom components here
         //Setup a custom component
         val component = CustomComponentExample(applicationContext, "customString")
         components.add(component) //add to custom components list
+    }
 
-        recordButtonMain.setOnClickListener{ //Hook up power button to start the connection
-            if (recording) {
-                recording = false
-                core?.disable() //Disable core if we hit the button to disable recording
-                Log.v(LOGTAG, "Recording Stopped")
-            } else {
-                recording = true
-                if(settings.screenTimeout){
-                    handler.postDelayed(this, 10000)
-                }
-                core?.enable() //enable core if we hit the button to enable recording
+    private fun setupApiInterface() {
+        letsRobotViewModel = LetsRobotViewModel.getObject(this)
+        letsRobotViewModel?.setServiceBoundListener(this){ connected ->
+            mainPowerButton.isEnabled = connected == Operation.OK
+        }
+        letsRobotViewModel?.setStatusObserver(this){ serviceStatus ->
+            mainPowerButton.setTextColor(parseColorForOperation(serviceStatus))
+            val isLoading = serviceStatus == Operation.LOADING
+            mainPowerButton.isEnabled = !isLoading
+            if(isLoading) return@setStatusObserver //processing command. Disable button
+            recording = serviceStatus == Operation.OK
+            if(recording && settings.screenTimeout)
+                startSleepDelayed()
+        }
+    }
 
-                Log.v(LOGTAG, "Recording Started")
-            }
+    fun parseColorForOperation(state : Operation) : Int{
+        val color : Int = when(state){
+            Operation.OK -> Color.GREEN
+            Operation.NOT_OK -> Color.RED
+            Operation.LOADING -> Color.YELLOW
+            else -> Color.BLACK
+        }
+        return color
+    }
+
+    private fun setupButtons() {
+        mainPowerButton.setOnClickListener{ //Hook up power button to start the connection
+            toggleServiceConnection()
         }
         settingsButtonMain.setOnClickListener {
-            finish() //Stop activity
-            startActivity(Intent(this, ManualSetupActivity::class.java))
-            core?.disable()
-            core = null
+            launchSetupActivity()
         }
 
         //Black overlay to try to conserve power on AMOLED displays
         fakeSleepView.setOnTouchListener { view, motionEvent ->
-            if(settings.screenTimeout) {
-                fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
-                handler.removeCallbacks(this)
-                handler.postDelayed(this, 10000) //10 second delay
-                //TODO disable touch if black screen is up
-            }
-            return@setOnTouchListener false
+            handleSleepLayoutTouch()
         }
-        initIndicators()
+    }
+
+    private fun handleSleepLayoutTouch(): Boolean {
+        if(settings.screenTimeout) {
+            startSleepDelayed()
+            //TODO disable touch if black screen is up
+        }
+        return (fakeSleepView.background as? ColorDrawable)?.color == Color.BLACK
+    }
+
+    private fun launchSetupActivity() {
+        letsRobotViewModel?.api?.disable()
+        finish() //Stop activity
+        startActivity(Intent(this, ManualSetupActivity::class.java))
+    }
+
+    private fun toggleServiceConnection() {
+        if (recording) {
+            components.forEach { component ->
+                letsRobotViewModel?.api?.detachFromLifecycle(component)
+            }
+            letsRobotViewModel?.api?.disable()
+        } else {
+            addDefaultComponents()
+            components.forEach { component ->
+                letsRobotViewModel?.api?.attachToLifecycle(component)
+            }
+            letsRobotViewModel?.api?.reset()
+            letsRobotViewModel?.api?.enable()
+        }
+    }
+
+    private fun startSleepDelayed() {
+        fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
+        handler.removeCallbacks(this)
+        handler.postDelayed(this, 10000) //10 second delay
     }
 
     private fun initIndicators() { //Indicators for Core Services
-        cloudStatusIcon.setComponentInterface(Core::class.java.simpleName)
+        cloudStatusIcon.setComponentInterface(MainSocketComponent::class.java.simpleName)
         cameraStatusIcon.setComponentInterface(CameraBaseComponent.EVENTNAME)
-        robotStatusIcon.setComponentInterface(RobotControllerComponent::class.java.simpleName)
+        robotStatusIcon.setComponentInterface(ControlSocketComponent::class.java.simpleName)
         micStatusIcon.setComponentInterface(AudioComponent::class.java.simpleName)
-        ttsStatusIcon.setComponentInterface(TextToSpeechComponent::class.java.simpleName)
+        ttsStatusIcon.setComponentInterface(ChatSocketComponent::class.java.simpleName)
         robotMotorStatusIcon.setComponentInterface(CommunicationComponent::class.java.simpleName)
         //To add more, add another icon to the layout file somewhere and pass in your component
     }
 
-    override fun onPause() {
-        super.onPause()
-        core?.onPause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //Call onResume to re-enable it if needed. If null, create it
-        core?.onResume() ?: createCore()
+    private fun destroyIndicators() {
+        cloudStatusIcon.onDestroy()
+        cameraStatusIcon.onDestroy()
+        robotStatusIcon.onDestroy()
+        micStatusIcon.onDestroy()
+        ttsStatusIcon.onDestroy()
+        robotMotorStatusIcon.onDestroy()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        destroyIndicators()
         PhoneBatteryMeter.destroyReceiver(applicationContext)
     }
 
@@ -126,34 +173,23 @@ class MainRobotActivity : Activity(), Runnable {
      * Create the robot Core object. This will handle enabling all components on its own thread.
      * Core.Builder is the only way to create the Core to make sure settings do not change wile the robot is running
      */
-    private fun createCore() {
-        val builder = Core.Builder(applicationContext) //Initialize the Core Builder
+    private fun addDefaultComponents() {
+        val builder = ServiceComponentGenerator(applicationContext) //Initialize the Core Builder
         //Attach the SurfaceView textureView to render the camera to
-        builder.holder = cameraSurfaceView
         builder.robotId = settings.robotId //Pass in our Robot ID
 
         (settings.cameraId).takeIf {
             settings.cameraEnabled
         }?.let{ cameraId ->
-            val arrRes = settings.cameraResolution.split('x')
-            val cameraSettings = CameraSettings(cameraId = cameraId,
-                    pass = settings.cameraPassword,
-                    width = arrRes[0].toInt(),
-                    height = arrRes[1].toInt(),
-                    bitrate = settings.cameraBitrate,
-                    useLegacyApi = settings.cameraLegacy,
-                    orientation = settings.cameraOrientation
-            )
-            builder.cameraSettings = cameraSettings
+            builder.cameraSettings = RobotSettingsObject.buildCameraSettings(settings)
         }
         builder.useTTS = settings.enableTTS
         builder.useMic = settings.enableMic
         builder.protocol = settings.robotProtocol
         builder.communication = settings.robotCommunication
-        builder.externalComponents = components //pass in arrayList of custom components
         try {
-            core = builder.build() //Retrieve the built Core instance
-        } catch (e: Core.InitializationException) {
+            components = builder.build()
+        } catch (e: ServiceComponentGenerator.InitializationException) {
             RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()
         }
