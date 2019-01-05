@@ -12,12 +12,11 @@ abstract class TTSBaseComponent(context: Context) : Component(context) {
                          val pitch: Float = 1.0f,
                          val user: String? = null,
                          val shouldFlush: Boolean = false,
-                         val isSpeakable: Boolean = true)
+                         val isSpeakable: Boolean = true,
+                         val isMod : Boolean = false)
     companion object {
         var TTS_OK = "ok"
         var TTS_DISCONNECTED = "disconnected"
         const val COMMAND_PITCH = 0.5f
-        const val SPEAKABLE_TEXT = 0
-        const val COMMAND_TEXT = 1
     }
 }

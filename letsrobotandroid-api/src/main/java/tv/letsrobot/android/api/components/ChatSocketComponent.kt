@@ -21,7 +21,7 @@ import java.util.*
  */
 class ChatSocketComponent internal constructor(context: Context, private val robotId : String) : Component(context){
     override fun getType(): ComponentType {
-        return ComponentType.TTS
+        return ComponentType.CHAT_SOCKET
     }
 
     private var mSocket: Socket? = null
@@ -108,10 +108,16 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
             }
             else{
                 pitch = .5f
+                sendText(TTSBaseComponent.TTSObject(it,
+                        pitch,
+                        isSpeakable = false,
+                        isMod = user == MainSocketComponent.owner))
                 processCommand(it, user)
             }
-            speakingText?.let {
-                sendText(TTSBaseComponent.TTSObject(speakingText, pitch))
+            speakingText?.let { ttsText ->
+                sendText(TTSBaseComponent.TTSObject(ttsText,
+                        pitch,
+                        isMod = user == MainSocketComponent.owner))
             }
         }
     }

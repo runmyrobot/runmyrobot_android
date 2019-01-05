@@ -6,6 +6,7 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
+import tv.letsrobot.android.api.components.tts.TTSBaseComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
@@ -143,9 +144,9 @@ class ControlSocketComponent internal constructor(context : Context, private val
     }
 
     private fun parseChat(message : ComponentEventObject) {
-        (message.data as? String)?.let {it ->
-            print(it)
-            when(it){
+        (message.data as? TTSBaseComponent.TTSObject)?.takeIf { it.isMod }?.let { it ->
+            print(it.text)
+            when(it.text){
                 TABLE_ON_COMMAND -> table = true
                 TABLE_OFF_COMMAND -> table = false
                 MOTORS_OFF_COMMAND -> allowControl = false
