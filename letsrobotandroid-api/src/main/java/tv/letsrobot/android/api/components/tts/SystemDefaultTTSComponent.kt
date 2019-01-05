@@ -1,9 +1,11 @@
 package tv.letsrobot.android.api.components.tts
 
 import android.content.Context
+import android.os.Build
 import android.speech.tts.TextToSpeech
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
+import java.util.*
 
 /**
  * Uses the System TTS system. This uses whatever the default engine is set to
@@ -37,6 +39,20 @@ class SystemDefaultTTSComponent(context: Context) : TTSBaseComponent(context) {
 
     private fun process(data: TTSObject) {
         if(data.isSpeakable) speakText(data)
+        else{
+            processCommand(data)
+        }
+    }
+
+    private fun processCommand(data: TTSObject) {
+        if(data.text.contains(".locale")){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                try {
+                    ttobj?.language = Locale.forLanguageTag(data.text.split(" ")[1])
+                } catch (e: Exception) {
+                }
+            }
+        }
     }
 
     private fun shouldHandle(message: ComponentEventObject): Boolean {
