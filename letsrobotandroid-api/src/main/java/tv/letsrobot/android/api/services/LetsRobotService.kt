@@ -1,22 +1,31 @@
 package tv.letsrobot.android.api.services
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.runBlocking
+import tv.letsrobot.android.api.R
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.ComponentEventListener
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.interfaces.IComponent
+import java.util.*
+
 
 /**
  * The main LetsRobot control service.
  * This handles the lifecycle and communication to components that come from outside the sdk
  */
 class LetsRobotService : Service(), ComponentEventListener {
+
     /**
      * Message handler for components that we are controlling.
      * Best thing to do after is to push it to the service handler for processing,
@@ -27,7 +36,6 @@ class LetsRobotService : Service(), ComponentEventListener {
     }
 
     private var running = false
-
 
 
     /**
@@ -157,9 +165,56 @@ class LetsRobotService : Service(), ComponentEventListener {
         )
     }
 
+    private lateinit var mNotificationManager: NotificationManager
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        mNotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        tryCreateNotificationChannel()
         return super.onStartCommand(intent, flags, startId).also {
+            val idCancel = Random().nextInt()
+            val intentCancel = StopLetsRobotService.getIntent(this)
+            val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                PendingIntent.getForegroundService(applicationContext, idCancel, intentCancel, PendingIntent.FLAG_ONE_SHOT)
+            } else {
+                PendingIntent.getService(applicationContext, idCancel, intentCancel, PendingIntent.FLAG_ONE_SHOT)
+            }
+            val notification = NotificationCompat.Builder(this, LETSROBOT_SERVICE_CHANNEL)
+                    .setContentTitle("LetsRobot")
+                    .setContentText("Service is running in the foreground.")
+                    .setSubText("Kill app via recents to remove")
+                    .addAction(R.drawable.ic_power_settings_new_black_24dp, "Terminate app", pendingIntent)
+                    .setSmallIcon(R.drawable.ic_settings_remote_black_24dp)
+            startForeground(Random().nextInt(), notification.build())
             handler.obtainMessage(RESET).sendToTarget()
+        }
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        if(running)
+            runBlocking { disable() }
+        stopForeground(true)
+        super.onTaskRemoved(rootIntent)
+    }
+
+    private fun tryCreateNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //visible to user
+            val name = applicationContext.getString(R.string.channel_name)
+            //visible to user
+            val description = applicationContext.getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_LOW
+            //create a notification channel
+            val mChannel = NotificationChannel(LETSROBOT_SERVICE_CHANNEL, name, importance)
+            mChannel.description = description
+            mChannel.enableLights(false)
+            mChannel.setSound(null, null)
+            mChannel.setShowBadge(false)
+            mChannel.enableVibration(false)
+            try {
+                mNotificationManager.createNotificationChannel(mChannel)
+            } catch (e: IllegalArgumentException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -170,6 +225,7 @@ class LetsRobotService : Service(), ComponentEventListener {
         const val ATTACH_COMPONENT = 5
         const val DETACH_COMPONENT = 6
         const val EVENT_BROADCAST = 7
+        const val LETSROBOT_SERVICE_CHANNEL = "lr_service"
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
         lateinit var logLevel: LogLevel
     }

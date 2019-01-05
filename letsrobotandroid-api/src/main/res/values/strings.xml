@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LetsRobotAndroid</string>
+    <string name="channel_name">Service</string>
+    <string name="channel_description">Gives a cancelable notification for the service, and status updates</string>
 </resources>
