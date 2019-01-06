@@ -1,9 +1,6 @@
 package tv.letsrobot.android.api.services
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.*
@@ -20,6 +17,7 @@ import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.utils.InlineBroadcastReceiver
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList
 
 /**
@@ -69,6 +67,12 @@ class LetsRobotService : Service(), ComponentEventListener {
     private lateinit var mNotificationManager: NotificationManager
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if(isStarted.getAndSet(true)) {
+            startForeground(Random().nextInt(), Notification())
+            stopForeground(true)
+            stopSelf()
+            return super.onStartCommand(intent, flags, startId)
+        }
         mNotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         stopListenerReceiver = InlineBroadcastReceiver(SERVICE_STOP_BROADCAST){ _, receiverIntent ->
             stopService()
@@ -108,9 +112,11 @@ class LetsRobotService : Service(), ComponentEventListener {
         stopListenerReceiver?.unregister(this)
         stopForeground(true)
         stopSelf()
+        isStarted.set(false)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        stopService()
         super.onTaskRemoved(rootIntent)
     }
 
@@ -258,5 +264,6 @@ class LetsRobotService : Service(), ComponentEventListener {
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
         const val SERVICE_STOP_BROADCAST = "tv.letsrobot.android.api.request.stop"
         lateinit var logLevel: LogLevel
+        private val isStarted = AtomicBoolean(false)
     }
 }
