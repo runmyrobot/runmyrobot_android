@@ -85,10 +85,4 @@ constructor(context: Context, settings: CameraSettings) : SurfaceTextureCameraBa
             }
         }
     }
-
-    override fun disableInternal(){
-        // Setting this to false will prevent the preview from executing code, which will starve FFmpeg
-        // And sever the stream
-        streaming.set(false)
-    }
 }

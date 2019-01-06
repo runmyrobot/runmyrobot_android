@@ -1,6 +1,9 @@
 package tv.letsrobot.android.api.services
 
-import android.app.*
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.*
@@ -17,7 +20,6 @@ import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.utils.InlineBroadcastReceiver
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList
 
 /**
@@ -66,33 +68,32 @@ class LetsRobotService : Service(), ComponentEventListener {
     private var stopListenerReceiver: InlineBroadcastReceiver? = null
     private lateinit var mNotificationManager: NotificationManager
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if(isStarted.getAndSet(true)) {
-            startForeground(Random().nextInt(), Notification())
-            stopForeground(true)
-            stopSelf()
-            return super.onStartCommand(intent, flags, startId)
-        }
+    override fun onCreate() {
         mNotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        stopListenerReceiver = InlineBroadcastReceiver(SERVICE_STOP_BROADCAST){ _, receiverIntent ->
+        stopListenerReceiver = InlineBroadcastReceiver(SERVICE_STOP_BROADCAST){ _, _ ->
             stopService()
             System.exit(0)
         }.also {
             it.register(this)
         }
         tryCreateNotificationChannel()
-        return super.onStartCommand(intent, flags, startId).also {
-            val intentHide = Intent(LetsRobotService.SERVICE_STOP_BROADCAST)
-            val hide = PendingIntent.getBroadcast(this,
-                    System.currentTimeMillis().toInt(), intentHide, PendingIntent.FLAG_CANCEL_CURRENT)
-            val notification = NotificationCompat.Builder(this, LETSROBOT_SERVICE_CHANNEL)
-                    .setContentTitle("LetsRobot Controller")
-                    .setContentText("App is running in the background.")
-                    .addAction(R.drawable.ic_power_settings_new_black_24dp, "Terminate app", hide)
-                    .setSmallIcon(R.drawable.ic_settings_remote_black_24dp)
-            startForeground(Random().nextInt(), notification.build())
-            handler.obtainMessage(RESET).sendToTarget()
-        }
+        setupForeground()
+        handler.obtainMessage(RESET).sendToTarget()
+    }
+
+    /**
+     * Setup the foreground service notification
+     */
+    private fun setupForeground() {
+        val intentHide = Intent(LetsRobotService.SERVICE_STOP_BROADCAST)
+        val hide = PendingIntent.getBroadcast(this,
+                System.currentTimeMillis().toInt(), intentHide, PendingIntent.FLAG_CANCEL_CURRENT)
+        val notification = NotificationCompat.Builder(this, LETSROBOT_SERVICE_CHANNEL)
+                .setContentTitle("LetsRobot Controller")
+                .setContentText("App is running in the background.")
+                .addAction(R.drawable.ic_power_settings_new_black_24dp, "Terminate app", hide)
+                .setSmallIcon(R.drawable.ic_settings_remote_black_24dp)
+        startForeground(Random().nextInt(), notification.build())
     }
 
     /**
@@ -112,7 +113,6 @@ class LetsRobotService : Service(), ComponentEventListener {
         stopListenerReceiver?.unregister(this)
         stopForeground(true)
         stopSelf()
-        isStarted.set(false)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -163,7 +163,7 @@ class LetsRobotService : Service(), ComponentEventListener {
      * Reload the settings and prep for start
      */
     private fun reload() {
-
+        componentList.clear()
     }
 
     private fun addToLifecycle(component: IComponent) {
@@ -264,6 +264,5 @@ class LetsRobotService : Service(), ComponentEventListener {
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
         const val SERVICE_STOP_BROADCAST = "tv.letsrobot.android.api.request.stop"
         lateinit var logLevel: LogLevel
-        private val isStarted = AtomicBoolean(false)
     }
 }

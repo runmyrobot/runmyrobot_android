@@ -82,18 +82,18 @@ with settings that can be changed. RobotID is the only id required to get it con
  
 ### Troubleshooting issues
 
-####Flickering Camera and Microphone buttons
+####Flickering Camera and Microphone indicators
 
 Reload the robot page on LetsRobot.tv
 
 Also check that the robotId, cameraId, and cameraPass match with the site. 
 If your camera password on the site is empty, your password is "hello"
 
-#### Most buttons immediately go red
+#### Most indicators immediately go red
 
 Check the phone's internet connection
 
-#### Most buttons go red after being yellow for some time
+#### Most indicators go red after being yellow for some time
 
 - Check the phone's internet connection.
  

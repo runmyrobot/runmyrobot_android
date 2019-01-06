@@ -90,6 +90,7 @@ class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : 
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }
         } catch (e: Exception) {
+            status = ComponentStatus.ERROR
             e.printStackTrace()
         }
         data?.let { d->
