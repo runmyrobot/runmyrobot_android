@@ -82,7 +82,7 @@ with settings that can be changed. RobotID is the only id required to get it con
  
 ### Troubleshooting issues
 
-####Flickering Camera and Microphone indicators
+#### Flickering Camera and Microphone indicators
 
 Reload the robot page on LetsRobot.tv
 
