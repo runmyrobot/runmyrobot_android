@@ -81,12 +81,7 @@ class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : 
             if(!ffmpegRunning.get()){
                 successCounter = 0
                 status = ComponentStatus.CONNECTING
-                val audioDevNum = 1
-                val mic_channels = 1
-                val audioHost = host
-                val audioPort = port
-                val streamKey = cameraPass
-                val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, streamKey)
+                val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", host, port, cameraPass)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }
         } catch (e: Exception) {
