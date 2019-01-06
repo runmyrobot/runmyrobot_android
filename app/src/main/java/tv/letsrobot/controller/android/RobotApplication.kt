@@ -1,11 +1,8 @@
 package tv.letsrobot.controller.android
 
 import android.app.Application
-import android.content.Intent
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import com.squareup.leakcanary.LeakCanary
-import tv.letsrobot.android.api.services.LetsRobotService
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 
 /**
@@ -23,7 +20,6 @@ class RobotApplication : Application() {
         }
         LeakCanary.install(this)
         instance = this
-        ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, LetsRobotService::class.java))
         meter = PhoneBatteryMeter.getReceiver(applicationContext)
     }
 

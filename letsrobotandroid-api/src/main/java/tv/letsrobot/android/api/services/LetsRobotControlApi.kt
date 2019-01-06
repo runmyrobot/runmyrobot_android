@@ -93,10 +93,11 @@ class LetsRobotControlApi private constructor(
         return serviceBoundObserver
     }
 
-    private var receiver = Receiver(serviceStateObserver)
+    private var receiver = Receiver(serviceStateObserver){ //onDisconnectRequest
+        disconnectFromService()
+    }
 
     override fun connectToService() {
-        receiver = Receiver(serviceStateObserver)
         LocalBroadcastManager.getInstance(context).registerReceiver(receiver,
                 IntentFilter(LetsRobotService.SERVICE_STATUS_BROADCAST))
         Intent(context, LetsRobotService::class.java).also { intent ->
@@ -109,14 +110,26 @@ class LetsRobotControlApi private constructor(
         context.unbindService(this)
     }
 
-    class Receiver(val liveData: MutableLiveData<Operation>) : BroadcastReceiver() {
+    class Receiver(val liveData: MutableLiveData<Operation>, val disconnectCallback : (() -> Unit)? = null) : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.takeIf { it.action == LetsRobotService.SERVICE_STATUS_BROADCAST }?.let {
-                liveData.value = if(it.getBooleanExtra("value", false)){
-                    Operation.OK
-                }else{
-                    Operation.NOT_OK
+            intent?.let {
+                when(it.action){
+                    LetsRobotService.SERVICE_STATUS_BROADCAST -> {
+                        setLiveData(it.getBooleanExtra("value", false))
+                    }
+                    LetsRobotService.SERVICE_STOP_BROADCAST -> {
+                        disconnectCallback?.invoke()
+                    }
+                    else ->{/*do nothing*/}
                 }
+            }
+        }
+
+        private fun setLiveData(value: Boolean){
+            liveData.value = if(value){
+                Operation.OK
+            }else{
+                Operation.NOT_OK
             }
         }
     }

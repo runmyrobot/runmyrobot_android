@@ -10,6 +10,7 @@ import android.os.*
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
 import tv.letsrobot.android.api.R
 import tv.letsrobot.android.api.enums.ComponentType
@@ -17,26 +18,18 @@ import tv.letsrobot.android.api.enums.LogLevel
 import tv.letsrobot.android.api.interfaces.ComponentEventListener
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.interfaces.IComponent
+import tv.letsrobot.android.api.utils.InlineBroadcastReceiver
 import java.util.*
-
+import kotlin.collections.ArrayList
 
 /**
  * The main LetsRobot control service.
  * This handles the lifecycle and communication to components that come from outside the sdk
  */
 class LetsRobotService : Service(), ComponentEventListener {
-
-    /**
-     * Message handler for components that we are controlling.
-     * Best thing to do after is to push it to the service handler for processing,
-     * as this could be from any thread
-     */
-    override fun handleMessage(eventObject: ComponentEventObject) {
-        handler.obtainMessage(EVENT_BROADCAST, eventObject).sendToTarget()
-    }
-
     private var running = false
-
+    private val componentList = ArrayList<IComponent>()
+    private val activeComponentList = ArrayList<IComponent>()
 
     /**
      * Target we publish for clients to send messages to MessageHandler.
@@ -44,16 +37,13 @@ class LetsRobotService : Service(), ComponentEventListener {
     private lateinit var mMessenger: Messenger
     private var handlerThread : HandlerThread = HandlerThread("LetsRobotControl").also { it.start() }
 
-    private val componentList = ArrayList<IComponent>()
-    private val activeComponentList = ArrayList<IComponent>()
-
     val handler = object : Handler(handlerThread.looper) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 START ->
-                    runBlocking { enable() }
+                    enable()
                 STOP ->
-                    runBlocking { disable() }
+                    disable()
                 ATTACH_COMPONENT -> {
                     (msg.obj as? IComponent)?.let {
                         addToLifecycle(it)
@@ -65,14 +55,72 @@ class LetsRobotService : Service(), ComponentEventListener {
                     }
                 }
                 RESET -> {
-                    runBlocking { reset() }
+                    reset()
                 }
                 EVENT_BROADCAST ->{
-                    runBlocking { sendToComponents(msg) }
+                    sendToComponents(msg)
                 }
                 else -> super.handleMessage(msg)
             }
         }
+    }
+
+    private var stopListenerReceiver: InlineBroadcastReceiver? = null
+    private lateinit var mNotificationManager: NotificationManager
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        mNotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        stopListenerReceiver = InlineBroadcastReceiver(SERVICE_STOP_BROADCAST){ _, receiverIntent ->
+            stopService()
+            System.exit(0)
+        }.also {
+            it.register(this)
+        }
+        tryCreateNotificationChannel()
+        return super.onStartCommand(intent, flags, startId).also {
+            val intentHide = Intent(LetsRobotService.SERVICE_STOP_BROADCAST)
+            val hide = PendingIntent.getBroadcast(this,
+                    System.currentTimeMillis().toInt(), intentHide, PendingIntent.FLAG_CANCEL_CURRENT)
+            val notification = NotificationCompat.Builder(this, LETSROBOT_SERVICE_CHANNEL)
+                    .setContentTitle("LetsRobot Controller")
+                    .setContentText("App is running in the background.")
+                    .addAction(R.drawable.ic_power_settings_new_black_24dp, "Terminate app", hide)
+                    .setSmallIcon(R.drawable.ic_settings_remote_black_24dp)
+            startForeground(Random().nextInt(), notification.build())
+            handler.obtainMessage(RESET).sendToTarget()
+        }
+    }
+
+    /**
+     * When binding to the service, we return an interface to our messenger
+     * for sending messages to the service.
+     */
+    override fun onBind(intent: Intent): IBinder? {
+        Toast.makeText(applicationContext, "binding", Toast.LENGTH_SHORT).show()
+        mMessenger = Messenger(handler)
+        emitState()
+        return mMessenger.binder
+    }
+
+    private fun stopService(){
+        if(running)
+            runBlocking { disable() }
+        stopListenerReceiver?.unregister(this)
+        stopForeground(true)
+        stopSelf()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+    }
+
+    /**
+     * Message handler for components that we are controlling.
+     * Best thing to do after is to push it to the service handler for processing,
+     * as this could be from any thread
+     */
+    override fun handleMessage(eventObject: ComponentEventObject) {
+        handler.obtainMessage(EVENT_BROADCAST, eventObject).sendToTarget()
     }
 
     private fun sendToComponents(msg: Message) {
@@ -94,7 +142,7 @@ class LetsRobotService : Service(), ComponentEventListener {
     /**
      * Reset the service. If running, we will disable, reload, then start again
      */
-    private suspend fun reset() {
+    private fun reset() {
         if(running) {
             disable()
             reload()
@@ -122,37 +170,49 @@ class LetsRobotService : Service(), ComponentEventListener {
     }
 
     /**
-     * When binding to the service, we return an interface to our messenger
-     * for sending messages to the service.
+     * enable the components via co-routines. Calling this is only allowed via a co-routine,
+     * and blocks the current thread
+     * This prevents race conditions from happening between the UI and the service.
+     * This also holds up any new messages until after all components are enabled
      */
-    override fun onBind(intent: Intent): IBinder? {
-        Toast.makeText(applicationContext, "binding", Toast.LENGTH_SHORT).show()
-        mMessenger = Messenger(handler)
-        emitState()
-        return mMessenger.binder
-    }
+    fun enable(){
+        val componentListener : ComponentEventListener = this
+        runBlocking {
+            Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
+            activeComponentList.clear()
+            activeComponentList.addAll(componentList)
+            val list = ArrayList<Deferred<Boolean>>()
 
-    suspend fun enable(){
-        Toast.makeText(applicationContext, "Starting LetRobot Controller", Toast.LENGTH_SHORT).show()
-        activeComponentList.clear()
-        activeComponentList.addAll(componentList)
-        activeComponentList.forEach{
-            it.setEventListener(this)
-            it.enable().await()
+            //enable all of our components
+            activeComponentList.forEach{
+                it.setEventListener(componentListener)
+                val deferred = it.enable()
+                list.add(deferred) //add their deferred result to a list
+            }
+
+            //now wait for each one to complete
+            list.forEach {
+                it.await()
+            }
+            setState(true)
         }
-        setState(true)
     }
 
-    suspend fun disable(){
+    /**
+     * Disables components, blocking the service messaging thread until complete
+     */
+    fun disable(){
         Toast.makeText(applicationContext, "Stopping LetRobot Controller", Toast.LENGTH_SHORT).show()
-        activeComponentList.forEach{
-            it.disable().await()
-            it.setEventListener(null)
+        runBlocking {
+            activeComponentList.forEach{
+                it.disable().await()
+                it.setEventListener(null)
+            }
+            setState(false)
         }
-        setState(false)
     }
 
-    fun setState(value : Boolean){
+    private fun setState(value : Boolean){
         running = value
         emitState()
     }
@@ -163,37 +223,6 @@ class LetsRobotService : Service(), ComponentEventListener {
                     it.putExtra("value", running)
                 }
         )
-    }
-
-    private lateinit var mNotificationManager: NotificationManager
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        mNotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        tryCreateNotificationChannel()
-        return super.onStartCommand(intent, flags, startId).also {
-            val idCancel = Random().nextInt()
-            val intentCancel = StopLetsRobotService.getIntent(this)
-            val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                PendingIntent.getForegroundService(applicationContext, idCancel, intentCancel, PendingIntent.FLAG_ONE_SHOT)
-            } else {
-                PendingIntent.getService(applicationContext, idCancel, intentCancel, PendingIntent.FLAG_ONE_SHOT)
-            }
-            val notification = NotificationCompat.Builder(this, LETSROBOT_SERVICE_CHANNEL)
-                    .setContentTitle("LetsRobot")
-                    .setContentText("Service is running in the foreground.")
-                    .setSubText("Kill app via recents to remove")
-                    .addAction(R.drawable.ic_power_settings_new_black_24dp, "Terminate app", pendingIntent)
-                    .setSmallIcon(R.drawable.ic_settings_remote_black_24dp)
-            startForeground(Random().nextInt(), notification.build())
-            handler.obtainMessage(RESET).sendToTarget()
-        }
-    }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        if(running)
-            runBlocking { disable() }
-        stopForeground(true)
-        super.onTaskRemoved(rootIntent)
     }
 
     private fun tryCreateNotificationChannel() {
@@ -227,6 +256,7 @@ class LetsRobotService : Service(), ComponentEventListener {
         const val EVENT_BROADCAST = 7
         const val LETSROBOT_SERVICE_CHANNEL = "lr_service"
         const val SERVICE_STATUS_BROADCAST = "tv.letsrobot.android.api.ServiceStatus"
+        const val SERVICE_STOP_BROADCAST = "tv.letsrobot.android.api.request.stop"
         lateinit var logLevel: LogLevel
     }
 }
