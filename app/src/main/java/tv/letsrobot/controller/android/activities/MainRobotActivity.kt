@@ -129,11 +129,11 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             }
             letsRobotViewModel?.api?.disable()
         } else {
+            letsRobotViewModel?.api?.reset()
             addDefaultComponents()
             components.forEach { component ->
                 letsRobotViewModel?.api?.attachToLifecycle(component)
             }
-            letsRobotViewModel?.api?.reset()
             letsRobotViewModel?.api?.enable()
         }
     }

@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import tv.letsrobot.android.api.components.camera.SurfaceTextureCameraBaseComponent
+import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.models.CameraSettings
 
 
@@ -71,10 +72,13 @@ class Camera2SurfaceTextureComponent(context: Context, settings: CameraSettings)
             manager.openCamera(cameraId, mStateCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
+            status = ComponentStatus.ERROR
         } catch (e: NullPointerException) {
             e.printStackTrace()
+            status = ComponentStatus.ERROR
         } catch (e: InterruptedException) {
             e.printStackTrace()
+            status = ComponentStatus.ERROR
             throw RuntimeException("Interrupted while trying to lock camera opening.")
         }
     }

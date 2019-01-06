@@ -154,6 +154,7 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         try{
             bootFFmpeg(r)
         } catch (e: FFmpegCommandAlreadyRunningException) {
+            status = ComponentStatus.ERROR
             e.printStackTrace()
             // Handle if FFmpeg is already running
         }
