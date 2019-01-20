@@ -6,8 +6,8 @@ import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 
 /**
@@ -50,22 +50,22 @@ class StoreUtilTest {
         ////
 
         //Retrieve those boolean values
-        Assert.assertTrue(RobotConfig.CameraEnabled.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.SleepMode.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.MicEnabled.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.TTSEnabled.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.ErrorReporting.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.ErrorReporting.getValue(context, false) as Boolean)
-        Assert.assertTrue(RobotConfig.UseLegacyCamera.getValue(context, false) as Boolean)
+        Assert.assertTrue(RobotConfig.CameraEnabled.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.SleepMode.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.MicEnabled.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.TTSEnabled.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.ErrorReporting.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.ErrorReporting.getValue(context) as Boolean)
+        Assert.assertTrue(RobotConfig.UseLegacyCamera.getValue(context) as Boolean)
 
-        Assert.assertEquals("Robot",RobotConfig.RobotId.getValue(context, ""))
-        Assert.assertEquals("Camera",RobotConfig.CameraId.getValue(context, ""))
-        Assert.assertEquals("Test",RobotConfig.CameraPass.getValue(context, ""))
-        Assert.assertEquals("Bitrate",RobotConfig.VideoBitrate.getValue(context, ""))
-        Assert.assertEquals("Res",RobotConfig.VideoResolution.getValue(context, ""))
+        Assert.assertEquals("Robot",RobotConfig.RobotId.getValue(context))
+        Assert.assertEquals("Camera",RobotConfig.CameraId.getValue(context))
+        Assert.assertEquals("Test",RobotConfig.CameraPass.getValue(context))
+        Assert.assertEquals("Bitrate",RobotConfig.VideoBitrate.getValue(context))
+        Assert.assertEquals("Res",RobotConfig.VideoResolution.getValue(context))
 
-        Assert.assertEquals(CommunicationType.BluetoothClassic,RobotConfig.Communication.getValue(context, CommunicationType.UsbSerial))
-        Assert.assertEquals(ProtocolType.ArduinoRaw,RobotConfig.Protocol.getValue(context, ProtocolType.SingleByte))
-        Assert.assertEquals(CameraDirection.DIR_90,RobotConfig.Orientation.getValue(context, CameraDirection.DIR_0))
+        Assert.assertEquals(CommunicationType.BluetoothClassic,RobotConfig.Communication.getValue(context))
+        Assert.assertEquals(ProtocolType.ArduinoRaw,RobotConfig.Protocol.getValue(context))
+        Assert.assertEquals(CameraDirection.DIR_90,RobotConfig.Orientation.getValue(context))
     }
 }

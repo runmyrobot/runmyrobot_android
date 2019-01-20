@@ -1,8 +1,8 @@
 package tv.letsrobot.android.api.utils
 
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 
 enum class VariableType{
     BooleanClass,

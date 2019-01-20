@@ -2,8 +2,9 @@ package tv.letsrobot.controller.android.robot
 
 import android.content.Context
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.models.CameraSettings
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.android.api.utils.RobotConfig
 import java.util.*
 
@@ -110,11 +111,11 @@ data class RobotSettingsObject(val robotId : String,
                 RobotConfig.VideoResolution.default as String
             else
                 settings.cameraResolution
-            saveTextViewToRobotConfig(context, settings.robotId, RobotConfig.RobotId)
-            saveTextViewToRobotConfig(context, settings.cameraId, RobotConfig.CameraId)
-            saveTextViewToRobotConfig(context, settings.cameraPassword, RobotConfig.CameraPass)
-            saveTextViewToRobotConfig(context, settings.cameraBitrate.toString(), RobotConfig.VideoBitrate)
-            saveTextViewToRobotConfig(context, cameraRes, RobotConfig.VideoResolution)
+            saveTextSafelyToRobotConfig(context, settings.robotId, RobotConfig.RobotId)
+            saveTextSafelyToRobotConfig(context, settings.cameraId, RobotConfig.CameraId)
+            saveTextSafelyToRobotConfig(context, settings.cameraPassword, RobotConfig.CameraPass)
+            saveTextSafelyToRobotConfig(context, settings.cameraBitrate.toString(), RobotConfig.VideoBitrate)
+            saveTextSafelyToRobotConfig(context, cameraRes, RobotConfig.VideoResolution)
             RobotConfig.UseLegacyCamera.saveValue(context, settings.cameraLegacy)
             RobotConfig.CameraEnabled.saveValue(context, settings.cameraEnabled)
             RobotConfig.MicEnabled.saveValue(context, settings.enableMic)
@@ -143,7 +144,20 @@ data class RobotSettingsObject(val robotId : String,
             )
         }
 
-        private fun saveTextViewToRobotConfig(context: Context, value : String, setting : RobotConfig){
+        fun buildCameraSettings(settings: RobotSettingsObject): CameraSettings? {
+            val arrRes = settings.cameraResolution.split('x')
+            return CameraSettings(
+                    cameraId = settings.cameraId,
+                    pass = settings.cameraPassword,
+                    width = arrRes[0].toInt(),
+                    height = arrRes[1].toInt(),
+                    bitrate = settings.cameraBitrate,
+                    useLegacyApi = settings.cameraLegacy,
+                    orientation = settings.cameraOrientation
+            )
+        }
+
+        private fun saveTextSafelyToRobotConfig(context: Context, value : String, setting : RobotConfig){
             value.takeIf { !it.isBlank() }?.let {
                 setting.saveValue(context, it)
             } ?: setting.reset(context)

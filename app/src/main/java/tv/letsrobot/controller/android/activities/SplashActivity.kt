@@ -8,9 +8,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import tv.letsrobot.android.api.Core
-import tv.letsrobot.android.api.enums.CommunicationType
 import tv.letsrobot.android.api.interfaces.CommunicationInterface
+import tv.letsrobot.android.api.models.ServiceComponentGenerator
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.services.LetsRobotService
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
 
@@ -26,7 +27,7 @@ class SplashActivity : Activity() {
             return
         }
 
-        Core.initDependencies(this){
+        ServiceComponentGenerator.initDependencies(this){
             runOnUiThread{
                 next()
             }
@@ -38,7 +39,6 @@ class SplashActivity : Activity() {
         startActivity(Intent(this, ManualSetupActivity::class.java))
     }
 
-    //TODO replace with co-routine once that is stable and stops breaking Android Studio
     private fun next() {
         //Check permissions. break out if that returns false
         if(!checkPermissions()){
@@ -56,6 +56,7 @@ class SplashActivity : Activity() {
             return
         }
         //All checks are done. Lets startup the activity!
+        ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, LetsRobotService::class.java))
         finish()
         startActivity(Intent(this, MainRobotActivity::class.java))
     }

@@ -9,8 +9,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import tv.letsrobot.android.api.enums.CameraDirection
-import tv.letsrobot.android.api.enums.CommunicationType
-import tv.letsrobot.android.api.enums.ProtocolType
+import tv.letsrobot.android.api.robot.CommunicationType
+import tv.letsrobot.android.api.robot.ProtocolType
 import tv.letsrobot.controller.android.activities.QRActivity.Companion.KEY_DATA
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
 import java.util.concurrent.CountDownLatch

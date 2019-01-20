@@ -5,6 +5,7 @@ import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RecordingThread
@@ -16,6 +17,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by Brendon on 9/1/2018.
  */
 class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : String) : Component(contextA), FFmpegExecuteResponseHandler, RecordingThread.AudioDataReceivedListener {
+    override fun getType(): ComponentType {
+        return ComponentType.MICROPHONE
+    }
 
     internal var ffmpegRunning = AtomicBoolean(false)
 
@@ -77,15 +81,11 @@ class AudioComponent(contextA: Context, val cameraId : String, val cameraPass : 
             if(!ffmpegRunning.get()){
                 successCounter = 0
                 status = ComponentStatus.CONNECTING
-                val audioDevNum = 1
-                val mic_channels = 1
-                val audioHost = host
-                val audioPort = port
-                val streamKey = cameraPass
-                val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", audioHost, audioPort, streamKey)
+                val audioCommandLine2 = String.format("-f s16be -i - -f mpegts -codec:a mp2 -b:a 32k -ar 44100 -muxdelay 0.001 http://%s:%s/%s/640/480/", host, port, cameraPass)
                 fFmpeg.execute(UUID, null, audioCommandLine2.split(" ").toTypedArray(), this)
             }
         } catch (e: Exception) {
+            status = ComponentStatus.ERROR
             e.printStackTrace()
         }
         data?.let { d->

@@ -2,14 +2,14 @@ package tv.letsrobot.android.api.components.camera
 
 import android.content.Context
 import android.graphics.*
-import android.os.Handler
-import android.os.HandlerThread
+import android.os.Message
 import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.common.util.concurrent.RateLimiter
 import tv.letsrobot.android.api.enums.ComponentStatus
+import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.models.CameraSettings
 import tv.letsrobot.android.api.utils.JsonObjectUtils
@@ -20,6 +20,11 @@ import java.util.concurrent.atomic.AtomicLong
  * Abstracted class for different camera implementations
  */
 abstract class CameraBaseComponent(context: Context, val config: CameraSettings) : Component(context), FFmpegExecuteResponseHandler {
+
+    override fun getType(): ComponentType {
+        return ComponentType.CAMERA
+    }
+
     internal var ffmpegRunning = AtomicBoolean(false)
     protected var ffmpeg : FFmpeg = FFmpeg.getInstance(context)
     protected var UUID = java.util.UUID.randomUUID().toString()
@@ -37,54 +42,6 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     protected val cameraActive = AtomicBoolean(false)
     private val cameraPacketNumber = AtomicLong(1)
     protected var successCounter: Int = 0
-
-    private var handlerThread = HandlerThread("CameraProcessing")
-    var handler: Handler
-    init {
-        handlerThread.start()
-        handler = Handler(handlerThread.looper){ message ->
-            when(message.what){
-                CAMERA_PUSH -> {
-                    (message.obj as? CameraPackage)?.let {
-                        if(streaming.get() && limiter.tryAcquire()) {
-                            if (!ffmpegRunning.getAndSet(true)) {
-                                bootFFMPEG(it.r)
-                            }
-                            process?.let { _process ->
-                                (it.b as? ByteArray)?.let { _ ->
-                                    when (it.format) {
-                                        ImageFormat.JPEG -> {
-                                            _process.outputStream.write(it.b)
-                                        }
-                                        ImageFormat.NV21 -> {
-                                            val im = YuvImage(it.b, it.format, width, height, null)
-                                            try {
-                                                it.r?.let { rect ->
-                                                    im.compressToJpeg(rect, 100, _process.outputStream)
-                                                }
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                            }
-                                        }
-                                        else -> {
-                                        }
-                                    }
-                                } ?: (it.b as? Bitmap)?.let { image ->
-                                    try {
-                                        image.compress(Bitmap.CompressFormat.JPEG, 100, _process.outputStream)
-                                    } catch (e: Exception) {
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else -> {}
-            }
-            return@Handler true
-        }
-    }
-
 
     //override getName so all of the camera classes have the same name
     override fun getName(): String {
@@ -112,7 +69,53 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
         streaming.set(false)
     }
 
-    private data class CameraPackage(val b : Any?,val format : Int,val r : Rect?)
+    override fun handleMessage(message: Message): Boolean {
+        return when(message.what){
+            CAMERA_PUSH -> {
+                (message.obj as? CameraPackage)?.let {
+                    processCamera(it)
+                }
+                true
+            }
+            else -> {super.handleMessage(message)}
+        }
+    }
+
+    private fun processCamera(it: CameraPackage) {
+        if(streaming.get() && limiter.tryAcquire()) {
+            if (!ffmpegRunning.getAndSet(true)) {
+                tryBootFFmpeg(it.r)
+            }
+            try {
+                process?.let { _process ->
+                    (it.b as? ByteArray)?.let { _ ->
+                        processByteArray(_process, it)
+                    } ?: (it.b as? Bitmap)?.compress(Bitmap.CompressFormat.JPEG,
+                            100, _process.outputStream)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun processByteArray(_process: Process, it: CameraPackage) {
+        when (it.format) {
+            ImageFormat.JPEG -> {
+                _process.outputStream.write(it.b as ByteArray)
+            }
+            ImageFormat.NV21 -> {
+                val im = YuvImage(it.b as ByteArray, it.format, width, height, null)
+                it.r?.let { rect ->
+                    im.compressToJpeg(rect, 100, _process.outputStream)
+                }
+            }
+            else -> {
+            }
+        }
+    }
+
+    private data class CameraPackage(val b : Any?, val format : Int, val r : Rect?)
 
     fun push(b : Any?, format : Int, r : Rect?){
         if(!handler.hasMessages(CAMERA_PUSH)) {
@@ -142,41 +145,40 @@ abstract class CameraBaseComponent(context: Context, val config: CameraSettings)
     /**
      * Boot ffmpeg using config. If given a Rect, use that for resolution instead.
      */
-    fun bootFFMPEG(r : Rect? = null){
+    fun tryBootFFmpeg(r : Rect? = null){
         if(!streaming.get()){
             ffmpegRunning.set(false)
             status = ComponentStatus.DISABLED
             return
         }
-        successCounter = 0
-        status = ComponentStatus.CONNECTING
-        try {
-            // to execute "ffmpeg -version" command you just need to pass "-version"
-            var xres = width
-            var yres = height
-            r?.let {
-                xres = r.width()
-                yres = r.height()
-            }
-
-            val rotationOption = config.orientation.ordinal //leave blank
-            val builder = StringBuilder()
-            for (i in 0..rotationOption){
-                if(i == 0) builder.append("-vf transpose=1")
-                else builder.append(",transpose=1")
-            }
-            print("\"$builder\"")
-            val kbps = bitrateKb
-            val video_host = host
-            val video_port = port
-            val stream_key = config.pass
-            //TODO hook up with resolution prefs
-            val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${kbps}k -minrate ${kbps}k -maxrate ${kbps}k -bufsize ${kbps/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$video_host:$video_port/$stream_key/$xres/$yres/"
-            ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
+        try{
+            bootFFmpeg(r)
         } catch (e: FFmpegCommandAlreadyRunningException) {
+            status = ComponentStatus.ERROR
             e.printStackTrace()
             // Handle if FFmpeg is already running
         }
+    }
+
+    @Throws(FFmpegCommandAlreadyRunningException::class)
+    private fun bootFFmpeg(r : Rect? = null) {
+        successCounter = 0
+        status = ComponentStatus.CONNECTING
+        var xres = width
+        var yres = height
+        r?.let {
+            xres = r.width()
+            yres = r.height()
+        }
+
+        val rotationOption = config.orientation.ordinal //leave blank
+        val builder = StringBuilder()
+        for (i in 0..rotationOption){
+            if(i == 0) builder.append("-vf transpose=1")
+            else builder.append(",transpose=1")
+        }
+        val command = "-f image2pipe -codec:v mjpeg -i - -f mpegts -framerate ${config.frameRate} -codec:v mpeg1video -b ${bitrateKb}k -minrate ${bitrateKb}k -maxrate ${bitrateKb}k -bufsize ${bitrateKb/1.5}k -bf 0 -tune zerolatency -preset ultrafast -pix_fmt yuv420p $builder http://$host:$port/${config.pass}/$xres/$yres/"
+        ffmpeg.execute(UUID, null, command.split(" ").toTypedArray(), this)
     }
 
     override fun onStart() {
