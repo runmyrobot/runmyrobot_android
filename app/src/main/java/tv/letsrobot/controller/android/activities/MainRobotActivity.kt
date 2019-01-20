@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.activity_main_robot.*
 import tv.letsrobot.android.api.components.*
 import tv.letsrobot.android.api.components.camera.CameraBaseComponent
 import tv.letsrobot.android.api.enums.Operation
+import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.IComponent
 import tv.letsrobot.android.api.models.ServiceComponentGenerator
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
@@ -61,11 +62,13 @@ class MainRobotActivity : FragmentActivity(), Runnable{
         initIndicators()
     }
 
+    private val extComponents = ArrayList<Component>()
+
     private fun setupExternalComponents() {
         //add custom components here
         //Setup a custom component
         val component = CustomComponentExample(applicationContext, "customString")
-        components.add(component) //add to custom components list
+        extComponents.add(component) //add to custom components list
     }
 
     private fun setupApiInterface() {
@@ -130,7 +133,10 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             letsRobotViewModel?.api?.disable()
         } else {
             letsRobotViewModel?.api?.reset()
-            addDefaultComponents()
+            if(components.isEmpty()) {
+                addDefaultComponents()
+                components.addAll(extComponents)
+            }
             components.forEach { component ->
                 letsRobotViewModel?.api?.attachToLifecycle(component)
             }
