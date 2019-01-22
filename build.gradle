@@ -29,7 +29,7 @@ ext{
     globalBuildToolsVersion = "28.0.3"
     buildNumber = BITRISE_BUILD_NUMBER
     gitHash = getGitHash()
-    versionSemantic = "0.6.0"
+    versionSemantic = "0.6.1"
 }
 
 allprojects {
