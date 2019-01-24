@@ -19,11 +19,7 @@ The most stable code in the repo. Can be used for testing and is known to work
 
 ### devel
 
-The latest code, mostly stable, but might have issues
-
-Please Note! During the development stages of this project, this branch sometimes may not be buildable!
-I will try to keep it clean, but sometimes might not be able to.
-
+The latest code, mostly stable, but might have issues. Sometimes this code may not be buildable
 
 ## Device Limitations
 
@@ -56,9 +52,13 @@ with settings that can be changed. RobotID is the only id required to get it con
 
 - Text to speech toggle
 
-- Error reporting toggle (Logs to a error reporting website if the app crashes)
+- Error reporting toggle (Disabled for now)
+
+- Fake black screen to save power (Not really needed that much now that the screen can be turned off)
 
 - Bluetooth device setup
+
+- Scanning a QR Code that was exported with this app.
 
 ## Running the robot
 
@@ -71,6 +71,36 @@ with settings that can be changed. RobotID is the only id required to get it con
  5. Hit POWER - Button will be disabled until fully connected
  6. Robot will now be connected to letsrobot website. POWER button will be green
  
+### Supported Commands ###
+
+#### Table mode ####
+Only the owner can use this.
+Turns on table top mode, not allowing 'f' and 'b' commands, but allows everything else. Not case sensitive
+
+On: '.table on'
+
+Off: '.table off'
+
+#### Disable All Control ####
+Only the owner can use this.
+Disables all commands, even for the owner.
+
+Disable: '.motors off'
+Enable: '.motors on'
+
+#### Battery Level ####
+Only the owner can use this.
+'.battery level'
+
+Robot says the phone battery level
+'Internal battery 80%'
+
+#### TTS Language ####
+'.locale en-US'
+Sets the locale of the TTS (System TTS Only)
+
+Language must be installed for it to speak using it. This only changes the accent, and does not translate.
+ 
 ### Ways to stop the robot:
  
  - A notification will appear that states that the app is active. Use the "Terminate App" Button to 
@@ -79,7 +109,29 @@ with settings that can be changed. RobotID is the only id required to get it con
  - Hit the POWER button again when it is green to disable
  
  - Swipe app away from recents
- 
+
+### App Permissions ###
+
+#### Location ####
+
+Needed for bluetooth to function. In the future, this will not prompt if not needed
+
+#### Camera ####
+
+Needed to stream the camera
+
+#### Microphone ####
+
+Needed to stream the microphone
+
+#### Storage ####
+
+Not used right now
+
+#### Phone ####
+
+Not used, and will not be prompted for it
+
 ### Troubleshooting issues
 
 #### Flickering Camera and Microphone indicators
@@ -101,6 +153,11 @@ Check the phone's internet connection
 
 - Also could potentially be a site issue, but most of the time it would be internet related
 
+#### Robot turns off after some time if I turn the screen off ####
+This only applies to Android 6.0 and above
+
+- Go to the app settings and turn battery optimization off for this app
+
 ## Adding separate components
 
 Make a class that extends and implements methods of Component
@@ -115,10 +172,11 @@ See MainRobotController.kt for an example of CustomComponentExample being added
  - SaberTooth Motor Controllers (Simplified Serial), 9600 BAUD
  - Arduino via raw commands (f, b, l, r, stop, etc), 9600 BAUD, USB or Bluetooth Classic
  - Any device that has the same protocol as SaberTooth
+ - Lego Mindstorms NXT (JoystickDriver or equivalent. Most commonly used with older FIRST Tech Challenge robots that ran RobotC and Labview)
  
 ### Connection Options
 
- - Bluetooth Classic (less than 4.0 guaranteed), HC04 would work
+ - Bluetooth Classic (less than 4.0 guaranteed), HC04 would work. Please pair the bluetooth device in settings first, then setup in this app
  - USB Serial (Not working on Android Things 1.0.3 rpi3) (https://github.com/felHR85/UsbSerial#devices-supported)
 
 ## Error reporting
