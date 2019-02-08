@@ -8,6 +8,24 @@
         android:layout_height="fill_parent"
         android:orientation="vertical">
 
+        <LinearLayout android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:visibility="visible"
+            android:id="@+id/mainRobotButtonContainer">
+            <Button
+                android:id="@+id/settingsButtonMain"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/settings" />
+
+            <Button
+                android:id="@+id/mainPowerButton"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/power" />
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -71,23 +89,15 @@
                 android:src="@drawable/ic_robot" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/mainPowerButton"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-
-            android:text="@string/power" />
-
-        <Button
-            android:id="@+id/settingsButtonMain"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="@string/settings" />
+        <tv.letsrobot.controller.android.ui.chat.LRChatView android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/lrChatView"/>
     </LinearLayout>
-    <View
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/black"
         android:visibility="gone"
-        android:id="@+id/fakeSleepView"/>
+        android:id="@+id/fakeSleepView">
+    </FrameLayout>
 </FrameLayout>
