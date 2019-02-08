@@ -3,6 +3,7 @@ package tv.letsrobot.controller.android.activities
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,7 +22,8 @@ import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.viewModels.LetsRobotViewModel
 import tv.letsrobot.controller.android.R
 import tv.letsrobot.controller.android.RobotApplication
-import tv.letsrobot.controller.android.robot.CustomComponentExample
+import tv.letsrobot.controller.android.robot.CommandToMediaList
+import tv.letsrobot.controller.android.robot.PlayAudioComponentExample
 import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
 /**
@@ -67,8 +69,11 @@ class MainRobotActivity : FragmentActivity(), Runnable{
     private fun setupExternalComponents() {
         //add custom components here
         //Setup a custom component
-        val component = CustomComponentExample(applicationContext, "customString")
-        extComponents.add(component) //add to custom components list
+        /*val audioList = CommandToMediaList().also {
+            it.bindRawResourcesAudioFileToCommand("h", applicationContext, "horn") //R.raw.horn.mp3
+        }
+        val component = PlayAudioComponentExample(applicationContext, audioList)
+        extComponents.add(component) //add to custom components list*/
     }
 
     private fun setupApiInterface() {

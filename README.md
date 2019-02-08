@@ -164,7 +164,7 @@ Make a class that extends and implements methods of Component
 
 Then add to the Builder's externalComponents list
 
-See CustomComponentExample.kt
+See PlayAudioComponentExample.kt
 See MainRobotController.kt for an example of CustomComponentExample being added
 
 ### Devices supported
