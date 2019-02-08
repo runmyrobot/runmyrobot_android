@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@color/black"
     android:orientation="vertical">
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
@@ -12,83 +13,82 @@
             android:layout_width="match_parent"
             android:orientation="vertical"
             android:visibility="visible"
-            android:id="@+id/mainRobotButtonContainer">
-            <Button
-                android:id="@+id/settingsButtonMain"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="@string/settings" />
+            android:id="@+id/lrMainGroup">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="8dp"
+                android:gravity="center"
+                android:id="@+id/lrRobotIndicatorLayout"
+                android:orientation="horizontal">
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/cloudStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_cloud_white_24dp" />
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/cameraStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_camera_alt_white_24dp" />
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/micStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_mic_white_24dp" />
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/ttsStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_record_voice_over_white_24dp" />
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/robotStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_developer_board_white_24dp" />
+
+                <tv.letsrobot.controller.android.ui.LRStatusImageView
+                    android:id="@+id/robotMotorStatusIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/circle"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_robot" />
+            </LinearLayout>
             <Button
                 android:id="@+id/mainPowerButton"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="@string/power" />
+            <Button
+                android:id="@+id/settingsButtonMain"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/settings" />
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/cloudStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_cloud_white_24dp" />
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/cameraStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_camera_alt_white_24dp" />
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/micStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_mic_white_24dp" />
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/ttsStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_record_voice_over_white_24dp" />
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/robotStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_developer_board_white_24dp" />
-
-            <tv.letsrobot.controller.android.ui.LRStatusImageView
-                android:id="@+id/robotMotorStatusIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/circle"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_robot" />
-        </LinearLayout>
-
         <tv.letsrobot.controller.android.ui.chat.LRChatView android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/lrChatView"/>
