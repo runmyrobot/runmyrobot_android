@@ -57,6 +57,5 @@ class LRChatView : RecyclerView{
                         onChatRemovedReceiver,
                         IntentFilter(ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST)
                 )
-        lrAdapter?.notifyDataSetChanged()
     }
 }
