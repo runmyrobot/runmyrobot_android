@@ -122,20 +122,24 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
                     isMod = user == MainSocketComponent.owner,
                     color = jsonObject.getString("username_color"),
                     message_id = jsonObject.getString("_id"))
-            //send the packet via Local Broadcast. Anywhere in this app can intercept this
-            LocalBroadcastManager.getInstance(context)
-                    .sendBroadcast(Intent(LR_CHAT_MESSAGE_WITH_NAME_BROADCAST)
-                            .also { intent ->
-                                intent.putExtra("json", ttsObject)
-                            })
-            if(isCommand){ //send it once for command
-                sendText(ttsObject)
-            }
-            speakingText?.let { ttsText -> //now send it again for speakable text
-                sendText(ttsObject.also { ttsObject ->
-                    ttsObject.text = ttsText
-                })
-            }
+            sendChatEvents(ttsObject, speakingText, isCommand)
+        }
+    }
+
+    private fun sendChatEvents(ttsObject: TTSBaseComponent.TTSObject, speakingText: String?, isCommand : Boolean) {
+        //send the packet via Local Broadcast. Anywhere in this app can intercept this
+        LocalBroadcastManager.getInstance(context)
+                .sendBroadcast(Intent(LR_CHAT_MESSAGE_WITH_NAME_BROADCAST)
+                        .also { intent ->
+                            intent.putExtra("json", ttsObject)
+                        })
+        if(isCommand){ //send it once for command
+            sendText(ttsObject)
+        }
+        speakingText?.let { ttsText -> //now send it again for speakable text
+            sendText(ttsObject.also { ttsObject ->
+                ttsObject.text = ttsText
+            })
         }
     }
 
