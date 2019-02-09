@@ -1,9 +1,13 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
+import android.content.Intent
 import android.os.Message
+import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
+import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
@@ -32,10 +36,12 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     override fun disableInternal() {
-
+        appServerSocket?.disconnect()
+        userAppSocket?.disconnect()
     }
 
     private var appServerSocket: Socket? = null
+    private var userAppSocket: Socket? = null
 
     private fun setOwner(){
         owner = JsonObjectUtils.getJsonObjectFromUrl(
@@ -48,8 +54,8 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun setupAppWebSocket() {
+        userAppSocket = IO.socket("http://letsrobot.tv:8000")
         appServerSocket = IO.socket("http://letsrobot.tv:8022")
-        appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             status = ComponentStatus.ERROR
         }
@@ -59,6 +65,37 @@ class MainSocketComponent(context: Context) : Component(context) {
         }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             status = ComponentStatus.DISABLED
+        }
+        userAppSocket?.on("message_removed"){
+            onMessageRemoved(it)
+        }?.on("channel_users_list"){
+            Log.d("TEST","test")
+        }?.on(Socket.EVENT_CONNECT){
+            Log.d("TEST","test")
+        }?.on(Socket.EVENT_PONG){
+            Log.d("TEST","test")
+        }
+        appServerSocket?.connect()
+        userAppSocket?.connect()
+    }
+
+    /**
+     * {
+    "message_id": "5c5e45cf4101e7503a4eb148"
+    }
+     */
+    private fun onMessageRemoved(params: Array<out Any>){
+        if (params[0] is JSONObject) {
+            val `object` = params[0] as JSONObject
+            try {
+                LocalBroadcastManager.getInstance(context)
+                        .sendBroadcast(Intent(ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST)
+                                .also { intent ->
+                                    intent.fillWithJson(`object`)
+                                })
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -102,5 +139,17 @@ class MainSocketComponent(context: Context) : Component(context) {
     companion object {
         const val ROBOT_OWNER = 0
         var owner : String? = null
+    }
+
+    /**
+     * Fill the intent with top level of the json. Does not work when it is nested
+     */
+    private fun Intent.fillWithJson(jsonObject: JSONObject) {
+        jsonObject.keys().forEach { key ->
+            try {
+                putExtra(key, jsonObject.getString(key))
+            } catch (e: Exception) { //in case the API changes
+            }
+        }
     }
 }

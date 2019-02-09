@@ -1,6 +1,7 @@
 package tv.letsrobot.controller.android.ui.chat
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,10 @@ import tv.letsrobot.controller.android.R
 /**
  * A Chat adapter for LetsRobot chat that converts a List of TTSBaseComponent.TTSObject into UI
  */
-class LRChatAdapter(internal var mCtx: Context, internal var chatMessages: ArrayList<TTSBaseComponent.TTSObject>) : RecyclerView.Adapter<LRChatAdapter.LRChatViewHolder>() {
+class LRChatAdapter(
+        internal var mCtx: Context,
+        internal var chatMessages: LinkedHashMap<String, TTSBaseComponent.TTSObject>
+) : RecyclerView.Adapter<LRChatAdapter.LRChatViewHolder>() {
     @NonNull
     override fun onCreateViewHolder(@NonNull parent: ViewGroup, viewType: Int): LRChatViewHolder {
         val view = LayoutInflater.from(mCtx).inflate(R.layout.lr_chat_item_layout, parent, false)
@@ -21,9 +25,10 @@ class LRChatAdapter(internal var mCtx: Context, internal var chatMessages: Array
     }
 
     override fun onBindViewHolder(@NonNull holder: LRChatViewHolder, position: Int) {
-        val chatMessage = chatMessages[position]
-        //holder.userField.text = chatMessage.user
-        //holder.messageField.text = chatMessage.text
+        val chatMessage = chatMessages.values.elementAt(position)
+        holder.userField.text = chatMessage.user
+        holder.userField.setTextColor(Color.parseColor(chatMessage.color))
+        holder.messageField.text = chatMessage.text
         //TODO icons if mod or owner? For now, just a simple UI
     }
 
@@ -32,7 +37,19 @@ class LRChatAdapter(internal var mCtx: Context, internal var chatMessages: Array
     }
 
     fun addMessage(obj : TTSBaseComponent.TTSObject) {
-        chatMessages.add(obj)
+        chatMessages[obj.message_id] = obj
+        val index = chatMessages.keys.indexOf(obj.message_id)
+        //notifyItemInserted(index)
+        notifyDataSetChanged()
+    }
+
+    fun removeMessage(id : String){
+        val index = chatMessages.keys.indexOf(id)
+        if(index != -1){
+            chatMessages.remove(id)
+//            notifyItemRemoved(index)
+        }
+        notifyDataSetChanged()
     }
 
     inner class LRChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
