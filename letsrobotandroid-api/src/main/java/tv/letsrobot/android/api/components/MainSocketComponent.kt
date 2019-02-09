@@ -3,7 +3,6 @@ package tv.letsrobot.android.api.components
 import android.content.Context
 import android.content.Intent
 import android.os.Message
-import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -54,7 +53,7 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun setupAppWebSocket() {
-        userAppSocket = IO.socket("http://letsrobot.tv:8000")
+        userAppSocket = IO.socket("https://letsrobot.tv:8000")
         appServerSocket = IO.socket("http://letsrobot.tv:8022")
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             status = ComponentStatus.ERROR
@@ -66,14 +65,8 @@ class MainSocketComponent(context: Context) : Component(context) {
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             status = ComponentStatus.DISABLED
         }
-        userAppSocket?.on("message_removed"){
+        userAppSocket!!.on("message_removed"){
             onMessageRemoved(it)
-        }?.on("channel_users_list"){
-            Log.d("TEST","test")
-        }?.on(Socket.EVENT_CONNECT){
-            Log.d("TEST","test")
-        }?.on(Socket.EVENT_PONG){
-            Log.d("TEST","test")
         }
         appServerSocket?.connect()
         userAppSocket?.connect()
