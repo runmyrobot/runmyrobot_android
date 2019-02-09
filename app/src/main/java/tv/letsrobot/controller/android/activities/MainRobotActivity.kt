@@ -114,7 +114,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
 
         lrChatView.setOnTouchListener { v, event ->
             handleShowButtons()
-            return@setOnTouchListener true
+            return@setOnTouchListener false
         }
     }
 

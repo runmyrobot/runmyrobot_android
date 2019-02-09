@@ -41,6 +41,13 @@ class LRChatView : RecyclerView{
     init {
         adapter = LRChatAdapter(context, LinkedHashMap())
         layoutManager = LinearLayoutManager(context)
+        val man = layoutManager as LinearLayoutManager
+        val recyclerView = this
+        adapter!!.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                man.smoothScrollToPosition(recyclerView, null, adapter!!.itemCount)
+            }
+        })
         LocalBroadcastManager.getInstance(context)
                 .registerReceiver(
                         onMessageReceiver,

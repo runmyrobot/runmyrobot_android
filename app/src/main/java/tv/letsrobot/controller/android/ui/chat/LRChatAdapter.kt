@@ -39,17 +39,15 @@ class LRChatAdapter(
     fun addMessage(obj : TTSBaseComponent.TTSObject) {
         chatMessages[obj.message_id] = obj
         val index = chatMessages.keys.indexOf(obj.message_id)
-        //notifyItemInserted(index)
-        notifyDataSetChanged()
+        notifyItemInserted(index)
     }
 
     fun removeMessage(id : String){
         val index = chatMessages.keys.indexOf(id)
         if(index != -1){
             chatMessages.remove(id)
-//            notifyItemRemoved(index)
+            notifyItemRemoved(index)
         }
-        notifyDataSetChanged()
     }
 
     inner class LRChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
