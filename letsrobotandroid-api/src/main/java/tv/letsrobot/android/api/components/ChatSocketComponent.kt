@@ -121,7 +121,8 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
                     isSpeakable = !isCommand,
                     isMod = user == MainSocketComponent.owner,
                     color = jsonObject.getString("username_color"),
-                    message_id = jsonObject.getString("_id"))
+                    message_id = jsonObject.getString("_id"),
+                    shouldFlush = isCommand)
             sendChatEvents(ttsObject, speakingText, isCommand)
         }
     }
@@ -137,9 +138,15 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
             sendText(ttsObject)
         }
         speakingText?.let { ttsText -> //now send it again for speakable text
-            sendText(ttsObject.also { ttsObject ->
-                ttsObject.text = ttsText
-            })
+            sendText(TTSBaseComponent.TTSObject(
+                    speakingText,
+                    ttsObject.pitch,
+                    ttsObject.user,
+                    ttsObject.anonymous,
+                    ttsObject.shouldFlush,
+                    true,
+                    ttsObject.isMod
+            ))
         }
     }
 
