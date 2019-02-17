@@ -2,7 +2,6 @@ package tv.letsrobot.controller.android.activities
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -34,8 +33,8 @@ class MainRobotActivity : FragmentActivity(), Runnable{
 
     override fun run() {
         if (recording){
-            fakeSleepView.visibility = View.VISIBLE
-            fakeSleepView.setBackgroundColor(resources.getColor(R.color.black))
+            lrMainGroup.visibility = View.GONE
+            hideSystemUI()
         }
     }
 
@@ -107,29 +106,18 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             launchSetupActivity()
         }
 
-        //Black overlay to try to conserve power on AMOLED displays
-        fakeSleepView.setOnTouchListener { view, motionEvent ->
-            handleSleepLayoutTouch()
-        }
-
         lrChatView.setOnTouchListener { v, event ->
-            handleShowButtons()
+            handleSleepLayoutTouch()
             return@setOnTouchListener false
-        }
-    }
-
-    private fun handleShowButtons() {
-        if(lrMainGroup.visibility == View.GONE){
-            lrMainGroup.visibility = View.VISIBLE
         }
     }
 
     private fun handleSleepLayoutTouch(): Boolean {
         if(settings.screenTimeout) {
             startSleepDelayed()
-            //TODO disable touch if black screen is up
+            showSystemUI()
         }
-        return (fakeSleepView.background as? ColorDrawable)?.color == Color.BLACK
+        return false
     }
 
     private fun launchSetupActivity() {
@@ -158,7 +146,7 @@ class MainRobotActivity : FragmentActivity(), Runnable{
     }
 
     private fun startSleepDelayed() {
-        fakeSleepView.setBackgroundColor(Color.TRANSPARENT)
+        lrMainGroup.visibility = View.VISIBLE
         handler.removeCallbacks(this)
         handler.postDelayed(this, 10000) //10 second delay
     }
@@ -212,6 +200,34 @@ class MainRobotActivity : FragmentActivity(), Runnable{
             RobotApplication.Instance.reportError(e) // Reports an initialization error to application
             e.printStackTrace()
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemUI()
+    }
+
+    private fun hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
+                // Set the content to appear under the system bars so that the
+                // content doesn't resize when the system bars hide and show.
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                // Hide the nav bar and status bar
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+    }
+
+    // Shows the system bars by removing all the flags
+// except for the ones that make the content appear under the system bars.
+    private fun showSystemUI() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
     }
 
     companion object {
