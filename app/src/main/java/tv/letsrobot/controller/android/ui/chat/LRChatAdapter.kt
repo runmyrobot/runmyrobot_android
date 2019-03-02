@@ -50,6 +50,17 @@ class LRChatAdapter(
         }
     }
 
+    fun removeUser(userID: String) {
+        val idsToRemove = ArrayList<String>()
+        chatMessages.forEach {
+            if(it.value.user == userID)
+                idsToRemove.add(it.key)
+        }
+        idsToRemove.forEach {
+            removeMessage(it)
+        }
+    }
+
     inner class LRChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         internal var userField = itemView.findViewById(R.id.lrChatUserField) as TextView
         internal var messageField = itemView.findViewById(R.id.lrChatMessageField) as TextView

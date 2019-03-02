@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import tv.letsrobot.android.api.components.ChatSocketComponent
 import tv.letsrobot.android.api.components.tts.TTSBaseComponent
+import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
 /**
  * Created by Brendon on 2/7/2019.
@@ -18,6 +19,7 @@ class LRChatView : RecyclerView{
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context) : super(context)
+    val robotId = RobotSettingsObject.load(context).robotId
 
     private val lrAdapter: LRChatAdapter?
         get() {return adapter as? LRChatAdapter}
@@ -34,6 +36,16 @@ class LRChatView : RecyclerView{
         override fun onReceive(context: Context?, intent: Intent?) {
             intent?.takeIf { it.hasExtra("message_id") }?.let {
                 lrAdapter?.removeMessage(it.getStringExtra("message_id"))
+            }
+        }
+    }
+
+    private val onUserRemovedReceiver = object : BroadcastReceiver(){
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.takeIf {
+                it.hasExtra("username")
+            }?.let {
+                lrAdapter?.removeUser(it.getStringExtra("username"))
             }
         }
     }
@@ -56,6 +68,11 @@ class LRChatView : RecyclerView{
                 .registerReceiver(
                         onChatRemovedReceiver,
                         IntentFilter(ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST)
+                )
+        LocalBroadcastManager.getInstance(context)
+                .registerReceiver(
+                        onUserRemovedReceiver,
+                        IntentFilter(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST)
                 )
     }
 }

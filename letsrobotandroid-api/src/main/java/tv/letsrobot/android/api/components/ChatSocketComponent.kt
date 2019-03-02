@@ -186,6 +186,7 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
     companion object {
         const val LR_CHAT_MESSAGE_WITH_NAME_BROADCAST = "tv.letsrobot.chat.chat_message_with_name"
         const val LR_CHAT_MESSAGE_REMOVED_BROADCAST = "tv.letsrobot.chat.message_removed"
+        const val LR_CHAT_USER_REMOVED_BROADCAST = "tv.letsrobot.chat.user_removed"
         const val CHAT_URL = "https://letsrobot.tv/get_chat_host_port/%s"
         const val SOCKET_TEMPLATE = "http://%s:%s"
         fun getMessageFromRaw(inVal : String?) : String?{

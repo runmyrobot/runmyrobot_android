@@ -62,14 +62,40 @@ class MainSocketComponent(context: Context) : Component(context) {
             status = ComponentStatus.STABLE
             appServerSocket?.emit("identify_robot_id", robotId)
         }
+        userAppSocket?.on(Socket.EVENT_CONNECT){
+            userAppSocket?.emit("identify_robot_id", robotId)
+        }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             status = ComponentStatus.DISABLED
         }
         userAppSocket!!.on("message_removed"){
             onMessageRemoved(it)
         }
+        userAppSocket!!.on("user_blocked"){
+            onUserRemoved(it)
+        }
+        userAppSocket!!.on("user_timeout"){
+            onUserRemoved(it)
+        }
         appServerSocket?.connect()
         userAppSocket?.connect()
+    }
+
+    private fun onUserRemoved(params: Array<out Any>) {
+        if (params[0] is JSONObject) {
+            val `object` = params[0] as JSONObject
+            try {
+                if(`object`["room"] == owner){ //only send if the room is the name of the owner
+                    LocalBroadcastManager.getInstance(context)
+                            .sendBroadcast(Intent(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST)
+                                    .also { intent ->
+                                        intent.fillWithJson(`object`)
+                                    })
+                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+        }
     }
 
     /**
