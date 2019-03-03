@@ -36,8 +36,7 @@ class LRChatView : RecyclerView{
     }
 
     private val onUserRemovedReceiver = LocalBroadcastReceiverExtended(context,
-            IntentFilter(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST
-                    ,ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST)){ _, intent ->
+            IntentFilter(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST)){ _, intent ->
         intent?.extras?.getString("username", null)?.let {
             lrAdapter?.removeUser(it)
         }
