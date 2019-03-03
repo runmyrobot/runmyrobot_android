@@ -62,9 +62,6 @@ class MainSocketComponent(context: Context) : Component(context) {
             status = ComponentStatus.STABLE
             appServerSocket?.emit("identify_robot_id", robotId)
         }
-        userAppSocket?.on(Socket.EVENT_CONNECT){
-            userAppSocket?.emit("identify_robot_id", robotId)
-        }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             status = ComponentStatus.DISABLED
         }
