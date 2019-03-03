@@ -163,12 +163,12 @@
         android:id="@+id/ttsEnableButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable Text To Speech"/>
+        android:text="Enable Text To Speech (Also enables chat display)"/>
     <Switch
         android:id="@+id/screenOverlaySettingsButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable fake screen timeout"/>
+        android:text="Enable TTS Fullscreen Mode (Hides buttons after timeout)"/>
     <Switch
         android:enabled="false"
         android:checked="false"
