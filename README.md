@@ -114,23 +114,15 @@ Language must be installed for it to speak using it. This only changes the accen
 
 #### Location ####
 
-Needed for bluetooth to function. In the future, this will not prompt if not needed
+Needed for bluetooth device scanning. Not requested or used otherwise
 
 #### Camera ####
 
-Needed to stream the camera
+Needed to stream the camera. Only requested if camera is enabled in settings
 
 #### Microphone ####
 
-Needed to stream the microphone
-
-#### Storage ####
-
-Not used right now
-
-#### Phone ####
-
-Not used, and will not be prompted for it
+Needed to stream the microphone. Only requested if the mic is enabled in settings
 
 ### Troubleshooting issues
 
@@ -164,7 +156,7 @@ Make a class that extends and implements methods of Component
 
 Then add to the Builder's externalComponents list
 
-See CustomComponentExample.kt
+See PlayAudioComponentExample.kt
 See MainRobotController.kt for an example of CustomComponentExample being added
 
 ### Devices supported

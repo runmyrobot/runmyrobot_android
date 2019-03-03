@@ -12,6 +12,7 @@ import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
+import tv.letsrobot.android.api.utils.getJsonObject
 import java.net.URISyntaxException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -86,9 +87,8 @@ class ControlSocketComponent internal constructor(context : Context, private val
     }
 
     private fun handleCommand(args: Array<out Any>?) {
-        if (args != null && args[0] is JSONObject) {
-            val `object` = args[0] as JSONObject
-            parseCommand(`object`)?.let{
+        args?.getJsonObject()?.let {json ->
+            parseCommand(json)?.let{
                 resetTimer() //resets a timer to prevent a timeout message
                 sendCommand(it)
             }

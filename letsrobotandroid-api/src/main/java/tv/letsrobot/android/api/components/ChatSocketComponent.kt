@@ -1,7 +1,9 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONException
@@ -13,6 +15,7 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
+import tv.letsrobot.android.api.utils.getJsonObject
 import java.net.URISyntaxException
 import java.util.*
 
@@ -90,35 +93,60 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
     }
 
     private fun onChatMessageWithName(params: Array<out Any>) {
-        if (params[0] is JSONObject) {
-            val `object` = params[0] as JSONObject
+        params.getJsonObject()?.let {
             try {
-                processMessage(`object`.getString("message"), `object`.getString("name"))
+                processMessage(it)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
         }
     }
 
-    private fun processMessage(messageRaw: String?, user : String?) {
-        getMessageFromRaw(messageRaw)?.let {
+    private fun processMessage(jsonObject: JSONObject) {
+        getMessageFromRaw(jsonObject.getString("message"))?.let { rawMessage ->
+            val user = jsonObject.getString("name")
             var pitch = 1f
-            val speakingText : String? = if(isSpeakableText(it)) {
-                it
+            var isCommand = false
+            val speakingText : String? = if(isSpeakableText(rawMessage)) {
+                rawMessage
             }
             else{
+                isCommand = true
                 pitch = .5f
-                sendText(TTSBaseComponent.TTSObject(it,
-                        pitch,
-                        isSpeakable = false,
-                        isMod = user == MainSocketComponent.owner))
-                processCommand(it, user)
+                processCommand(rawMessage, user)
             }
-            speakingText?.let { ttsText ->
-                sendText(TTSBaseComponent.TTSObject(ttsText,
-                        pitch,
-                        isMod = user == MainSocketComponent.owner))
-            }
+            val ttsObject = TTSBaseComponent.TTSObject( rawMessage,
+                    pitch,
+                    user = user,
+                    isSpeakable = !isCommand,
+                    isMod = user == MainSocketComponent.owner,
+                    color = jsonObject.getString("username_color"),
+                    message_id = jsonObject.getString("_id"),
+                    shouldFlush = isCommand)
+            sendChatEvents(ttsObject, speakingText, isCommand)
+        }
+    }
+
+    private fun sendChatEvents(ttsObject: TTSBaseComponent.TTSObject, speakingText: String?, isCommand : Boolean) {
+        //send the packet via Local Broadcast. Anywhere in this app can intercept this
+        LocalBroadcastManager.getInstance(context)
+                .sendBroadcast(Intent(LR_CHAT_MESSAGE_WITH_NAME_BROADCAST)
+                        .also { intent ->
+                            intent.putExtra("json", ttsObject)
+                        })
+        if(isCommand){ //send it once for command
+            sendText(ttsObject)
+        }
+        speakingText?.let { ttsText -> //now send it again for speakable text
+            sendText(TTSBaseComponent.TTSObject(
+                    speakingText,
+                    ttsObject.pitch,
+                    ttsObject.user,
+                    ttsObject.anonymous,
+                    ttsObject.shouldFlush,
+                    true,
+                    ttsObject.isMod
+            ))
         }
     }
 
@@ -156,6 +184,9 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
     }
 
     companion object {
+        const val LR_CHAT_MESSAGE_WITH_NAME_BROADCAST = "tv.letsrobot.chat.chat_message_with_name"
+        const val LR_CHAT_MESSAGE_REMOVED_BROADCAST = "tv.letsrobot.chat.message_removed"
+        const val LR_CHAT_USER_REMOVED_BROADCAST = "tv.letsrobot.chat.user_removed"
         const val CHAT_URL = "https://letsrobot.tv/get_chat_host_port/%s"
         const val SOCKET_TEMPLATE = "http://%s:%s"
         fun getMessageFromRaw(inVal : String?) : String?{

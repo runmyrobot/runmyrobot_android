@@ -14,6 +14,7 @@ import tv.letsrobot.android.api.robot.CommunicationType
 import tv.letsrobot.android.api.services.LetsRobotService
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.controller.android.R
+import tv.letsrobot.controller.android.robot.RobotSettingsObject
 
 class SplashActivity : Activity() {
 
@@ -128,16 +129,8 @@ class SplashActivity : Activity() {
     private val requestCode = 1002
 
     private fun checkPermissions() : Boolean{
-        val list = ArrayList<String>(arrayListOf( //TODO selectively add based on settings
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ))
         val permissionsToAccept = ArrayList<String>()
-        for (perm in list){
+        for (perm in getCurrentRequiredPermissions()){
             if(ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED){
                 permissionsToAccept.add(perm)
             }
@@ -152,5 +145,23 @@ class SplashActivity : Activity() {
         else{
             true
         }
+    }
+
+    private fun getCurrentRequiredPermissions() : ArrayList<String> {
+        val list = ArrayList<String>()
+        val settings = RobotSettingsObject.load(this)
+        if(settings.enableMic){
+            list.add(Manifest.permission.RECORD_AUDIO)
+        }
+        if(settings.cameraEnabled){
+            list.add(Manifest.permission.CAMERA)
+        }
+
+        //location permission required to scan for bluetooth device
+        if(settings.robotCommunication == CommunicationType.BluetoothClassic){
+            list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            list.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        return list
     }
 }
