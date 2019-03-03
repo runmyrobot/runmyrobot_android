@@ -45,7 +45,6 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp:3.11.0'
     api project(':FFmpegAndroid-release')
     api 'com.google.guava:guava:26.0-android'
-    api 'com.akexorcist:bluetoothspp:1.0.0'
     api project(':ext_webcam')
 }
 repositories {
