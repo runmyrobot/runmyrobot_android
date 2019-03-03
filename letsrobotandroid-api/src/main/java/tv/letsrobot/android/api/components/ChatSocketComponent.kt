@@ -15,6 +15,7 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.PhoneBatteryMeter
 import tv.letsrobot.android.api.utils.ValueUtil
+import tv.letsrobot.android.api.utils.getJsonObject
 import java.net.URISyntaxException
 import java.util.*
 
@@ -92,10 +93,9 @@ class ChatSocketComponent internal constructor(context: Context, private val rob
     }
 
     private fun onChatMessageWithName(params: Array<out Any>) {
-        if (params[0] is JSONObject) {
-            val `object` = params[0] as JSONObject
+        params.getJsonObject()?.let {
             try {
-                processMessage(`object`)
+                processMessage(it)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }

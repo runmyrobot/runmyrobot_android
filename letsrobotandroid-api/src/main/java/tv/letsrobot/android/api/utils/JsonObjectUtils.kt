@@ -1,7 +1,9 @@
 package tv.letsrobot.android.api.utils
 
+import android.content.Intent
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -35,6 +37,15 @@ object JsonObjectUtils{
                 it.getString(key)
             } catch (e: Exception) {
                 null
+            }
+        }
+    }
+
+    @Throws(JSONException::class)
+    fun createIntentWithJson(action : String, json : JSONObject) : Intent {
+        return Intent(action).also {
+            json.keys().forEach { key ->
+                it.putExtra(key, json.getString(key))
             }
         }
     }

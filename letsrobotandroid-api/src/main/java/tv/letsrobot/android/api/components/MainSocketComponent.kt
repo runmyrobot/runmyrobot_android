@@ -1,7 +1,6 @@
 package tv.letsrobot.android.api.components
 
 import android.content.Context
-import android.content.Intent
 import android.os.Message
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
@@ -14,6 +13,7 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.android.api.utils.getJsonObject
 import java.util.concurrent.TimeUnit
 
 /**
@@ -79,15 +79,12 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun onUserRemoved(params: Array<out Any>) {
-        if (params[0] is JSONObject) {
-            val `object` = params[0] as JSONObject
+        params.getJsonObject()?.let {
             try {
-                if(`object`["room"] == owner){ //only send if the room is the name of the owner
-                    LocalBroadcastManager.getInstance(context)
-                            .sendBroadcast(Intent(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST)
-                                    .also { intent ->
-                                        intent.fillWithJson(`object`)
-                                    })
+                if(it["room"] == owner){ //only send if the room is the name of the owner
+                    val intent = JsonObjectUtils.createIntentWithJson(
+                            ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST, it)
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
                 }
             } catch (e: JSONException) {
                 e.printStackTrace()
@@ -95,20 +92,19 @@ class MainSocketComponent(context: Context) : Component(context) {
         }
     }
 
+
+
     /**
      * {
     "message_id": "5c5e45cf4101e7503a4eb148"
     }
      */
     private fun onMessageRemoved(params: Array<out Any>){
-        if (params[0] is JSONObject) {
-            val `object` = params[0] as JSONObject
+        params.getJsonObject()?.let {
             try {
-                LocalBroadcastManager.getInstance(context)
-                        .sendBroadcast(Intent(ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST)
-                                .also { intent ->
-                                    intent.fillWithJson(`object`)
-                                })
+                val intent = JsonObjectUtils.createIntentWithJson(
+                        ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST, it)
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
@@ -155,17 +151,5 @@ class MainSocketComponent(context: Context) : Component(context) {
     companion object {
         const val ROBOT_OWNER = 0
         var owner : String? = null
-    }
-
-    /**
-     * Fill the intent with top level of the json. Does not work when it is nested
-     */
-    private fun Intent.fillWithJson(jsonObject: JSONObject) {
-        jsonObject.keys().forEach { key ->
-            try {
-                putExtra(key, jsonObject.getString(key))
-            } catch (e: Exception) { //in case the API changes
-            }
-        }
     }
 }
