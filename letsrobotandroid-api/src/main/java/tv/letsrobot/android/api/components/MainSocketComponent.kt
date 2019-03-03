@@ -2,6 +2,7 @@ package tv.letsrobot.android.api.components
 
 import android.content.Context
 import android.os.Message
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
@@ -11,6 +12,8 @@ import tv.letsrobot.android.api.interfaces.Component
 import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RobotConfig
+import tv.letsrobot.android.api.utils.getJsonObject
+import tv.letsrobot.android.api.utils.sendJson
 import java.util.concurrent.TimeUnit
 
 /**
@@ -32,10 +35,12 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     override fun disableInternal() {
-
+        appServerSocket?.disconnect()
+        userAppSocket?.disconnect()
     }
 
     private var appServerSocket: Socket? = null
+    private var userAppSocket: Socket? = null
 
     private fun setOwner(){
         owner = JsonObjectUtils.getJsonObjectFromUrl(
@@ -48,8 +53,8 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun setupAppWebSocket() {
+        userAppSocket = IO.socket("https://letsrobot.tv:8000")
         appServerSocket = IO.socket("http://letsrobot.tv:8022")
-        appServerSocket?.connect()
         appServerSocket?.on(Socket.EVENT_CONNECT_ERROR){
             status = ComponentStatus.ERROR
         }
@@ -59,6 +64,33 @@ class MainSocketComponent(context: Context) : Component(context) {
         }
         appServerSocket?.on(Socket.EVENT_DISCONNECT){
             status = ComponentStatus.DISABLED
+        }
+        userAppSocket!!.on("message_removed"){
+            onMessageRemoved(it)
+        }
+        userAppSocket!!.on("user_blocked"){
+            onUserRemoved(it)
+        }
+        userAppSocket!!.on("user_timeout"){
+            onUserRemoved(it)
+        }
+        appServerSocket?.connect()
+        userAppSocket?.connect()
+    }
+
+    private fun onUserRemoved(params: Array<out Any>) {
+        params.getJsonObject()?.runCatching {
+            if(this["room"] != owner) return
+            LocalBroadcastManager.getInstance(context)
+                    .sendJson(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST, this)
+        }
+    }
+
+    private fun onMessageRemoved(params: Array<out Any>){
+        params.getJsonObject()?.runCatching {
+            val intent = JsonObjectUtils.createIntentWithJson(
+                    ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST, this)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
         }
     }
 
