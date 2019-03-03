@@ -124,6 +124,11 @@ Needed to stream the camera. Only requested if camera is enabled in settings
 
 Needed to stream the microphone. Only requested if the mic is enabled in settings
 
+#### Storage ####
+
+Required on some devices for importing a QR Code from a photo on the device. 
+Only requested when that feature is used
+
 ### Troubleshooting issues
 
 #### Flickering Camera and Microphone indicators

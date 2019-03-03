@@ -77,7 +77,7 @@ class ManualSetupActivity : AppCompatActivity() {
         item?.let {
             when(it.itemId){
                 R.id.cameraMenuItem -> getImageFromCamera(true)
-                R.id.photosMenuItem -> getImageFromPhotos()
+                R.id.photosMenuItem -> getImageFromPhotos(true)
                 else -> consumed = false
             }
             consumed = false
@@ -176,11 +176,26 @@ class ManualSetupActivity : AppCompatActivity() {
         }
     }
 
+    private var queuePhotoLaunch = false
 
-    private fun getImageFromPhotos() {
+    private fun getImageFromPhotos(shouldShowPermission : Boolean) {
         val intent = Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PHOTOS_REQUEST_CODE)
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            queuePhotoLaunch = if(shouldShowPermission) {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        PHOTO_PERMISSION_REQUEST_CODE)
+                true
+            } else{
+                false
+            }
+        }
+        else{
+            //permission successful
+            startActivityForResult(intent, PHOTOS_REQUEST_CODE)
+        }
     }
 
     private var queueCameraLaunch = false
@@ -209,6 +224,10 @@ class ManualSetupActivity : AppCompatActivity() {
         if(requestCode == CAMERA_PERMISSION_REQUEST_CODE && queueCameraLaunch){
             //run getImageFromCamera again. Will not ask again if permission denied
             getImageFromCamera(false)
+        }
+        else if(requestCode == PHOTO_PERMISSION_REQUEST_CODE && queuePhotoLaunch){
+            //run getImageFromCamera again. Will not ask again if permission denied
+            getImageFromPhotos(false)
         }
     }
 
@@ -265,5 +284,6 @@ class ManualSetupActivity : AppCompatActivity() {
         private const val CAMERA_REQUEST_CODE = 1
         private const val PHOTOS_REQUEST_CODE = 2
         private const val CAMERA_PERMISSION_REQUEST_CODE = 23
+        private const val PHOTO_PERMISSION_REQUEST_CODE = 24
     }
 }
