@@ -5,7 +5,6 @@ import android.os.Message
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
-import org.json.JSONException
 import org.json.JSONObject
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
@@ -14,6 +13,7 @@ import tv.letsrobot.android.api.interfaces.ComponentEventObject
 import tv.letsrobot.android.api.utils.JsonObjectUtils
 import tv.letsrobot.android.api.utils.RobotConfig
 import tv.letsrobot.android.api.utils.getJsonObject
+import tv.letsrobot.android.api.utils.sendJson
 import java.util.concurrent.TimeUnit
 
 /**
@@ -79,35 +79,18 @@ class MainSocketComponent(context: Context) : Component(context) {
     }
 
     private fun onUserRemoved(params: Array<out Any>) {
-        params.getJsonObject()?.let {
-            try {
-                if(it["room"] == owner){ //only send if the room is the name of the owner
-                    val intent = JsonObjectUtils.createIntentWithJson(
-                            ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST, it)
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-                }
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
+        params.getJsonObject()?.runCatching {
+            if(this["room"] != owner) return
+            LocalBroadcastManager.getInstance(context)
+                    .sendJson(ChatSocketComponent.LR_CHAT_USER_REMOVED_BROADCAST, this)
         }
     }
 
-
-
-    /**
-     * {
-    "message_id": "5c5e45cf4101e7503a4eb148"
-    }
-     */
     private fun onMessageRemoved(params: Array<out Any>){
-        params.getJsonObject()?.let {
-            try {
-                val intent = JsonObjectUtils.createIntentWithJson(
-                        ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST, it)
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
+        params.getJsonObject()?.runCatching {
+            val intent = JsonObjectUtils.createIntentWithJson(
+                    ChatSocketComponent.LR_CHAT_MESSAGE_REMOVED_BROADCAST, this)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
         }
     }
 
