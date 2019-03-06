@@ -23,6 +23,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildTypeName = variant.buildType.name
+            if(buildTypeName == "debug"){
+                //we want newer debug builds to overwrite old ones. We also don't care about version code
+                outputFileName = output.outputFile.name.replace(".apk", "-${versionSemantic}.apk").replace("app", "LetsRobotController")
+            }
+            else{
+                outputFileName = output.outputFile.name.replace(".apk", "-${variant.versionName}.apk").replace("app", "LetsRobotController")
+            }
+        }
+    }
 }
 
 dependencies {
