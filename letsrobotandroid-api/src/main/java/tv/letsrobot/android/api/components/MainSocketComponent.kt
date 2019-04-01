@@ -6,6 +6,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
+import tv.letsrobot.android.api.components.tts.TTSBaseComponent
 import tv.letsrobot.android.api.enums.ComponentStatus
 import tv.letsrobot.android.api.enums.ComponentType
 import tv.letsrobot.android.api.interfaces.Component
@@ -69,16 +70,24 @@ class MainSocketComponent(context: Context) : Component(context) {
             onMessageRemoved(it)
         }
         userAppSocket!!.on("user_blocked"){
+            say("user banned")
             onUserRemoved(it)
         }
         userAppSocket!!.on("user_timeout"){
+            say("user timed out")
             onUserRemoved(it)
         }
         appServerSocket?.connect()
         userAppSocket?.connect()
     }
 
+    fun say(text : String){
+        eventDispatcher?.handleMessage(getType(), EVENT_MAIN, TTSBaseComponent.TTSObject(text
+                , TTSBaseComponent.COMMAND_PITCH, shouldFlush = true), this)
+    }
+
     private fun onUserRemoved(params: Array<out Any>) {
+
         params.getJsonObject()?.runCatching {
             if(this["room"] != owner) return
             LocalBroadcastManager.getInstance(context)
